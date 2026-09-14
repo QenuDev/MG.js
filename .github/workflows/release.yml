@@ -1,0 +1,112 @@
+# Release. Tag `v<version>` to publish all three packages to npm.
+#
+# Publishing is token-free: npm accepts a publish from this workflow because a trusted publisher is
+# configured for each package on npmjs.com, naming this exact filename. So there is no `NPM_TOKEN`
+# secret here and nothing to rotate.
+#
+#   slug          QenuDev/MG.js
+#   workflow      release.yml
+#   allowed       `npm publish` (NOT only `npm stage publish`)
+#
+# That last line is the one that bites: a trusted publisher created recently allows only
+# `npm stage publish` by default, and a plain `npm publish` from this workflow is then rejected.
+# Configure all three packages (common, headless, bootstrapped) before tagging.
+#
+# The first release of each package cannot come from here. A trusted publisher is configured in a
+# package's settings page on npmjs.com, and there is no settings page until the package exists, so
+# 0.1.0 is published by hand. Every version after that is this workflow.
+#
+# Nothing here has anything to do with userscripts. This repository publishes packages; the script
+# that consumes them is built and released in `QenuDev/MG.js-bootstrapped-example`.
+#
+# Do NOT add an `NPM_TOKEN` secret or a `NODE_AUTH_TOKEN` environment variable. `setup-node` writes
+# `//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}` into `.npmrc` whenever `registry-url` is set,
+# and a token that exists is preferred over OIDC, so the publish then fails with a 404 naming the
+# package rather than the token. Measured rather than assumed: with `NODE_AUTH_TOKEN` unset, npm
+# leaves the unresolved `${...}` alone and makes an unauthenticated request, so `registry-url` above
+# is safe to keep and needs no sentinel workaround.
+
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  id-token: write # required: this is what mints the short-lived OIDC credential npm accepts
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node 24, not the 22 that `ci.yml` uses. `ci.yml` pins the floor the packages claim
+      # (`engines.node`); this job needs the npm that ships with a newer major, because trusted
+      # publishing requires npm 11.5.1+ and OIDC support is the whole mechanism here.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          # No dependency cache, on purpose: a release build should not be able to publish
+          # something a stale cache influenced, and this is not the job that needs the speed.
+
+      # Existing installs are not guaranteed to be new enough, so the floor is raised explicitly
+      # rather than inferred from whichever npm the runner image happened to ship.
+      - name: Use an npm that can authenticate over OIDC
+        run: |
+          npm install -g npm@latest
+          echo "npm $(npm --version), node $(node --version)"
+
+      # The failure this guards is silent and confusing: an npm below the floor ignores the OIDC
+      # environment, looks for a token that does not exist, and fails with a 401 that says nothing
+      # about versions. A gate must be able to fail, and it should fail saying why.
+      - name: Assert the npm CLI supports trusted publishing
+        run: |
+          node -e 'const [maj, min] = process.argv[1].split(".").map(Number);
+            if (maj < 11 || (maj === 11 && min < 5)) {
+              console.error("npm " + process.argv[1] + " cannot authenticate over OIDC; trusted publishing needs 11.5.1 or later.");
+              process.exit(1);
+            }
+            console.log("npm " + process.argv[1] + " can authenticate over OIDC.");' "$(npm --version)"
+
+      - name: Install from the lockfile
+        run: npm ci
+
+      # The tag is a claim about what is being published, so it is checked rather than assumed. It
+      # also enforces the lockstep property D13 states: the three packages carry one version, and a
+      # tag that names a version only one of them has would publish a mismatched release.
+      - name: Assert the tag matches the three package versions
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          for package in common headless bootstrapped; do
+            version=$(node -p "require('./packages/$package/package.json').version")
+            if [ "$version" != "$tag" ]; then
+              echo "::error::tag $GITHUB_REF_NAME names $tag, but packages/$package is $version"
+              exit 1
+            fi
+          done
+          echo "tag $GITHUB_REF_NAME matches all three packages at $tag"
+
+      # The same command a developer runs and the same one `ci.yml` runs. There is no
+      # second definition of the gate here: a workflow that re-lists the steps drifts from the
+      # script the moment either changes, and this job would then be publishing something the gate
+      # never saw.
+      - name: Verify (lint, typecheck, build, test, docs)
+        run: npm run verify
+
+      # Order is a correctness requirement, not tidiness: `headless` and `bootstrapped` depend on
+      # `@mg.js/common@^0.1.0`, so publishing them first would hand out an install whose dependency
+      # cannot resolve yet.
+      #
+      # A re-run is not idempotent, on purpose. Publishing a version that already exists fails
+      # loudly (npm refuses to publish over a published version). If a run dies after `common` but
+      # before `bootstrapped`, publish the remainder by hand; do not "fix" it by
+      # making the steps skip what exists, which would turn a re-tag into a success that shipped
+      # nothing.
+      - name: Publish (dependency order)
+        run: |
+          npm publish -w @mg.js/common
+          npm publish -w @mg.js/headless
+          npm publish -w @mg.js/bootstrapped

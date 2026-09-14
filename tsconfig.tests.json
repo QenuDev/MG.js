@@ -1,0 +1,19 @@
+{
+  "//": "The project that typechecks what `tsc -b` never saw: every test file and every script.",
+  "//2": "Not composite and invoked with `tsc -p` (never `tsc -b`), because it only reports errors.",
+  "//3": "allowImportingTsExtensions: the tests still import `../src/foo.ts` in 61 imports across 21 files;",
+  "//3b": "normalising those to `.js` is a separate change (DESIGN D-conventions: relative imports end in .js).",
+  "//3c": "Measured at Phase 5 Task 5.8; the figure here said \"21 places\", which was the file count.",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "allowImportingTsExtensions": true,
+    "tsBuildInfoFile": null,
+    "types": ["node", "ws"]
+  },
+  "include": ["packages/*/src/**/*.ts", "packages/*/tests/**/*.ts", "scripts/**/*.ts"]
+}

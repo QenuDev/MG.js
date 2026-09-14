@@ -1,0 +1,46 @@
+# The checks that need the real service, kept off the push path.
+#
+# These reach magicgarden.gg: the catalogue endpoints and a real room socket. Running them on every push would
+# make every commit's status depend on someone else's uptime, and a transient 502 would read as a broken
+# commit. So they run only when asked, and weekly as a drift alarm, because the protocol is a moving target.
+# A scheduled run exists to notice that the live shapes changed before a user does.
+#
+# `workflow_dispatch` takes no inputs: the checks are one command pair, and an input nobody sets is surface
+# that has to be documented, defaulted and maintained.
+
+name: live
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Mondays, 06:00 UTC. Weekly rather than daily because these assert on a live third-party service: a daily
+    # run mostly produces noise about their deploy windows, not signal about our code.
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Same Node as `ci.yml`, for the same reason: `engines.node` is >=22 and these scripts run through `tsx`.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install from the lockfile
+        run: npm ci
+
+      # The catalogue endpoints. Asserts the documented version/rate-limit shapes rather than merely reaching
+      # them, so it is a script with a verdict and not a curl.
+      - name: Live catalogue check
+        run: npm run verify:catalog
+
+      # A real room socket: handshake, keepalive, close codes. This is the check that would catch a change in
+      # the live wire behaviour, and the one the guest-probe findings were established with.
+      - name: Live socket check
+        run: npm run verify:socket

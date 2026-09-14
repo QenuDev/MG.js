@@ -1,0 +1,59 @@
+{
+  "name": "@mg.js/headless",
+  "version": "0.1.2",
+  "type": "module",
+  "description": "Standalone Magic Garden client: owns its own WebSocket, authenticates, handshakes, stays alive, reconnects, and exposes the full @mg.js/common action and state surface.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./transport": {
+      "types": "./dist/transport/index.d.ts",
+      "default": "./dist/transport/index.js"
+    },
+    "./auth": {
+      "types": "./dist/auth/index.d.ts",
+      "default": "./dist/auth/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!dist/.tsbuildinfo"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "prepack": "npm run build",
+    "test": "node --import tsx --test \"tests/**/*.test.ts\""
+  },
+  "dependencies": {
+    "@mg.js/common": "^0.1.0"
+  },
+  "optionalDependencies": {
+    "ws": "^8.19.0"
+  },
+  "peerDependencies": {
+    "ws": "^8.19.0"
+  },
+  "peerDependenciesMeta": {
+    "ws": {
+      "optional": true
+    }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QenuDev/MG.js.git",
+    "directory": "packages/headless"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "sideEffects": false
+}
