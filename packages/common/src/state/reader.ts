@@ -39,12 +39,15 @@ import type {
   Crop,
   Currency,
   Garden,
+  Inventory,
+  InventoryItem,
   Mutation,
   Pet,
   Player,
   PlayerRecord,
   Room,
   StateRecordLike,
+  Storage,
   Tile,
 } from './entities.js';
 import { ACTIVITY_ACTION_FIELDS, ACTIVITY_PARAMETER_FIELDS, DISCORD_ID_FIELDS } from './entities.js';
@@ -203,6 +206,77 @@ export function toPlayerRecord(value: unknown): PlayerRecord {
     discordUserId: record.string(DISCORD_ID_FIELDS[0]),
     databaseUserId: record.string(DISCORD_ID_FIELDS[1]),
     hasDiscordId: DISCORD_ID_FIELDS.some((field) => record.string(field) !== ''),
+  };
+}
+
+/**
+ * One inventory entry, from the game's own item union.
+ *
+ * Every kind of item has its own schema, and all of them are told apart by `itemType`. The fields a kind
+ * does not carry read as their empty value rather than being left off, so a caller that switches on
+ * `itemType` sees a whole item either way and never has to test whether a field exists.
+ *
+ * `hasLife` exists because a consumable tool's `remainingActiveSeconds` can legitimately be `0`, and `0` is
+ * not the same as the field being absent: a spent tool and a tool that never had a life are two different
+ * items, and the save tells them apart only by whether the field is there.
+ */
+export function toInventoryItem(value: unknown, entityPath: string): InventoryItem {
+  const record = new StateRecord(value);
+  return {
+    entityPath,
+    itemType: record.string('itemType'),
+    id: record.id('id'),
+    // A pet in the bag is the one kind whose species is spelled `petSpecies`, the same as a pet in a slot.
+    species: record.string('petSpecies') || record.string('species'),
+    // A stack with no stated quantity is one item, which is what the save's own default says.
+    quantity: record.number('quantity', 1),
+    size: record.number('size'),
+    mutations: toStringArray(record.read('mutations')),
+    toolId: record.id('toolId'),
+    remainingActiveSeconds: record.number('remainingActiveSeconds'),
+    hasLife: record.has('remainingActiveSeconds'),
+    eggId: record.string('eggId'),
+    decorId: record.string('decorId'),
+    name: record.string('name'),
+    record,
+  };
+}
+
+/** One container: the decoration it came from, its size, and what is inside it. */
+export function toStorage(value: unknown, entityPath: string): Storage {
+  const record = new StateRecord(value);
+  return {
+    entityPath,
+    decorId: record.string('decorId'),
+    capacitySlots: record.number('capacitySlots'),
+    items: toInventoryItems(record.read('items'), `${entityPath}/items`),
+    record,
+  };
+}
+
+/** A list of inventory entries, each carrying its own path. */
+export function toInventoryItems(value: unknown, entityPath: string): InventoryItem[] {
+  if (!Array.isArray(value)) return [];
+  const items: InventoryItem[] = [];
+  for (let index = 0; index < value.length; index += 1) {
+    items.push(toInventoryItem(value[index], `${entityPath}/${index}`));
+  }
+  return items;
+}
+
+/** Everything a player owns, from `userSlots[<n>]/data/inventory`. */
+export function toInventory(value: unknown, entityPath: string): Inventory {
+  const record = new StateRecord(value);
+  const rawStorages = record.read('storages');
+  const storages: Storage[] = [];
+  if (Array.isArray(rawStorages)) {
+    for (let index = 0; index < rawStorages.length; index += 1) {
+      storages.push(toStorage(rawStorages[index], `${entityPath}/storages/${index}`));
+    }
+  }
+  return {
+    items: toInventoryItems(record.read('items'), `${entityPath}/items`),
+    storages,
   };
 }
 
@@ -848,6 +922,10 @@ export class StateReader {
       id: record.id,
       name: record.name,
       ...toCurrency(saved),
+      inventory: toInventory(
+        dataPath === null ? undefined : this.store.get(`${dataPath}/inventory`),
+        `${dataPath ?? `${USER_SLOTS}/${index}/data`}/inventory`,
+      ),
       garden: toGarden(gardenValue, nowMs, `${dataPath ?? `${USER_SLOTS}/${index}/data`}/garden`),
       pets: slotIndex === null ? [] : this.pets(slotIndex),
       activityLog: slotIndex === null ? [] : this.activityLogs(slotIndex),

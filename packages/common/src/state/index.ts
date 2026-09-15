@@ -8,6 +8,8 @@ export type {
   Crop,
   Currency,
   Garden,
+  Inventory,
+  InventoryItem,
   ItemType,
   Mutation,
   MutationGroup,
@@ -17,6 +19,7 @@ export type {
   PlayerRecord,
   Room,
   StateRecordLike,
+  Storage,
   Tile,
 } from './entities.js';
 export {
@@ -43,6 +46,16 @@ export {
   resolvePointer,
 } from './pointer.js';
 export type { WaitOptions, Watchable, WatchTarget } from './reader.js';
-export { asRecord, StateReader, StateRecord, StateWaitError, toCurrency } from './reader.js';
+export {
+  asRecord,
+  StateReader,
+  StateRecord,
+  StateWaitError,
+  toCurrency,
+  toInventory,
+  toInventoryItem,
+  toInventoryItems,
+  toStorage,
+} from './reader.js';
 export type { ObservableStoreOptions, StateChange, StateSubscriber } from './store.js';
 export { emptyStateTree, ObservableStore } from './store.js';

@@ -16,11 +16,12 @@
  *
  * ## The snapshot
  *
- * 145 runtime names from `packages/common/src/index.ts`. 133 were measured at `737b`-era HEAD
+ * 149 runtime names from `packages/common/src/index.ts`. 133 were measured at `737b`-era HEAD
  * `db7371f`. The named state accessors and the game's server clock added the rest: `StateReader`,
  * `StateRecord`, `asRecord`, `ServerClock`, `asFiniteMs`, `MUTATIONS`, `mutationName` and the four
  * documented field-name lists, in the same commit as this line. `toCurrency` followed, in the commit that
- * moved a player's balances out of the room's player list and into their saved data.
+ * moved a player's balances out of the room's player list and into their saved data, and then the four
+ * inventory readers and `toStorage` with the inventory itself.
  *
  *     node --import tsx -e \
  *       "import('./packages/common/src/index.ts').then(m=>console.log(Object.keys(m).sort().join('\n')))"
@@ -177,7 +178,11 @@ const EXPECTED_EXPORTS: readonly string[] = [
   'serializeFrame',
   'summarizeError',
   'toCurrency',
+  'toInventory',
+  'toInventoryItem',
+  'toInventoryItems',
   'toMgError',
+  'toStorage',
   'unrefTimer',
   'utf8ByteLength',
   'watchUntil',

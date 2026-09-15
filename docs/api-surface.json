@@ -690,7 +690,11 @@
         "playerCount",
         "pointerContains",
         "resolvePointer",
-        "toCurrency"
+        "toCurrency",
+        "toInventory",
+        "toInventoryItem",
+        "toInventoryItems",
+        "toStorage"
       ],
       "Interface": [
         "ActivityEntry",
@@ -699,6 +703,8 @@
         "Crop",
         "Currency",
         "Garden",
+        "Inventory",
+        "InventoryItem",
         "MutationInfo",
         "ObservableStoreOptions",
         "PatchOutcome",
@@ -709,6 +715,7 @@
         "ServerClockState",
         "StateChange",
         "StateRecordLike",
+        "Storage",
         "Tile",
         "WaitOptions",
         "Watchable"

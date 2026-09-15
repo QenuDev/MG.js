@@ -330,6 +330,99 @@ export interface Currency {
 }
 
 /**
+ * One stack in an inventory.
+ *
+ * The save keeps one array for everything a player owns, and `itemType` decides which of the item schemas
+ * an entry is. The fields that are true of every kind are read here whatever the entry is; the rest are
+ * read per kind and left empty otherwise, so a caller switching on `itemType` sees the fields that kind
+ * carries rather than a hole where the others would be.
+ *
+ * The item schemas in the game's bundle are:
+ *
+ *     produce  { id, species, itemType, size, mutations }
+ *     seed     { species, itemType, quantity }
+ *     tool     { toolId, itemType, quantity } or { id, toolId, itemType, quantity, remainingActiveSeconds }
+ *     plant    { id, species, itemType, slots, plantedAt, maturedAt }
+ *     egg      { eggId, itemType, quantity }
+ *     decor    { decorId, itemType, quantity }
+ *     pet      { id, petSpecies, itemType, name, xp, hunger, mutations, targetScale, abilities, … }
+ */
+export interface InventoryItem extends StateView {
+  /** The path of this item: `.../userSlots/<slot>/data/inventory/items/<n>`. */
+  readonly entityPath: string;
+  /** What this entry is. This is the game's own discriminator field. */
+  readonly itemType: ItemType;
+  /**
+   * The entry's own id, or `''`.
+   *
+   * A stack of seeds or eggs is identified by its species and carries no id; a pet, a potted plant and a
+   * tool with a remaining life do carry one.
+   */
+  readonly id: string;
+  /** The species, for the kinds that have one: produce, seed, plant and pet. */
+  readonly species: string;
+  /** How many are in this stack. `1` for the kinds that are stored one at a time. */
+  readonly quantity: number;
+  /** The crop's size, for produce. `0` for every other kind. */
+  readonly size: number;
+  /** The crop's mutations, for produce. Empty for every other kind. */
+  readonly mutations: Mutation[];
+  /** The tool's id, for tools. `''` for every other kind. */
+  readonly toolId: string;
+  /**
+   * Seconds of life left on a consumable tool, for the kinds that have one.
+   *
+   * `0` for a tool that is not consumable and for every other kind, which is why it is not the way to tell
+   * whether a tool is spent: `remainingActiveSeconds` being absent is. {@link hasLife} says which it is.
+   */
+  readonly remainingActiveSeconds: number;
+  /** True when the entry carries a `remainingActiveSeconds` at all, rather than reporting it as `0`. */
+  readonly hasLife: boolean;
+  /** The egg's id, for eggs. `''` for every other kind. */
+  readonly eggId: string;
+  /** The decoration's id, for decor. `''` for every other kind. */
+  readonly decorId: string;
+  /** The name the player gave it, for a pet in the bag. `''` for every other kind. */
+  readonly name: string;
+  /** Everything else the item carries, read by name. The escape hatch. */
+  readonly record: StateRecordLike;
+}
+
+/**
+ * A container a player owns, and what is in it.
+ *
+ * A storage is created by placing the decoration that provides it, so `decorId` is both what it is and
+ * where it came from: a seed silo is a storage whose `decorId` is `SeedSilo`. A player can own more than
+ * one of the same kind, so an inventory holds a list rather than a lookup by kind.
+ */
+export interface Storage extends StateView {
+  /** The path of this storage: `.../userSlots/<slot>/data/inventory/storages/<n>`. */
+  readonly entityPath: string;
+  /** The decoration that provides this storage, such as `SeedSilo`, `PetHutch`, `ToolShack` or `DecorShed`. */
+  readonly decorId: string;
+  /** How many slots the storage has. `0` when the field is absent. */
+  readonly capacitySlots: number;
+  /** What is in it. Empty is a real state, and is not the same as the storage being absent. */
+  readonly items: InventoryItem[];
+  /** Everything else the storage carries, read by name. The escape hatch. */
+  readonly record: StateRecordLike;
+}
+
+/**
+ * Everything a player owns.
+ *
+ * The loose items are the ones held in hand, and the storages are the containers built from decoration.
+ * Both live under the player's saved `inventory`, which is the same object the garden and the balances
+ * come from.
+ */
+export interface Inventory {
+  /** The items outside any container. */
+  readonly items: InventoryItem[];
+  /** Every container the player has built, in the save's own order. */
+  readonly storages: Storage[];
+}
+
+/**
  * One player: the room's record of them, joined to their own data in the game tree.
  *
  * The room names a player by id and the game tree holds their garden under a slot, so this is a join.
@@ -352,6 +445,8 @@ export interface Player extends StateView, Currency {
    * thing.
    */
   readonly garden: Garden | null;
+  /** Everything the player owns, in hand and in storage. */
+  readonly inventory: Inventory;
   /** The pets this player has out. A pet in a bag or a storage is an inventory item, not one of these. */
   readonly pets: Pet[];
   /** The player's ability and event log. Capped by the game, so use entry timestamps as a watermark. */

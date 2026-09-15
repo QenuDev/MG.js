@@ -127,9 +127,49 @@ function sampleStore(): ObservableStore {
             {
               userId: 'p_1',
               data: {
-                // The saved object a player's garden and balances are both fields of.
+                // The saved object the garden, both balances and the inventory are all fields of.
                 coinsCount: 1250,
                 magicDustCount: 226_100,
+                inventory: {
+                  items: [
+                    { itemType: 'Seed', species: 'Clover', quantity: 12 },
+                    { itemType: 'Produce', id: 'crop_1', species: 'Tomato', size: 75, mutations: ['Gold'] },
+                    { itemType: 'Tool', toolId: 'WateringCan', quantity: 1 },
+                    {
+                      itemType: 'Tool',
+                      id: 'tool_1',
+                      toolId: 'RainPotion',
+                      quantity: 1,
+                      remainingActiveSeconds: 0,
+                    },
+                    { itemType: 'Egg', eggId: 'SnowEgg', quantity: 3 },
+                    { itemType: 'Decor', decorId: 'Fence', quantity: 4 },
+                    {
+                      itemType: 'Pet',
+                      id: 'pet_bag',
+                      petSpecies: 'Fox',
+                      name: 'Rusty',
+                      xp: 10,
+                      hunger: 50,
+                      mutations: [],
+                      targetScale: 1,
+                      abilities: [],
+                    },
+                  ],
+                  storages: [
+                    {
+                      decorId: 'SeedSilo',
+                      capacitySlots: 200,
+                      items: [{ itemType: 'Seed', species: 'Pumpkin', quantity: 3 }],
+                    },
+                    {
+                      decorId: 'ToolShack',
+                      capacitySlots: 30,
+                      items: [{ itemType: 'Tool', toolId: 'Shovel', quantity: 1 }],
+                    },
+                  ],
+                  favoritedItemIds: [],
+                },
                 garden: { tileObjects: REAL_TILE_OBJECTS, boardwalkTileObjects: {} },
                 petSlots: [
                   {
@@ -202,6 +242,65 @@ void test('the room reads its players, chat and host from the documented room pa
     store.get('/data/chat'),
   );
   assert.equal(state.room.hostPlayerId, store.get('/data/hostPlayerId'));
+});
+
+void test('a player carries the whole inventory, and every kind of item reads its own fields', () => {
+  const { state } = readerWithClock();
+  const me = state.self;
+  assert.ok(me !== null, 'the fixture names this account');
+
+  const byKind = (kind: string) => me.inventory.items.filter((item) => item.itemType === kind);
+  assert.equal(me.inventory.items.length, 7, 'every entry in the save is read');
+
+  const [seed] = byKind('Seed');
+  assert.equal(seed?.species, 'Clover');
+  assert.equal(seed?.quantity, 12);
+  // A stack carries no id of its own, and says so rather than inventing one.
+  assert.equal(seed?.id, '');
+
+  const [produce] = byKind('Produce');
+  assert.equal(produce?.species, 'Tomato');
+  assert.equal(produce?.size, 75);
+  assert.deepEqual(produce?.mutations, ['Gold']);
+  // A kind with no quantity of its own is one item, which is the save's own default.
+  assert.equal(produce?.quantity, 1);
+
+  const tools = byKind('Tool');
+  assert.equal(tools.length, 2);
+  assert.equal(tools[0]?.toolId, 'WateringCan');
+  assert.equal(tools[0]?.hasLife, false, 'a tool with no stated life is not a spent one');
+  assert.equal(tools[1]?.hasLife, true, 'a consumable tool states its life, even at zero');
+
+  assert.equal(byKind('Egg')[0]?.eggId, 'SnowEgg');
+  assert.equal(byKind('Decor')[0]?.decorId, 'Fence');
+  assert.equal(byKind('Pet')[0]?.species, 'Fox');
+  assert.equal(byKind('Pet')[0]?.name, 'Rusty');
+});
+
+void test('the inventory lists every storage with the decoration it came from', () => {
+  const { state } = readerWithClock();
+  const me = state.self;
+  assert.ok(me !== null);
+
+  assert.deepEqual(
+    me.inventory.storages.map((storage) => storage.decorId),
+    ['SeedSilo', 'ToolShack'],
+  );
+  const silo = me.inventory.storages.find((storage) => storage.decorId === 'SeedSilo');
+  assert.equal(silo?.capacitySlots, 200);
+  assert.equal(silo?.items.length, 1);
+  assert.equal(silo?.items[0]?.species, 'Pumpkin');
+  assert.equal(silo?.items[0]?.quantity, 3);
+});
+
+void test('an inventory the save has not sent yet is empty, not null', () => {
+  const { state } = readerWithClock();
+  // Slot 2 in the fixture has a garden and no inventory at all, which is what a player who has just joined
+  // looks like. Reading it must not throw, and must not report a missing inventory as a broken one.
+  const other = state.room.players[1];
+  assert.ok(other !== undefined);
+  assert.deepEqual(other.inventory.items, []);
+  assert.deepEqual(other.inventory.storages, []);
 });
 
 void test('a room that has not arrived yet is an empty room, not null', () => {
