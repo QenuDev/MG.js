@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.DS_Store
+*.log
+# Scratch logs and verification transcripts. They are working state, not source: an untracked directory
+# here is how a broad `git add` sweeps 100 MB of transcript into a commit.
+.logs/
+.npm-cache/
+# `npm pack` writes these to the repo root; without this they dirty the worktree.
+*.tgz
+
+# Generated API reference (HTML). The committed surface manifest is docs/api-surface.json.
+.docs-api/

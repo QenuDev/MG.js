@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Quinoa Protocol — an unofficial field guide</title>
+<style>
+  :root{
+    --bg: #10130f;
+    --bg-raised: #161b14;
+    --bg-code: #14170f;
+    --ink: #e8e4d6;
+    --ink-dim: #a9a795;
+    --ink-faint: #6f6c5c;
+    --rule: #2a2f22;
+    --rule-soft: #1f241a;
+    --amber: #e2a13c;
+    --amber-dim: #a97a30;
+    --moss: #7fa06f;
+    --moss-bright: #a9cc8f;
+    --clay: #c26a4f;
+    --serif: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    --sans: "Inter", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:15.5px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--amber); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+
+  /* ---------- layout ---------- */
+  .shell{display:flex; min-height:100vh;}
+  nav.side{
+    width:280px; flex:0 0 280px;
+    background:var(--bg-raised);
+    border-right:1px solid var(--rule);
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+    padding:28px 0 60px;
+  }
+  nav.side::-webkit-scrollbar{width:8px;}
+  nav.side::-webkit-scrollbar-thumb{background:var(--rule); border-radius:4px;}
+  .brand{
+    padding:0 24px 20px;
+    border-bottom:1px solid var(--rule);
+    margin-bottom:18px;
+  }
+  .brand .mark{
+    font-family:var(--serif);
+    font-size:22px; font-weight:600; color:var(--amber);
+    letter-spacing:0.01em;
+  }
+  .brand .sub{
+    font-size:12.5px; color:var(--ink-dim); margin-top:6px; line-height:1.5;
+  }
+  .navgroup{margin-bottom:4px;}
+  .navgroup > .navtitle{
+    font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--ink-faint); padding:14px 24px 6px; font-weight:600;
+  }
+  .navgroup a{
+    display:block; padding:6px 24px 6px 28px;
+    color:var(--ink-dim); font-size:13.5px;
+    border-left:2px solid transparent;
+  }
+  .navgroup a:hover{color:var(--ink); text-decoration:none; background:rgba(255,255,255,0.02);}
+  .navgroup a.active{color:var(--amber); border-left-color:var(--amber); background:rgba(226,161,60,0.06);}
+
+  main{flex:1; min-width:0; max-width:920px; padding:56px 64px 140px;}
+  @media (max-width:900px){
+    nav.side{position:fixed; left:-280px; transition:left .2s; z-index:50;}
+    nav.side.open{left:0;}
+    main{padding:56px 24px 100px;}
+  }
+
+  header.hero{margin-bottom:64px;}
+  header.hero h1{
+    font-family:var(--serif); font-weight:600; font-size:44px;
+    line-height:1.1; margin:0 0 18px; color:var(--ink);
+    max-width:14ch;
+  }
+  header.hero h1 em{color:var(--amber); font-style:normal;}
+  header.hero p.lede{
+    font-size:17px; color:var(--ink-dim); max-width:60ch; margin:0 0 20px;
+  }
+  .source-chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:22px;}
+  .source-chips a{
+    font-family:var(--mono); font-size:12px; color:var(--moss-bright);
+    border:1px solid var(--rule); border-radius:999px; padding:5px 12px;
+    background:var(--bg-raised);
+  }
+  .source-chips a:hover{border-color:var(--moss-bright); text-decoration:none;}
+
+  section{margin-bottom:76px; scroll-margin-top:24px;}
+  section h2{
+    font-family:var(--serif); font-size:28px; font-weight:600;
+    color:var(--ink); margin:0 0 6px; padding-bottom:14px;
+    border-bottom:1px solid var(--rule);
+  }
+  section h2 .num{color:var(--moss); font-family:var(--mono); font-size:15px; margin-right:12px; font-weight:400;}
+  section h3{
+    font-family:var(--sans); font-size:17px; font-weight:700; color:var(--amber-dim);
+    margin:38px 0 12px;
+  }
+  section p{color:#d8d4c6; margin:0 0 14px; max-width:74ch;}
+  section p.note{
+    color:var(--ink-dim); font-size:14px; border-left:3px solid var(--moss);
+    padding:8px 0 8px 14px; margin:18px 0; max-width:70ch;
+  }
+  section p.warn{
+    color:#e6c99a; font-size:14px; border-left:3px solid var(--clay);
+    padding:8px 0 8px 14px; margin:18px 0; max-width:70ch;
+  }
+  ul,ol{color:#d8d4c6; max-width:72ch; padding-left:22px;}
+  li{margin-bottom:6px;}
+  code{
+    font-family:var(--mono); font-size:0.86em; background:var(--bg-code);
+    border:1px solid var(--rule-soft); border-radius:4px; padding:1px 6px;
+    color:var(--moss-bright);
+  }
+  pre{
+    background:var(--bg-code); border:1px solid var(--rule);
+    border-radius:8px; padding:18px 20px; overflow-x:auto;
+    margin:16px 0 24px; position:relative;
+  }
+  pre code{
+    background:none; border:none; padding:0; color:var(--ink);
+    font-size:13px; line-height:1.6; white-space:pre;
+  }
+  pre .tag{
+    position:absolute; top:10px; right:14px; font-family:var(--mono);
+    font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+  .tok-key{color:var(--moss-bright);}
+  .tok-str{color:#d9b979;}
+  .tok-num{color:#8fb3d9;}
+  .tok-com{color:var(--ink-faint); font-style:italic;}
+  .tok-kw{color:var(--clay);}
+
+  table{width:100%; border-collapse:collapse; margin:16px 0 28px; font-size:13.5px;}
+  th{
+    text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.05em;
+    color:var(--ink-faint); border-bottom:1px solid var(--rule); padding:8px 12px;
+    font-weight:600;
+  }
+  td{border-bottom:1px solid var(--rule-soft); padding:9px 12px; vertical-align:top; color:#d8d4c6;}
+  td code{white-space:nowrap;}
+  tr:hover td{background:rgba(255,255,255,0.015);}
+  .badge{
+    display:inline-block; font-family:var(--mono); font-size:10.5px;
+    padding:2px 7px; border-radius:4px; letter-spacing:0.02em;
+  }
+  .badge.wrapped{background:rgba(226,161,60,0.14); color:var(--amber);}
+  .badge.flat{background:rgba(127,160,111,0.14); color:var(--moss-bright);}
+  .badge.room{background:rgba(194,106,79,0.14); color:var(--clay);}
+
+  .diagram{
+    background:var(--bg-code); border:1px solid var(--rule); border-radius:8px;
+    padding:22px 24px; margin:20px 0 28px; font-family:var(--mono); font-size:13px;
+    color:var(--ink-dim); overflow-x:auto;
+  }
+  .diagram .step{color:var(--ink);}
+  .diagram .arrow{color:var(--moss);}
+  .diagram .server{color:var(--amber);}
+  .diagram .client{color:var(--moss-bright);}
+
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr;}}
+  .card{
+    background:var(--bg-raised); border:1px solid var(--rule); border-radius:8px;
+    padding:18px 20px;
+  }
+  .card h4{margin:0 0 8px; font-size:14px; color:var(--amber); font-family:var(--sans);}
+  .card p{margin:0; font-size:13.5px; color:var(--ink-dim);}
+
+  footer{
+    border-top:1px solid var(--rule); padding-top:28px; color:var(--ink-faint); font-size:13px;
+  }
+
+  .toggle-nav{
+    display:none; position:fixed; top:14px; left:14px; z-index:60;
+    background:var(--bg-raised); border:1px solid var(--rule); border-radius:6px;
+    color:var(--ink); padding:8px 12px; font-family:var(--mono); font-size:12px;
+  }
+  @media (max-width:900px){.toggle-nav{display:block;}}
+</style>
+</head>
+<body>
+
+<button class="toggle-nav" onclick="document.querySelector('nav.side').classList.toggle('open')">☰ menu</button>
+
+<div class="shell">
+  <nav class="side" id="sidenav">
+    <div class="brand">
+      <div class="mark">The Quinoa Protocol</div>
+      <div class="sub">Unofficial field guide to Magic Garden's ingame API, reverse&#8209;engineered from open-source mods.</div>
+    </div>
+
+    <div class="navgroup">
+      <div class="navtitle">Orientation</div>
+      <a href="#overview">Overview</a>
+      <a href="#architecture">How the pieces fit</a>
+    </div>
+
+    <div class="navgroup">
+      <div class="navtitle">Connecting</div>
+      <a href="#connecting">Opening the socket</a>
+      <a href="#handshake">Handshake sequence</a>
+      <a href="#lifecycle">Close codes &amp; reconnecting</a>
+    </div>
+
+    <div class="navgroup">
+      <div class="navtitle">The wire format</div>
+      <a href="#room-connection">A friendlier hook point</a>
+      <a href="#envelopes">Flat messages vs. QuinoaCommand</a>
+      <a href="#sequencing">Command sequencing</a>
+    </div>
+
+    <div class="navgroup">
+      <div class="navtitle">Server &rarr; client</div>
+      <a href="#welcome">Welcome</a>
+      <a href="#patches">PartialState &amp; JSON Patch</a>
+      <a href="#results">QuinoaCommandResult</a>
+    </div>
+
+    <div class="navgroup">
+      <div class="navtitle">Action reference</div>
+      <a href="#actions-session">Session &amp; heartbeat</a>
+      <a href="#actions-social">Social &amp; chat</a>
+      <a href="#actions-movement">Movement</a>
+      <a href="#actions-shop">Shop</a>
+      <a href="#actions-garden">Garden &amp; crops</a>
+      <a href="#actions-decor">Decor</a>
+      <a href="#actions-pets">Pets &amp; pet teams</a>
+      <a href="#actions-inventory">Inventory &amp; storage</a>
+    </div>
+
+    <div class="navgroup">
+      <div class="navtitle">Reading state</div>
+      <a href="#state-two-ways">Two ways in</a>
+      <a href="#jotai">Reading the game's own atoms</a>
+    </div>
+
+    <div class="navgroup">
+      <div class="navtitle">Drawing in the engine</div>
+      <a href="#pixi-basics">Finding the renderer</a>
+      <a href="#pixi-text">Drawing text</a>
+      <a href="#rive-text">Text on Rive-animated objects</a>
+      <a href="#pixi-shapes">Drawing shapes &amp; badges</a>
+      <a href="#pixi-sprites">Adding images/sprites</a>
+      <a href="#pixi-world">Building a world overlay</a>
+    </div>
+
+    <div class="navgroup">
+      <div class="navtitle">Playing well with others</div>
+      <a href="#multi-mod">Multi-mod collisions</a>
+    </div>
+
+    <div class="navgroup">
+      <div class="navtitle">&nbsp;</div>
+      <a href="#sources">Sources &amp; disclaimer</a>
+    </div>
+  </nav>
+
+  <main>
+    <header class="hero" id="overview">
+      <h1>Nobody published the manual, so the mods <em>became</em> the manual.</h1>
+      <p class="lede">
+        Magic Garden ships a real-time API for its own client — a WebSocket protocol for game actions,
+        a Pixi.js scene graph for rendering, and a jotai atom store underneath the React UI. None of it
+        is documented anywhere the game itself links to. This guide reconstructs it from three
+        independent, open-source projects that each had to answer the same questions from scratch:
+        what does a legal message look like, when does the server reject one, and how do you draw
+        something into a canvas you don't own.
+      </p>
+      <p>
+        Where the three projects agree, that's a strong signal the behavior is real and not an
+        implementation quirk of one mod. Where they diverge, this guide says so explicitly instead of
+        picking a winner.
+      </p>
+      <div class="source-chips">
+        <a href="https://github.com/Ariedam64/MG-AriesMod" target="_blank">Ariedam64/MG-AriesMod — browser userscript</a>
+        <a href="https://github.com/Liam0306dis/garden-companion" target="_blank">Liam0306dis/garden-companion — browser userscript</a>
+        <a href="https://github.com/Ariedam64/mg-afk-android" target="_blank">Ariedam64/mg-afk-android — native Android client</a>
+        <a href="https://github.com/mg-tokyo/QPM-GR" target="_blank">mg-tokyo/QPM-GR — browser userscript ("Quinoa Pet Manager")</a>
+        <a href="https://github.com/Ariedam64/Magic-Garden-API" target="_blank">Ariedam64/Magic-Garden-API — unofficial REST wrapper (asset/data mirror, not covered below)</a>
+      </div>
+    </header>
+
+    <section id="architecture">
+      <h2><span class="num">00</span>How the pieces fit</h2>
+      <p>
+        Everything the game does at runtime runs through one of three layers, and every mod hooks in at
+        a different point:
+      </p>
+      <div class="grid2">
+        <div class="card">
+          <h4>1. The wire — a single WebSocket</h4>
+          <p>
+            One socket per room, carrying newline-free JSON text frames both ways. This is the layer
+            that <code>mg-afk-android</code> speaks natively (it opens the socket itself, with no
+            browser or game client involved at all) — which is why it's the cleanest source for the
+            exact wire format.
+          </p>
+        </div>
+        <div class="card">
+          <h4>2. The state store — jotai atoms</h4>
+          <p>
+            The React UI reads and writes a jotai atom graph. The atoms aren't just derived from the
+            socket — some of them (which modal is open, whether the camera is in "cinematic" mode) are
+            pure client UI state with no server round-trip at all. <code>garden-companion</code> hooks
+            this layer directly instead of going through the socket for those.
+          </p>
+        </div>
+        <div class="card">
+          <h4>3. The renderer — a Pixi.js scene graph</h4>
+          <p>
+            Tiles, sprites, the info-card tooltip, and player avatars are all Pixi display objects
+            under one stage. <code>MG-AriesMod</code> reaches into this directly to draw its own text
+            and badges as real children of the game's own nodes, rather than overlaying HTML on top of
+            the canvas.
+          </p>
+        </div>
+        <div class="card">
+          <h4>4. The userscript host</h4>
+          <p>
+            Both browser mods run as Tampermonkey userscripts injected into <code>magicgarden.gg</code>.
+            That matters for one subtle reason covered below: a userscript sandbox has its own
+            <code>window</code>, separate from the page's real one, so timers and globals have to be
+            bound to the page's window explicitly or they silently misbehave.
+          </p>
+        </div>
+      </div>
+      <p class="note">
+        The game calls its own engine/session scope <code>"Quinoa"</code> internally — it shows up
+        verbatim in the scope path of every game message (<code>["Room","Quinoa"]</code>) and as the
+        default <code>gameName</code> sent when voting for a game. That's where this guide's title
+        comes from.
+      </p>
+    </section>
+
+    <section id="connecting">
+      <h2><span class="num">01</span>Opening the socket</h2>
+      <p>
+        A room connection is a single <code>wss://</code> URL. Every value in the query string is
+        JSON-encoded — including plain strings, which arrive quoted (<code>"web"</code>, not
+        <code>web</code>). This mirrors exactly what the real client sends, string quoting included.
+      </p>
+      <pre><span class="tag">url shape</span><code>wss://magicgarden.gg/version/&lt;gameVersion&gt;/api/rooms/&lt;roomId&gt;/connect
+  ?surface="web"
+  &amp;platform="desktop"
+  &amp;version="&lt;gameVersion&gt;"
+  &amp;capabilities="fbo_mipmap_unsupported"
+  &amp;locale="en"
+  &amp;clientDocumentId="&lt;uuid&gt;"
+  &amp;clientConnectionAttempt=1
+  &amp;clientNavigationType="navigate"
+  &amp;clientVisibilityState="visible"</code></pre>
+
+      <table>
+        <tr><th>Param</th><th>Meaning</th></tr>
+        <tr><td><code>gameVersion</code></td><td>The client build hash currently deployed (e.g. <code>db34dc9</code>). Connecting with a stale one gets you closed with code <code>4710</code> ("Version Expired") — re-fetch the current version before reconnecting.</td></tr>
+        <tr><td><code>roomId</code></td><td>Lowercase alphanumeric room slug. Omit it (or generate a fresh random one) to get a private room of your own.</td></tr>
+        <tr><td><code>clientDocumentId</code></td><td>A UUID that identifies this "tab" for the whole session. Stable across reconnect attempts; regenerate only for a brand-new session.</td></tr>
+        <tr><td><code>clientConnectionAttempt</code></td><td><code>1</code> for the first connection with this <code>clientDocumentId</code>, incrementing by one on every retry.</td></tr>
+        <tr><td><code>clientNavigationType</code></td><td><code>"navigate"</code> on the first attempt, <code>"reload"</code> on every retry.</td></tr>
+        <tr><td><code>reclaimSupersededSession</code></td><td>Send as literal <code>true</code> only when the previous connection was closed with a superseded code (<code>4250</code>/<code>4300</code>) and you're reconnecting the same identity. Omit entirely otherwise — don't send <code>false</code>.</td></tr>
+      </table>
+
+      <p>Two ways to authenticate, both set at connect time — there's no separate login message:</p>
+      <div class="grid2">
+        <div class="card">
+          <h4>Authenticated (Discord account)</h4>
+          <p>
+            Send a <code>Cookie</code> header carrying <code>mc_jwt=&lt;token&gt;</code>. The token comes
+            from the Discord OAuth2 flow the game itself uses; nothing here mints one for you. No
+            player id goes in the URL — the server assigns it and reports it back in
+            <code>Welcome.selfPlayerId</code>.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Guest (anonymous)</h4>
+          <p>
+            Skip the cookie and instead pass an <code>anonymousUserStyle</code> query param: a
+            JSON object with <code>name</code>, <code>color</code>, and the three avatar layer ids
+            (<code>avatarBottom</code>/<code>avatarMid</code>/<code>avatarTop</code>) plus
+            <code>avatarExpression</code>. The server assigns a temporary identity from that.
+          </p>
+        </div>
+      </div>
+
+      <p>Also set a normal-looking <code>Origin</code> header (<code>https://&lt;host&gt;</code>) and a real
+      desktop-Chrome <code>User-Agent</code> — consistent with <code>platform="desktop"</code> in the
+      query string, in case anything server-side cross-checks the two.</p>
+
+      <pre><span class="tag">typescript</span><code><span class="tok-kw">function</span> buildConnectUrl(opts: {
+  host: <span class="tok-kw">string</span>; version: <span class="tok-kw">string</span>; room: <span class="tok-kw">string</span>;
+  documentId: <span class="tok-kw">string</span>; connectionAttempt: <span class="tok-kw">number</span>;
+  isReload: <span class="tok-kw">boolean</span>; reclaimSuperseded?: <span class="tok-kw">boolean</span>;
+}): <span class="tok-kw">string</span> {
+  <span class="tok-kw">const</span> u = <span class="tok-kw">new</span> URL(<span class="tok-str">`wss://${opts.host}/version/${opts.version}/api/rooms/${opts.room}/connect`</span>);
+  u.searchParams.set(<span class="tok-str">"surface"</span>, <span class="tok-str">'"web"'</span>);
+  u.searchParams.set(<span class="tok-str">"platform"</span>, <span class="tok-str">'"desktop"'</span>);
+  u.searchParams.set(<span class="tok-str">"version"</span>, <span class="tok-str">`"${opts.version}"`</span>);
+  u.searchParams.set(<span class="tok-str">"capabilities"</span>, <span class="tok-str">'"fbo_mipmap_unsupported"'</span>);
+  u.searchParams.set(<span class="tok-str">"locale"</span>, <span class="tok-str">'"en"'</span>);
+  <span class="tok-kw">if</span> (opts.reclaimSuperseded) u.searchParams.set(<span class="tok-str">"reclaimSupersededSession"</span>, <span class="tok-str">"true"</span>);
+  u.searchParams.set(<span class="tok-str">"clientDocumentId"</span>, <span class="tok-str">`"${opts.documentId}"`</span>);
+  u.searchParams.set(<span class="tok-str">"clientConnectionAttempt"</span>, <span class="tok-kw">String</span>(opts.connectionAttempt));
+  u.searchParams.set(<span class="tok-str">"clientNavigationType"</span>, opts.isReload ? <span class="tok-str">'"reload"'</span> : <span class="tok-str">'"navigate"'</span>);
+  u.searchParams.set(<span class="tok-str">"clientVisibilityState"</span>, <span class="tok-str">'"visible"'</span>);
+  <span class="tok-kw">return</span> u.toString();
+}</code></pre>
+    </section>
+
+    <section id="handshake">
+      <h2><span class="num">02</span>Handshake sequence</h2>
+      <div class="diagram">
+<span class="client">client</span>  <span class="arrow">opens wss:// connection</span> <span class="arrow">──▶</span> <span class="server">server</span>
+<span class="client">client</span>  <span class="arrow">on open, sends:</span>
+        <span class="step">{ scopePath: ["Room"], type: "VoteForGame", gameName: "Quinoa" }</span>
+        <span class="step">{ scopePath: ["Room"], type: "SetSelectedGame", gameName: "Quinoa" }</span>
+                                                       <span class="arrow">──▶</span> <span class="server">server</span>
+<span class="server">server</span>  <span class="arrow">replies:</span> <span class="step">{ type: "Welcome", selfPlayerId, executedCommandSequence, fullState }</span>
+                                                       <span class="arrow">◀──</span> <span class="client">client</span>
+<span class="client">client</span>  <span class="arrow">seed local command-sequence counter from executedCommandSequence + 1</span>
+<span class="client">client</span>  <span class="arrow">connection is now "welcomed" — safe to send gameplay commands</span>
+      </div>
+      <p>
+        Nothing else needs to happen before <code>Welcome</code> arrives — don't send gameplay commands
+        before it, since the command-sequence counter isn't seeded yet and every one would be rejected
+        as <code>invalid_sequence</code>.
+      </p>
+      <p>
+        After the handshake, the server also sends application-level text pings as the bare string
+        <code>"ping"</code> (not a WebSocket protocol ping). Reply with the bare string
+        <code>"pong"</code>, verbatim, no JSON wrapper. Miss enough of these and the server drops you
+        with close code <code>4400</code> after roughly 30 seconds of silence.
+      </p>
+      <pre><span class="tag">typescript</span><code>socket.addEventListener(<span class="tok-str">"message"</span>, (ev) =&gt; {
+  <span class="tok-kw">if</span> (ev.data === <span class="tok-str">"ping"</span> || ev.data === <span class="tok-str">'"ping"'</span>) {
+    socket.send(<span class="tok-str">"pong"</span>);
+    <span class="tok-kw">return</span>;
+  }
+  <span class="tok-kw">const</span> msg = JSON.parse(ev.data);
+  <span class="tok-com">// ... dispatch by msg.type, see "Server → client" below</span>
+});</code></pre>
+    </section>
+
+    <section id="lifecycle">
+      <h2><span class="num">03</span>Close codes &amp; reconnecting</h2>
+      <p>All three projects treat close codes above 4000 as application-defined. Codes agreed on by
+      more than one project:</p>
+      <table>
+        <tr><th>Code</th><th>Meaning</th><th>Reconnect?</th></tr>
+        <tr><td><code>4250</code></td><td>Session superseded (heartbeat-based supersession)</td><td>Yes — pass <code>reclaimSupersededSession=true</code></td></tr>
+        <tr><td><code>4300</code></td><td>Session superseded by a newer connection for the same identity ("newer user session")</td><td>Yes — same as above; check the reason string doesn't say <code>heartbeat</code> before treating it as a real supersede</td></tr>
+        <tr><td><code>4400</code></td><td>Idle timeout — you stopped answering application pings (~30s)</td><td>Yes, immediately</td></tr>
+        <tr><td><code>4710</code></td><td>Version expired — the client build you connected with is stale</td><td>Yes, but re-fetch the current <code>gameVersion</code> first or you'll just get closed again</td></tr>
+        <tr><td><code>4800</code></td><td>Auth failed — bad/expired <code>mc_jwt</code> cookie, or a player record was found with none of the expected identity fields</td><td>Bounded retries only (don't hammer a bad cookie forever)</td></tr>
+        <tr><td><code>4100 / 4200 / 4310 / 4500 / 4700</code></td><td>Other server-defined close reasons, not otherwise documented by any of the three projects</td><td>Treated as reconnect-worthy by default</td></tr>
+      </table>
+      <p>Backoff shape that all three broadly agree on:</p>
+      <ul>
+        <li>Exponential backoff from a small base delay (~1.5s), doubling per attempt, capped around 60s, plus random jitter so many clients don't retry in lockstep.</li>
+        <li>Superseded closes get a longer base delay before the first retry (on the order of 30s) since retrying instantly just gets superseded again.</li>
+        <li>The very first connection attempt of a brand-new session gets a handful of fast retries with no backoff, on the theory that an immediate failure is more likely a cold-start race than a real outage.</li>
+        <li>Re-seed <code>clientConnectionAttempt</code> from the retry counter and set <code>clientNavigationType="reload"</code> on every retry.</li>
+        <li>Re-fetch the current game version before reconnecting — the version changing out from under a long retry loop is exactly the case that produces an endless <code>4710</code> loop otherwise.</li>
+      </ul>
+      <p class="note">
+        A message type called <code>RoomFrame</code> exists as a newer replacement for
+        <code>PartialState</code>: same patch payload, just nested one level deeper
+        (<code>msg.state.patches</code> instead of <code>msg.patches</code>). If you only implement one,
+        implement <code>PartialState</code> and normalize any incoming <code>RoomFrame</code> into that
+        shape — the server appears to be migrating between the two mid-rollout, and code that only
+        understands one silently stops receiving state updates on the other.
+      </p>
+    </section>
+
+    <section id="room-connection">
+      <h2><span class="num">04</span>A friendlier hook point: <code>MagicCircle_RoomConnection</code></h2>
+      <p>
+        Everything in the previous two sections is what you need if you're writing a
+        <strong>standalone</strong> client with no browser involved — which is exactly
+        <code>mg-afk-android</code>'s situation. If you're a userscript running inside the real
+        page instead, the game hands you something considerably friendlier: a single object,
+        <code>window.MagicCircle_RoomConnection</code>, that wraps the raw socket and already does
+        the JSON parsing, patch delivery, and Welcome bookkeeping for you.
+      </p>
+      <pre><span class="tag">typescript — the shape worth knowing</span><code><span class="tok-kw">interface</span> RoomConnection {
+  sendMessage(payload: <span class="tok-kw">unknown</span>): <span class="tok-kw">void</span>;
+  <span class="tok-com">// Immediate, synchronous send — returns false (and drops the message) if</span>
+  <span class="tok-com">// disconnected or before Welcome. QuinoaCommand envelopes need this one:</span>
+  <span class="tok-com">// sendMessage() queues instead, which hands a now-invalid sequence number</span>
+  <span class="tok-com">// to a session that hasn't opened yet.</span>
+  trySendMessageNow?(payload: <span class="tok-kw">unknown</span>): <span class="tok-kw">boolean</span>;
+  isCommandSessionReady?: <span class="tok-kw">boolean</span>;
+
+  <span class="tok-com">// Fires (patches, fullState) on every state update. Newer bundles return</span>
+  <span class="tok-com">// { currentState, unsubscribe } instead of a bare unsubscribe function —</span>
+  <span class="tok-com">// handle both shapes.</span>
+  subscribeToPatches?(cb: (patches: <span class="tok-kw">unknown</span>, fullState: <span class="tok-kw">unknown</span>) =&gt; <span class="tok-kw">void</span>): <span class="tok-kw">unknown</span>;
+  <span class="tok-com">// Fires on initial connect AND every reconnect — replaces listening for a</span>
+  <span class="tok-com">// raw "Welcome" message type by hand. Fires immediately with the current</span>
+  <span class="tok-com">// state if you subscribe after the fact.</span>
+  subscribeToWelcome?(cb: (state: <span class="tok-kw">unknown</span>, publishedAtServerMs?: <span class="tok-kw">number</span>, executedCommandSequence?: <span class="tok-kw">number</span>) =&gt; <span class="tok-kw">void</span>): <span class="tok-kw">unknown</span>;
+  <span class="tok-com">// Fires on every RoomFrame — the modern PartialState successor.</span>
+  subscribeToRoomFrames?(cb: (frame: { executedCommandSequence?: <span class="tok-kw">number</span>; state?: { patches?: <span class="tok-kw">unknown</span> } }) =&gt; <span class="tok-kw">void</span>): <span class="tok-kw">unknown</span>;
+
+  <span class="tok-com">// One-shot synchronous reads, no subscription needed:</span>
+  lastDistributedRoomPublication?: { executedCommandSequence?: <span class="tok-kw">number</span> };
+  lastRoomStateJsonable?: <span class="tok-kw">unknown</span>;
+}
+
+<span class="tok-kw">function</span> getRoomConnection(): RoomConnection | <span class="tok-kw">null</span> {
+  <span class="tok-kw">return</span> (<span class="tok-kw">window</span> <span class="tok-kw">as</span> <span class="tok-kw">any</span>).MagicCircle_RoomConnection ?? <span class="tok-kw">null</span>;
+}</code></pre>
+      <p>Why reach for this instead of the raw socket, when you're already inside the page:</p>
+      <ul>
+        <li><strong>No manual JSON parsing or ping/pong handling</strong> — those live below this layer.</li>
+        <li><strong>The command-sequence frontier is already tracked for you</strong>, at <code>lastDistributedRoomPublication.executedCommandSequence</code>, and kept current on every frame — no need to watch <code>Welcome</code>/<code>RoomFrame</code> yourself just to seed a counter (see <a href="#sequencing">Command sequencing</a>).</li>
+        <li><strong>Reconnects are transparent</strong> — <code>subscribeToWelcome</code> fires again automatically; you don't have to detect a new socket object.</li>
+        <li><strong>State reads have a synchronous escape hatch</strong> — <code>lastRoomStateJsonable</code> for a one-shot snapshot when a full subscription is overkill.</li>
+      </ul>
+      <p class="warn">
+        This object's exact shape has moved between game builds — <code>subscribeToPatches</code>'s
+        return value alone has been observed as both a bare function and a
+        <code>{ currentState, unsubscribe }</code> record across bundles. Treat every field here as
+        present-but-possibly-renamed, feature-detect before relying on any one of them, and keep a
+        raw-socket fallback path (the previous two sections) for whichever piece your current
+        target build doesn't expose.
+      </p>
+      <p>
+        This is also the natural place to intercept outgoing traffic if you're building a userscript
+        feature that needs to observe or block specific commands — wrap <code>sendMessage</code> and
+        <code>trySendMessageNow</code> the same way you'd wrap <code>WebSocket.prototype.send</code>,
+        just one layer higher and already speaking parsed objects instead of JSON strings. See
+        <a href="#multi-mod">Multi-mod collisions</a> for how to do that wrapping without stepping on
+        another script doing the same thing.
+      </p>
+    </section>
+
+    <section id="envelopes">
+      <h2><span class="num">05</span>Flat messages vs. the <code>QuinoaCommand</code> envelope</h2>
+      <p>
+        Every outbound message carries a <code>scopePath</code> array that tells the server which
+        subsystem it's for:
+      </p>
+      <ul>
+        <li><code>["Room"]</code> — room-level actions: chat, emotes, kicking, voting for a game, editing your own player record.</li>
+        <li><code>["Room","Quinoa"]</code> — gameplay actions inside the farming minigame itself.</li>
+      </ul>
+      <p>
+        Room-scoped messages are always sent flat: <code>{ scopePath, type, ...params }</code>. Most
+        <em>gameplay</em> actions, however, must be wrapped in a command envelope — the server is
+        mid-migration from flat gameplay messages to this envelope, and a growing allowlist of action
+        types get rejected outright if you send them flat.
+      </p>
+      <div class="grid2">
+        <div class="card">
+          <h4><span class="badge flat">flat</span> Room-scoped, always</h4>
+          <pre style="margin:10px 0 0;"><code>{
+  <span class="tok-key">"scopePath"</span>: [<span class="tok-str">"Room"</span>],
+  <span class="tok-key">"type"</span>: <span class="tok-str">"Chat"</span>,
+  <span class="tok-key">"message"</span>: <span class="tok-str">"hi!"</span>
+}</code></pre>
+        </div>
+        <div class="card">
+          <h4><span class="badge wrapped">wrapped</span> Gameplay command</h4>
+          <pre style="margin:10px 0 0;"><code>{
+  <span class="tok-key">"scopePath"</span>: [<span class="tok-str">"Room"</span>,<span class="tok-str">"Quinoa"</span>],
+  <span class="tok-key">"type"</span>: <span class="tok-str">"QuinoaCommand"</span>,
+  <span class="tok-key">"requestId"</span>: <span class="tok-str">"&lt;uuid&gt;"</span>,
+  <span class="tok-key">"commandSequence"</span>: <span class="tok-num">42</span>,
+  <span class="tok-key">"command"</span>: {
+    <span class="tok-key">"type"</span>: <span class="tok-str">"HarvestCrop"</span>,
+    <span class="tok-key">"slot"</span>: <span class="tok-num">3</span>,
+    <span class="tok-key">"cropItemId"</span>: <span class="tok-str">"&lt;uuid&gt;"</span>
+  }
+}</code></pre>
+        </div>
+      </div>
+      <p class="warn">
+        Sending a command-envelope type flat doesn't error loudly — it comes back as
+        <code>{"type":"QuinoaCommandResult","commandType":"unknown","ok":false,"code":"invalid_message"}</code>,
+        and the action just silently never happens. This is the single most common way a hand-rolled
+        client "does nothing" for no visible reason.
+      </p>
+      <p>
+        Every action documented in the reference table below is tagged with which form it needs, but
+        the underlying rule is a moving target: as the developers migrate more action types into the
+        envelope, anything still marked <span class="badge flat">flat</span> today may need to move to
+        <span class="badge wrapped">wrapped</span> in a future client build. All three projects derive
+        this list empirically from the live client bundle rather than from any spec, and recommend the
+        same fallback if an action you're sending starts silently failing: try wrapping it.
+      </p>
+      <p>As of the client builds these mods target, the following stay flat even inside the Quinoa scope:</p>
+      <pre><code>Ping, PlayerPosition, Teleport, SetSelectedItem, CheckWeatherStatus,
+CheckFriendBonus, ThrowSnowball, QuinoaTutorialSkipped, RequestPetGreet,
+DropObject, PickupObject, UpgradePetHutch, UpgradeSeedSilo,
+UpgradeDecorShed, UpgradeToolShack</code></pre>
+      <p class="note">
+        <code>Ping</code> and <code>PlayerPosition</code> aren't just "not migrated yet" — they're
+        structurally different from a command. <code>Ping</code> gets a direct <code>Pong</code> reply
+        rather than a <code>QuinoaCommandResult</code>, and <code>PlayerPosition</code> feeds a
+        continuous movement-snapshot channel rather than a discrete, sequenced action. Neither is ever
+        expected to move into the envelope.
+      </p>
+    </section>
+
+    <section id="sequencing">
+      <h2><span class="num">06</span>Command sequencing</h2>
+      <p>
+        The server numbers commands per connection. <code>Welcome.executedCommandSequence</code> is the
+        last command number the server has executed; the next one you send must be that value
+        <strong>plus exactly one</strong>. The sequence has to stay perfectly contiguous:
+      </p>
+      <ul>
+        <li>A duplicate or stale number is silently dropped — no result at all.</li>
+        <li>A gap (skipping a number) comes back as <code>{"ok":false,"code":"invalid_sequence"}</code> — and critically, <em>every command after the gap fails the same way</em>, because the gap never closes on its own.</li>
+        <li>A missing <code>commandSequence</code> field entirely is rejected as <code>invalid_message</code>, same as sending a command type flat.</li>
+      </ul>
+      <pre><span class="tag">typescript</span><code><span class="tok-com">// Minimal correct sequencer</span>
+<span class="tok-kw">class</span> CommandSequencer {
+  <span class="tok-kw">private</span> next = <span class="tok-num">1</span>;
+  <span class="tok-com">// Call this for every incoming "Welcome" — including on reconnect.</span>
+  seed(executedCommandSequence: <span class="tok-kw">number</span>) {
+    <span class="tok-kw">this</span>.next = executedCommandSequence + <span class="tok-num">1</span>;
+  }
+  <span class="tok-com">// Call this once per command you are about to send, right before sending it.</span>
+  take(): <span class="tok-kw">number</span> {
+    <span class="tok-kw">return</span> <span class="tok-kw">this</span>.next++;
+  }
+}</code></pre>
+      <p>
+        If you're sharing the socket with the game's own client (i.e. you're a browser userscript, not
+        a standalone client), there's a second problem: the game keeps its own module-private counter
+        that has no idea your commands exist. The moment you inject one command, your counter and the
+        game's have both claimed the same next number for different things. See
+        <a href="#multi-mod">Multi-mod collisions</a> for how the three projects each solve this — the
+        short version is that a userscript must intercept and renumber the game's own outgoing frames
+        too, not just its own.
+      </p>
+      <p>A single fresh UUID (<code>crypto.randomUUID()</code>) goes in <code>requestId</code> on every
+      envelope — used only to correlate a later <code>QuinoaCommandResult</code> back to the command that
+      caused it, and, for userscripts, to recognize "this was one of ours" when it echoes back through
+      the send-hook.</p>
+    </section>
+
+    <section id="welcome">
+      <h2><span class="num">07</span><code>Welcome</code></h2>
+      <p>The first message after connecting. Shape (trimmed to what matters):</p>
+      <pre><code>{
+  <span class="tok-key">"type"</span>: <span class="tok-str">"Welcome"</span>,
+  <span class="tok-key">"selfPlayerId"</span>: <span class="tok-str">"p_..."</span>,
+  <span class="tok-key">"executedCommandSequence"</span>: <span class="tok-num">17</span>,
+  <span class="tok-key">"fullState"</span>: {
+    <span class="tok-key">"data"</span>: { <span class="tok-com">/* room state: players[], chat, hostPlayerId, ... */</span> },
+    <span class="tok-key">"child"</span>: { <span class="tok-key">"data"</span>: { <span class="tok-com">/* game state: userSlots[], weather, shops, ... */</span> } }
+  }
+}</code></pre>
+      <ul>
+        <li><code>selfPlayerId</code> is your player id for this session. The server assigns it — the connect URL never carries a client-chosen player id, and code that assumes otherwise will never find itself in <code>fullState.data.players</code>.</li>
+        <li>Room state (players, chat log, host) lives at <code>fullState.data</code>.</li>
+        <li>Game/farm state (garden tiles, inventory, shops, weather) lives one level deeper, at <code>fullState.child.data</code> — note the extra nesting, it trips up naive path code later when reconciling with patches (see below).</li>
+        <li>To confirm auth actually took, find your own record in <code>players</code> by id and check for a <code>discordUserId</code> field (older builds call it <code>databaseUserId</code> — accept either). A guest connection has neither.</li>
+      </ul>
+      <p class="note">
+        Re-seed everything from a fresh <code>Welcome</code> on <em>every</em> reconnect, not just the
+        first connect — the command sequence counter, and any local cache derived from full state. A
+        reconnect is a brand-new server-side session even if your <code>clientDocumentId</code> stayed
+        the same.
+      </p>
+    </section>
+
+    <section id="patches">
+      <h2><span class="num">08</span><code>PartialState</code> &amp; JSON Patch</h2>
+      <p>
+        After <code>Welcome</code>, state updates arrive as small patch lists rather than full
+        re-sends:
+      </p>
+      <pre><code>{
+  <span class="tok-key">"type"</span>: <span class="tok-str">"PartialState"</span>,
+  <span class="tok-key">"patches"</span>: [
+    { <span class="tok-key">"path"</span>: <span class="tok-str">"/data/players/0/coins"</span>, <span class="tok-key">"value"</span>: <span class="tok-num">1250</span> },
+    { <span class="tok-key">"path"</span>: <span class="tok-str">"/child/data/userSlots/0/data/garden/12/slots/0"</span>, <span class="tok-key">"op"</span>: <span class="tok-str">"remove"</span> }
+  ]
+}</code></pre>
+      <p>Applying one is a restricted JSON Pointer (RFC 6902-ish) operation:</p>
+      <ol>
+        <li>Split <code>path</code> on <code>/</code>, dropping the empty leading segment.</li>
+        <li>If the path starts with <code>/child</code>, strip that prefix and apply against your <em>game</em> state tree; otherwise apply against your <em>room</em> state tree.</li>
+        <li>If the first remaining segment is literally <code>data</code>, drop it too — both trees are rooted one level below their own <code>data</code> key, mirroring the shape <code>fullState</code> itself uses.</li>
+        <li>Walk the remaining segments, creating an object or array at each level as needed (an array when the <em>next</em> segment is numeric, an object otherwise).</li>
+        <li>At the leaf: <code>op:"remove"</code> deletes that key/index; anything else sets <code>value</code> at that key, extending an array with nulls if the index is past its current end.</li>
+      </ol>
+      <p class="note">
+        <code>RoomFrame</code> messages carry the identical patch array one level deeper, at
+        <code>msg.state.patches</code>. The simplest correct handling is to rewrite an incoming
+        <code>RoomFrame</code> into a <code>PartialState</code> shape at the door and never special-case
+        it anywhere else in your pipeline.
+      </p>
+      <pre><span class="tag">typescript</span><code><span class="tok-kw">type</span> Patch = { path: <span class="tok-kw">string</span>; value?: <span class="tok-kw">unknown</span>; op?: <span class="tok-str">"remove"</span> };
+
+<span class="tok-kw">function</span> applyPatch(root: <span class="tok-kw">any</span>, patch: Patch): <span class="tok-kw">any</span> {
+  <span class="tok-kw">let</span> segs = patch.path.split(<span class="tok-str">"/"</span>).slice(<span class="tok-num">1</span>);
+  <span class="tok-kw">if</span> (segs[<span class="tok-num">0</span>] === <span class="tok-str">"data"</span>) segs = segs.slice(<span class="tok-num">1</span>);
+  <span class="tok-kw">if</span> (!segs.length) <span class="tok-kw">return</span> patch.value ?? root;
+
+  <span class="tok-kw">let</span> node = root;
+  <span class="tok-kw">for</span> (<span class="tok-kw">let</span> i = <span class="tok-num">0</span>; i &lt; segs.length - <span class="tok-num">1</span>; i++) {
+    <span class="tok-kw">const</span> key = segs[i], nextKey = segs[i + <span class="tok-num">1</span>];
+    <span class="tok-kw">if</span> (node[key] === <span class="tok-kw">undefined</span>) node[key] = /^\d+$/.test(nextKey) ? [] : {};
+    node = node[key];
+  }
+  <span class="tok-kw">const</span> leaf = segs[segs.length - <span class="tok-num">1</span>];
+  <span class="tok-kw">if</span> (patch.op === <span class="tok-str">"remove"</span>) {
+    <span class="tok-kw">if</span> (<span class="tok-kw">Array</span>.isArray(node)) node.splice(<span class="tok-kw">Number</span>(leaf), <span class="tok-num">1</span>);
+    <span class="tok-kw">else</span> <span class="tok-kw">delete</span> node[leaf];
+  } <span class="tok-kw">else</span> {
+    node[leaf] = patch.value;
+  }
+  <span class="tok-kw">return</span> root;
+}</code></pre>
+      <p>
+        Two concrete sub-trees worth knowing by path, since almost everything you'll want to watch
+        lives under one of them:
+      </p>
+      <ul>
+        <li><code>userSlots[i].data.activityLogs</code> — the ability/event log for player slot <code>i</code>. Watching this is how mods surface "your pet just triggered an ability" notifications: diff the array length, and for each new entry check <code>action</code> against the game's known ability-name list and read <code>parameters.pet</code> for who did it.</li>
+        <li><code>userSlots[i].data.garden</code> — that player's dirt tiles, each with a <code>slots</code> array of planted crops.</li>
+      </ul>
+    </section>
+
+    <section id="results">
+      <h2><span class="num">09</span><code>QuinoaCommandResult</code></h2>
+      <p>The server's acknowledgment (or rejection) of a wrapped command:</p>
+      <pre><code>{ <span class="tok-key">"type"</span>: <span class="tok-str">"QuinoaCommandResult"</span>, <span class="tok-key">"ok"</span>: <span class="tok-kw">true</span> }
+<span class="tok-com">// or, on failure:</span>
+{ <span class="tok-key">"type"</span>: <span class="tok-str">"QuinoaCommandResult"</span>, <span class="tok-key">"ok"</span>: <span class="tok-kw">false</span>, <span class="tok-key">"code"</span>: <span class="tok-str">"invalid_sequence"</span>, <span class="tok-key">"commandType"</span>: <span class="tok-str">"HarvestCrop"</span> }</code></pre>
+      <p>Known <code>code</code> values on a rejection:</p>
+      <table>
+        <tr><th>Code</th><th>Cause</th></tr>
+        <tr><td><code>invalid_message</code></td><td>The envelope was malformed — usually a command type sent flat that needed wrapping, or a missing required field.</td></tr>
+        <tr><td><code>invalid_sequence</code></td><td><code>commandSequence</code> wasn't exactly frontier+1 — a duplicate, a gap, or (in a shared-socket userscript) a second sender racing yours.</td></tr>
+        <tr><td><code>no_slot</code></td><td>No free slot for what the command was trying to create/place (e.g. inventory or storage full).</td></tr>
+        <tr><td><code>rate_limited</code></td><td>Sent too many of that command too quickly.</td></tr>
+        <tr><td><code>not_ackable</code></td><td>You wrapped a type the server still expects flat — the mirror image of sending a command type flat. The fix runs both directions: if wrapping a type starts coming back <code>invalid_message</code>, try sending it flat instead, and vice versa.</td></tr>
+        <tr><td><code>handler_error</code></td><td>The server's own handler threw partway through. Distinct from every code above: the mutation may or may not have applied — treat this as a genuinely <em>unknown</em> outcome, not a confirmed failure, and never blindly retry it.</td></tr>
+      </table>
+      <p>
+        A silently-failed action and a rejected one look the same to a naive client — neither undoes
+        anything visible. Always listen for this message type and surface <code>ok:false</code>
+        somewhere (a debug log at minimum); it's the only signal that a command you sent was ignored.
+      </p>
+      <p class="note">
+        A subtler failure mode than an explicit rejection: a command that gets no result message at
+        all. If a later <code>RoomFrame</code>/<code>PartialState</code> reports an
+        <code>executedCommandSequence</code> higher than the one you sent, and you still have no
+        result for it, the server silently dropped that specific send — a real, distinct outcome from
+        both success and an explicit rejection, worth tracking separately if you're building anything
+        that retries on failure (never retry a genuinely unknown outcome, only a confirmed-dropped
+        one).
+      </p>
+    </section>
+
+    <section id="actions-session">
+      <h2><span class="num">10</span>Action reference</h2>
+      <p>
+        Every action below is a <code>command.type</code> (if <span class="badge wrapped">wrapped</span>)
+        or a top-level <code>type</code> (if <span class="badge flat">flat</span>). Parameters are the
+        fields that go alongside <code>type</code> inside that same object. Scope is <code>["Room"]</code>
+        unless marked <span class="badge room">room</span>-only in the Notes column, in which case that's
+        the scope and it's always flat.
+      </p>
+
+      <h3>Session &amp; heartbeat</h3>
+      <table>
+        <tr><th>Action</th><th>Form</th><th>Params</th><th>Notes</th></tr>
+        <tr><td><code>Ping</code></td><td><span class="badge flat">flat</span></td><td><code>id</code>: number (e.g. current timestamp)</td><td>Answered with a matching <code>Pong</code>. Distinct from the bare-string <code>"ping"</code>/<code>"pong"</code> keepalive.</td></tr>
+        <tr><td><code>VoteForGame</code></td><td><span class="badge room">room</span></td><td><code>gameName</code>: <code>"Quinoa"</code></td><td>Send on open, before <code>SetSelectedGame</code>.</td></tr>
+        <tr><td><code>SetSelectedGame</code></td><td><span class="badge room">room</span></td><td><code>gameName</code>: <code>"Quinoa"</code></td><td>Field is <code>gameName</code> here too — don't confuse with <code>RestartGame</code>'s <code>name</code>.</td></tr>
+        <tr><td><code>RestartGame</code></td><td><span class="badge room">room</span></td><td><code>name</code>: <code>"Quinoa"</code></td><td>Different field name than the two above.</td></tr>
+        <tr><td><code>CheckWeatherStatus</code></td><td><span class="badge flat">flat</span></td><td>—</td><td>Nudges the server to (re)confirm current weather.</td></tr>
+      </table>
+
+      <h3 id="actions-social">Social &amp; chat</h3>
+      <table>
+        <tr><th>Action</th><th>Form</th><th>Params</th><th>Notes</th></tr>
+        <tr><td><code>Chat</code></td><td><span class="badge room">room</span></td><td><code>message</code>: string</td><td></td></tr>
+        <tr><td><code>Emote</code></td><td><span class="badge room">room</span></td><td><code>emoteType</code>: string</td><td></td></tr>
+        <tr><td><code>Wish</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>itemId?</code>: string</td><td>Throws a coin in the wishing well. Omit <code>itemId</code> entirely for an untargeted wish — don't send it as <code>null</code>.</td></tr>
+        <tr><td><code>KickPlayer</code></td><td><span class="badge room">room</span></td><td><code>targetPlayerId</code>: string</td><td>Host-only, enforced server-side.</td></tr>
+        <tr><td><code>SetPlayerData</code></td><td><span class="badge room">room</span></td><td><code>name?</code>, <code>cosmetic?</code></td><td>Include only the field(s) you're changing.</td></tr>
+        <tr><td><code>UsurpHost</code></td><td><span class="badge room">room</span></td><td>—</td><td></td></tr>
+        <tr><td><code>MarkChatRead</code></td><td><span class="badge room">room</span></td><td><code>seq</code>: number</td><td></td></tr>
+      </table>
+
+      <h3 id="actions-movement">Movement</h3>
+      <table>
+        <tr><th>Action</th><th>Form</th><th>Params</th><th>Notes</th></tr>
+        <tr><td><code>PlayerPosition</code></td><td><span class="badge flat">flat</span></td><td><code>position: {x, y}</code></td><td>Sent continuously to broadcast movement — not a discrete "did this happen" command.</td></tr>
+        <tr><td><code>Teleport</code></td><td><span class="badge flat">flat</span></td><td><code>position: {x, y}</code></td><td>Instant position set, tile-grid coordinates.</td></tr>
+      </table>
+    </section>
+
+    <section id="actions-shop">
+      <h3>Shop</h3>
+      <table>
+        <tr><th>Action</th><th>Form</th><th>Params</th><th>Notes</th></tr>
+        <tr><td><code>PurchaseShopItem</code></td><td><span class="badge wrapped">wrapped</span></td>
+          <td><code>shop</code>: <code>"seed"|"tool"|"egg"|"decor"|"dawn"|...</code><br><code>item: { itemType, &lt;idField&gt; }</code></td>
+          <td>Replaces older per-category purchase messages. <code>itemType</code> is derived from where the id appears in the game's static data, <strong>not</strong> from the shop key — the "tool" shop mixes real Tools with Decor items. <code>idField</code> is <code>species</code> for a Seed, <code>toolId</code> for a Tool, <code>eggId</code> for an Egg, <code>decorId</code> for Decor.</td></tr>
+      </table>
+      <pre><code><span class="tok-com">// Buying a seed</span>
+{ <span class="tok-key">"type"</span>: <span class="tok-str">"PurchaseShopItem"</span>, <span class="tok-key">"shop"</span>: <span class="tok-str">"seed"</span>,
+  <span class="tok-key">"item"</span>: { <span class="tok-key">"itemType"</span>: <span class="tok-str">"Seed"</span>, <span class="tok-key">"species"</span>: <span class="tok-str">"carrot"</span> } }
+<span class="tok-com">// Buying a tool that happens to live in the "tool" shop's Decor section</span>
+{ <span class="tok-key">"type"</span>: <span class="tok-str">"PurchaseShopItem"</span>, <span class="tok-key">"shop"</span>: <span class="tok-str">"tool"</span>,
+  <span class="tok-key">"item"</span>: { <span class="tok-key">"itemType"</span>: <span class="tok-str">"Decor"</span>, <span class="tok-key">"decorId"</span>: <span class="tok-str">"SeedSilo"</span> } }</code></pre>
+    </section>
+
+    <section id="actions-garden">
+      <h3>Garden &amp; crops</h3>
+      <table>
+        <tr><th>Action</th><th>Form</th><th>Params</th><th>Notes</th></tr>
+        <tr><td><code>PlantSeed</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>slot</code>: number, <code>species</code>: string</td><td></td></tr>
+        <tr><td><code>WaterPlant</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>slot</code>: number</td><td></td></tr>
+        <tr><td><code>HarvestCrop</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>slot</code>: number, <code>slotsIndex?</code>: number, <code>cropItemId</code>: string (client-minted UUID)</td><td><strong>Mandatory</strong> since a recent bundle: the server needs a client-supplied id to build the resulting Produce item. Any fresh UUID works — you don't need to remember it, the inventory patch tells you what actually landed.</td></tr>
+        <tr><td><code>SellAllCrops</code></td><td><span class="badge wrapped">wrapped</span></td><td>—</td><td></td></tr>
+        <tr><td><code>PlantGardenPlant</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>slot</code>: number, <code>itemId</code>: string</td><td>Plants a potted plant already in inventory back into the ground.</td></tr>
+        <tr><td><code>PotPlant</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>slot</code>: number, <code>plantItemId</code>: string (client-minted UUID)</td><td>Moves the growing plant on <code>slot</code> into inventory as an item. Client mints the id so it can reference the pot immediately without waiting for the state patch.</td></tr>
+        <tr><td><code>MutationPotion</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>tileObjectIdx</code>, <code>growSlotIdx</code>: number, <code>mutation</code>: string</td><td></td></tr>
+        <tr><td><code>CropCleanser</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>tileObjectIdx</code>, <code>growSlotIdx</code>: number</td><td>Strips mutations from a crop.</td></tr>
+        <tr><td><code>PlaceCrystal</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>tileType</code>, <code>localTileIndex</code>, <code>item</code>, <code>intent: {type:"place"}</code></td><td>Also used to <em>fuse</em> a shard into an existing crystal — same command, <code>intent: {type:"merge", mergeGainSeconds}</code> instead. There is no separate fuse command.</td></tr>
+        <tr><td><code>PickupCrystal</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>tileType</code>, <code>localTileIndex</code>, <code>crystalType</code>, <code>itemId</code> (client-minted)</td><td>Keeps the crystal's remaining time.</td></tr>
+        <tr><td><code>RemoveGardenObject</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>slot</code>: number, <code>slotType</code>: string</td><td></td></tr>
+        <tr><td><code>Preserve</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>itemId</code>, <code>growSlotIdx</code></td><td>Turns a harvested crop into a preserve.</td></tr>
+        <tr><td><code>DisplayCrop</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>tileType</code>, <code>localTileIndex</code>, <code>itemId</code></td><td></td></tr>
+        <tr><td><code>PickupDisplayedCrop</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>tileType</code>, <code>localTileIndex</code></td><td></td></tr>
+      </table>
+      <pre><span class="tag">typescript — a full harvest, worked example</span><code><span class="tok-kw">function</span> harvestCrop(send: (cmd: object) =&gt; <span class="tok-kw">void</span>, slot: <span class="tok-kw">number</span>) {
+  send({
+    type: <span class="tok-str">"HarvestCrop"</span>,
+    slot,
+    cropItemId: crypto.randomUUID(), <span class="tok-com">// required — mint it, don't wait for one</span>
+  });
+  <span class="tok-com">// The resulting item shows up in the next PartialState's inventory patch —</span>
+  <span class="tok-com">// there's no synchronous "here's your item" response to this command.</span>
+}</code></pre>
+    </section>
+
+    <section id="actions-decor">
+      <h3>Decor</h3>
+      <table>
+        <tr><th>Action</th><th>Form</th><th>Params</th><th>Notes</th></tr>
+        <tr><td><code>PlaceDecor</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>decorId</code>, <code>tileType</code>, <code>localTileIndex</code>, <code>rotation?</code></td><td>Omit <code>rotation</code> for the default orientation.</td></tr>
+        <tr><td><code>PickupDecor</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>tileType</code>, <code>localTileIndex</code></td><td></td></tr>
+      </table>
+    </section>
+
+    <section id="actions-pets">
+      <h3>Pets &amp; pet teams</h3>
+      <table>
+        <tr><th>Action</th><th>Form</th><th>Params</th><th>Notes</th></tr>
+        <tr><td><code>PlacePet</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>itemId</code>, <code>position: {x,y}</code>, <code>tileType</code>, <code>localTileIndex</code></td><td></td></tr>
+        <tr><td><code>PickupPet</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>petId</code></td><td></td></tr>
+        <tr><td><code>FeedPet</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>petItemId</code>, <code>cropItemId</code></td><td></td></tr>
+        <tr><td><code>ReplenishPotion</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>petItemId</code></td><td>Fully restores hunger. Must be standing on the pet's tile — use <code>Teleport</code> first if needed.</td></tr>
+        <tr><td><code>SellPet</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>itemId</code></td><td></td></tr>
+        <tr><td><code>RidePet</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>petItemId</code></td><td>Required before any rideable ability (<code>DawnCapture</code>, <code>Thundercharge</code>).</td></tr>
+        <tr><td><code>DismountPet</code></td><td><span class="badge wrapped">wrapped</span></td><td>—</td><td></td></tr>
+        <tr><td><code>DawnCapture</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>petItemId</code>, <code>position: {x,y}</code></td><td>Requires riding the pet and being off cooldown.</td></tr>
+        <tr><td><code>Thundercharge</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>petItemId</code>, <code>position: {x,y}</code></td><td>Same preconditions as above.</td></tr>
+        <tr><td><code>XPPotion</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>petItemId</code></td><td></td></tr>
+        <tr><td><code>RequestPetGreet</code></td><td><span class="badge flat">flat</span></td><td><code>position: {x,y}</code></td><td></td></tr>
+        <tr><td><code>EquipPetCosmetic</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>petItemId</code>, <code>slotCategory</code>, <code>cosmeticId</code></td><td></td></tr>
+        <tr><td><code>NamePet</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>petItemId</code>, <code>name</code></td><td></td></tr>
+        <tr><td><code>SwapPet</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>petSlotId</code>, <code>petInventoryId</code></td><td></td></tr>
+        <tr><td><code>SwapPetFromStorage</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>petSlotId</code>, <code>storagePetId</code>, <code>storageId</code></td><td></td></tr>
+        <tr><td><code>MovePetSlot</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>movePetSlotId</code>, <code>toPetSlotIndex</code></td><td></td></tr>
+        <tr><td><code>GrowEgg</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>slot</code>, <code>eggId</code></td><td></td></tr>
+        <tr><td><code>HatchEgg</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>slot</code></td><td></td></tr>
+        <tr><td><code>SavePetTeam</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>teamId</code>, <code>name</code>, <code>petIds[]</code>, <code>isCreate</code></td><td><code>isCreate</code> distinguishes a new team from an edit of an existing <code>teamId</code>.</td></tr>
+        <tr><td><code>ApplyPetTeam</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>teamId</code></td><td></td></tr>
+        <tr><td><code>DeletePetTeam</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>teamId</code></td><td></td></tr>
+        <tr><td><code>MovePetTeam</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>movePetTeamId</code>, <code>toPetTeamIndex</code></td><td></td></tr>
+        <tr><td><code>SetPetTeamEmblem</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>teamId</code>, <code>emblem</code>: object, discriminated on <code>type</code></td><td>Send the emblem as an object, never a bare string — a string is silently dropped by the game's own reducer.</td></tr>
+        <tr><td><code>UpgradePetHutch</code></td><td><span class="badge flat">flat</span></td><td>—</td><td></td></tr>
+      </table>
+    </section>
+
+    <section id="actions-inventory">
+      <h3>Inventory &amp; storage</h3>
+      <table>
+        <tr><th>Action</th><th>Form</th><th>Params</th><th>Notes</th></tr>
+        <tr><td><code>MoveInventoryItem</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>moveItemId</code>, <code>toInventoryIndex</code></td><td></td></tr>
+        <tr><td><code>SetSelectedItem</code></td><td><span class="badge flat">flat</span></td><td><code>itemIndex</code></td><td></td></tr>
+        <tr><td><code>ToggleLockItem</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>itemId</code></td><td></td></tr>
+        <tr><td><code>DropObject</code></td><td><span class="badge flat">flat</span></td><td>—</td><td>Acts on whatever's currently held/stood-on — sending any params gets it rejected as malformed.</td></tr>
+        <tr><td><code>PickupObject</code></td><td><span class="badge flat">flat</span></td><td>—</td><td>Same as above.</td></tr>
+        <tr><td><code>PutItemInStorage</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>itemId</code>, <code>storageId</code>, <code>toStorageIndex?</code>, <code>quantity?</code></td><td>Omit <code>toStorageIndex</code> to append at the end; omit <code>quantity</code> to move the whole stack.</td></tr>
+        <tr><td><code>RetrieveItemFromStorage</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>itemId</code>, <code>storageId</code>, <code>toInventoryIndex?</code>, <code>quantity?</code></td><td>Same optional-field rules as above, mirrored.</td></tr>
+        <tr><td><code>MoveStorageItem</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>itemId</code>, <code>storageId</code>, <code>toStorageIndex</code></td><td></td></tr>
+        <tr><td><code>SwapItemWithStorage</code></td><td><span class="badge wrapped">wrapped</span></td><td><code>storageId</code>, <code>inventoryItemId</code>, <code>storageItemId</code>, <code>toStorageIndex?</code>, <code>toInventoryIndex?</code>, <code>draggedQuantity?</code>, <code>draggedFromInventory?</code></td><td>One atomic exchange rather than a retrieve+put pair — keeps both capacities unchanged mid-swap. Only send <code>draggedQuantity</code>/<code>draggedFromInventory</code> together, when splitting part of a stack.</td></tr>
+        <tr><td><code>LogItems</code></td><td><span class="badge wrapped">wrapped</span></td><td>—</td><td></td></tr>
+        <tr><td><code>UpgradeSeedSilo</code> / <code>UpgradeDecorShed</code> / <code>UpgradeToolShack</code></td><td><span class="badge flat">flat</span></td><td>—</td><td></td></tr>
+        <tr><td><code>ThrowSnowball</code></td><td><span class="badge flat">flat</span></td><td>—</td><td>Seasonal.</td></tr>
+        <tr><td><code>CheckFriendBonus</code></td><td><span class="badge flat">flat</span></td><td>—</td><td></td></tr>
+        <tr><td><code>QuinoaTutorialSkipped</code></td><td><span class="badge flat">flat</span></td><td>—</td><td></td></tr>
+      </table>
+    </section>
+
+    <section id="state-two-ways">
+      <h2><span class="num">11</span>Two ways to read state</h2>
+      <p>
+        The socket isn't the only source of truth once you're running inside the actual page (i.e.
+        you're a browser userscript, not a standalone client). A second, entirely separate path exists
+        through the game's own React/jotai state — and some things are <em>only</em> reachable that way,
+        because they're pure UI state that never touches the wire at all (which modal dialog is open,
+        whether the camera is in a scripted "cinematic" cutscene).
+      </p>
+      <table>
+        <tr><th></th><th>Socket + patches</th><th>Jotai atom cache</th></tr>
+        <tr><td>Reaches</td><td>Anything server-authoritative: garden, inventory, shops, other players</td><td>Anything server-authoritative <em>plus</em> pure client UI state (open modal, cinematic mode)</td></tr>
+        <tr><td>Needs</td><td>Nothing but the socket — works for a standalone client with no browser at all</td><td>Running inside the actual game page; reaches into React internals</td></tr>
+        <tr><td>Gives you</td><td>Read access, and the ability to <em>drive</em> the game by sending commands</td><td>Read access, and — for a handful of specific atoms — write access to trigger the exact same code path the game's own UI buttons use</td></tr>
+        <tr><td>Fragility</td><td>Low — the wire format changes slowly and deliberately</td><td>Higher — reaches into unminified-but-otherwise-internal object shapes that can move between builds</td></tr>
+      </table>
+    </section>
+
+    <section id="jotai">
+      <h2><span class="num">12</span>Reading the game's own atoms</h2>
+      <p>
+        The game's React tree uses jotai for state. jotai keeps a private WeakMap-like cache mapping
+        atom-config objects to their live atom instances, but the game exposes an atom-cache-like object
+        on the page anyway (used for hot-reload bookkeeping) — and it's a plain object with a
+        <code>.get(key, initial)</code> method, or a plain <code>Map</code>, so it can be wrapped from
+        outside without touching any private field.
+      </p>
+      <p>
+        The trick: wrap that cache's <code>get</code>, and every atom that flows through it gets
+        inspected once as it's registered. From there you can:
+      </p>
+      <ul>
+        <li>Recognize specific atoms by matching a substring of their internal debug label (e.g. anything ending in <code>/activeModalStateAtom</code>) — labels are far more stable across builds than the object identity or the minified variable name that held the atom.</li>
+        <li>Capture a reference to that atom's <code>write</code> function so you can call it later, exactly like the game's own UI would.</li>
+        <li>For an atom with no getter at all (some are write-only from the outside), infer its current value by wrapping <code>write</code> and recording whatever gets written through it, since your wrapped copy stays in sync with every write the same way state.get would.</li>
+      </ul>
+      <pre><span class="tag">typescript</span><code><span class="tok-kw">type</span> JotaiAtom = { write?: (get: <span class="tok-kw">any</span>, set: <span class="tok-kw">any</span>, ...args: <span class="tok-kw">any</span>[]) =&gt; <span class="tok-kw">any</span> };
+
+<span class="tok-kw">let</span> activeModalStateAtom: JotaiAtom | <span class="tok-kw">null</span> = <span class="tok-kw">null</span>;
+<span class="tok-kw">let</span> gameAtomSet: ((atom: JotaiAtom, value: <span class="tok-kw">unknown</span>) =&gt; <span class="tok-kw">unknown</span>) | <span class="tok-kw">null</span> = <span class="tok-kw">null</span>;
+
+<span class="tok-kw">function</span> inspectAtom(key: <span class="tok-kw">unknown</span>, atom: JotaiAtom): JotaiAtom {
+  <span class="tok-kw">const</span> label = <span class="tok-kw">String</span>(key);
+  <span class="tok-kw">if</span> (label.endsWith(<span class="tok-str">"/activeModalStateAtom"</span>)) activeModalStateAtom = atom;
+
+  <span class="tok-kw">if</span> (gameAtomSet || <span class="tok-kw">typeof</span> atom?.write !== <span class="tok-str">"function"</span>) <span class="tok-kw">return</span> atom;
+  <span class="tok-kw">const</span> original = atom.write;
+  atom.write = <span class="tok-kw">function</span> (<span class="tok-kw">this</span>: JotaiAtom, get, set, ...args) {
+    <span class="tok-com">// Capture jotai's own `set` closure the first time ANY atom write fires,</span>
+    <span class="tok-com">// then immediately restore every wrapped atom to its original writer —</span>
+    <span class="tok-com">// this hook only needs to fire once, globally.</span>
+    gameAtomSet = (target, value) =&gt; set(target, value);
+    atom.write = original;
+    <span class="tok-kw">return</span> original.call(<span class="tok-kw">this</span>, get, set, ...args);
+  };
+  <span class="tok-kw">return</span> atom;
+}
+
+<span class="tok-kw">function</span> installAtomCacheHook() {
+  <span class="tok-kw">const</span> existing = (<span class="tok-kw">window</span> <span class="tok-kw">as</span> <span class="tok-kw">any</span>).jotaiAtomCache;
+  <span class="tok-kw">const</span> cache = existing <span class="tok-kw">instanceof</span> <span class="tok-kw">Map</span> ? existing : existing?.cache ?? <span class="tok-kw">new</span> <span class="tok-kw">Map</span>();
+  (<span class="tok-kw">window</span> <span class="tok-kw">as</span> <span class="tok-kw">any</span>).jotaiAtomCache = {
+    cache,
+    get(key: <span class="tok-kw">unknown</span>, initial: JotaiAtom) {
+      <span class="tok-kw">const</span> atom = cache.get(key) ?? initial;
+      <span class="tok-kw">if</span> (!cache.has(key)) cache.set(key, atom);
+      <span class="tok-kw">return</span> inspectAtom(key, atom);
+    },
+  };
+}
+
+<span class="tok-com">// Later, anywhere, opening the seed shop exactly like clicking its own button would:</span>
+<span class="tok-kw">function</span> openSeedShop() {
+  <span class="tok-kw">if</span> (!activeModalStateAtom || !gameAtomSet) <span class="tok-kw">return</span>; <span class="tok-com">// atoms not registered yet</span>
+  gameAtomSet(activeModalStateAtom, <span class="tok-str">"seedShop"</span>);
+}</code></pre>
+      <p class="warn">
+        Do not write to <code>activeModalStateAtom</code> directly (<code>atom.write = ...</code>
+        assignment isn't the same as calling it) — jotai atoms created with a derived
+        <code>write</code> function (<code>atom(get =&gt; get(sourceAtom))</code>) throw
+        <code>"write is not a function"</code> if you try to set them as if they were plain writable
+        atoms. Always resolve to the real writable source atom and call it through jotai's own
+        <code>set</code>, captured exactly as shown above.
+      </p>
+    </section>
+
+    <section id="pixi-basics">
+      <h2><span class="num">13</span>Finding the renderer</h2>
+      <p>
+        The game renders through Pixi.js. Two independent global hooks exist specifically for
+        devtools/inspection and are stable across versions because they're a public part of Pixi
+        itself, not something the game added:
+      </p>
+      <ul>
+        <li><code>window.__PIXI_APP_INIT__(app)</code> — called once with the <code>Application</code> instance, if the game constructed one.</li>
+        <li><code>window.__PIXI_RENDERER_INIT__(renderer, pixiVersion)</code> — called once (or again, if the renderer is ever recreated — e.g. after a WebGL context loss from being backgrounded) with the raw <code>Renderer</code>.</li>
+      </ul>
+      <p>
+        Overwrite both with your own function that records the value and then calls through to
+        whatever was there before (devtools may have hooked the same globals first). Not every build
+        constructs a full <code>Application</code> — if only the renderer fires, synthesize a minimal
+        app-like object around it (<code>{ renderer, stage: renderer.lastObjectRendered, ticker }</code>)
+        so the rest of your code doesn't need two separate code paths.
+      </p>
+      <p>
+        Neither hook gives you the actual <em>constructors</em> (<code>Text</code>, <code>Sprite</code>,
+        <code>Graphics</code>, ...) — Pixi isn't usually exposed as a global on the page. Get them by
+        walking the live stage and duck-typing real display objects already in it, then reading
+        <code>.constructor</code> off of one:
+      </p>
+      <pre><span class="tag">typescript</span><code><span class="tok-kw">interface</span> PixiCtors { Container: <span class="tok-kw">any</span>; Sprite: <span class="tok-kw">any</span>; Texture: <span class="tok-kw">any</span>; Rectangle: <span class="tok-kw">any</span>; Text: <span class="tok-kw">any</span>; }
+
+<span class="tok-kw">function</span> findNode(root: <span class="tok-kw">any</span>, pred: (n: <span class="tok-kw">any</span>) =&gt; <span class="tok-kw">boolean</span>, limit = <span class="tok-num">25_000</span>): <span class="tok-kw">any</span> {
+  <span class="tok-kw">const</span> stack = [root], seen = <span class="tok-kw">new</span> <span class="tok-kw">WeakSet</span>();
+  <span class="tok-kw">let</span> n = <span class="tok-num">0</span>;
+  <span class="tok-kw">while</span> (stack.length &amp;&amp; n++ &lt; limit) {
+    <span class="tok-kw">const</span> node = stack.pop();
+    <span class="tok-kw">if</span> (!node || seen.has(node)) <span class="tok-kw">continue</span>;
+    seen.add(node);
+    <span class="tok-kw">if</span> (pred(node)) <span class="tok-kw">return</span> node;
+    <span class="tok-kw">if</span> (<span class="tok-kw">Array</span>.isArray(node.children)) stack.push(...node.children);
+  }
+  <span class="tok-kw">return</span> <span class="tok-kw">null</span>;
+}
+
+<span class="tok-kw">function</span> getCtors(stage: <span class="tok-kw">any</span>): PixiCtors | <span class="tok-kw">null</span> {
+  <span class="tok-com">// A real Sprite: has a texture, whose frame is itself a real object.</span>
+  <span class="tok-kw">const</span> sprite = findNode(stage, (x) =&gt; x?.texture?.frame &amp;&amp; x.texture.constructor &amp;&amp; x.texture.frame.constructor);
+  <span class="tok-kw">if</span> (!sprite) <span class="tok-kw">return</span> <span class="tok-kw">null</span>; <span class="tok-com">// stage not populated yet — retry next frame</span>
+
+  <span class="tok-com">// A real Text node: has `.text` + `.style`, and Pixi v8 tags it renderPipeId:"text".</span>
+  <span class="tok-com">// The renderPipeId check matters — the game's Rive-based nodes also expose text+style</span>
+  <span class="tok-com">// and would otherwise get misidentified, and Rive's constructor throws on Pixi-style args.</span>
+  <span class="tok-kw">const</span> isRiveLike = (x: <span class="tok-kw">any</span>) =&gt; !!(x?.artboard || x?.stateMachine || x?.rive);
+  <span class="tok-kw">const</span> looksLikeText = (x: <span class="tok-kw">any</span>) =&gt; (<span class="tok-kw">typeof</span> x?.text === <span class="tok-str">"string"</span> || <span class="tok-kw">typeof</span> x?.text === <span class="tok-str">"number"</span>) &amp;&amp; x?.style;
+  <span class="tok-kw">const</span> text =
+    findNode(stage, (x) =&gt; looksLikeText(x) &amp;&amp; x.renderPipeId === <span class="tok-str">"text"</span>) ??
+    findNode(stage, (x) =&gt; looksLikeText(x) &amp;&amp; !isRiveLike(x));
+  <span class="tok-kw">if</span> (!text) <span class="tok-kw">return</span> <span class="tok-kw">null</span>; <span class="tok-com">// no text rendered yet — retry; don't cache a null Text ctor</span>
+
+  <span class="tok-kw">return</span> {
+    Container: stage.constructor,
+    Sprite: sprite.constructor,
+    Texture: sprite.texture.constructor,
+    Rectangle: sprite.texture.frame.constructor,
+    Text: text.constructor,
+  };
+}</code></pre>
+      <p class="note">
+        Sprites render before any UI text does on a cold load, so a naive "found a sprite → done"
+        check locks in <code>Text: null</code> permanently if it runs too early — poll on
+        <code>requestAnimationFrame</code> and only accept the result once <em>both</em> a sprite and a
+        genuine text node have been found in the same pass.
+      </p>
+      <p>
+        A separate constructor you'll also want — <code>Graphics</code>, for drawing your own shapes —
+        isn't reliably duck-typeable by field shape the same way, but its <em>methods</em> are: the
+        public <code>roundRect()</code>/<code>clear()</code> API is stable and unminified, so find any
+        node exposing both and read its constructor:
+      </p>
+      <pre><code><span class="tok-kw">const</span> graphicsCtor = findNode(stage, (n) =&gt; <span class="tok-kw">typeof</span> n?.roundRect === <span class="tok-str">"function"</span> &amp;&amp; <span class="tok-kw">typeof</span> n?.clear === <span class="tok-str">"function"</span>)?.constructor ?? <span class="tok-kw">null</span>;</code></pre>
+      <p>
+        Cache every constructor at module scope once found — they're stable class references for the
+        rest of the page session. Re-deriving them on every UI update means re-walking the entire
+        stage (which, for the world/tile layer alone, can be tens of thousands of nodes) on every
+        tooltip open, which is a measurable frame hit.
+      </p>
+    </section>
+
+    <section id="pixi-text">
+      <h2><span class="num">14</span>Drawing text</h2>
+      <p>
+        Once you have a <code>Text</code> constructor and a target container to attach to, drawing text
+        is exactly the public Pixi.js v8 API — nothing game-specific about the call itself, only about
+        finding where to put it:
+      </p>
+      <pre><span class="tag">typescript</span><code><span class="tok-kw">const</span> style = { fontFamily: <span class="tok-str">"Arial"</span>, fontSize: <span class="tok-num">14</span>, fontWeight: <span class="tok-str">"700"</span>, fill: <span class="tok-str">"#FFD84D"</span> };
+<span class="tok-kw">const</span> label = <span class="tok-kw">new</span> ctors.Text({ text: <span class="tok-str">"1,250"</span>, style });
+label.position.set(<span class="tok-num">0</span>, <span class="tok-num">0</span>);
+targetContainer.addChild(label);
+
+<span class="tok-com">// updating it later is just an assignment — no re-creation needed:</span>
+label.text = <span class="tok-str">"1,900"</span>;</code></pre>
+      <p>
+        The actual work is finding <code>targetContainer</code> — a real node already in the game's own
+        scene graph, so your text moves, scales, and gets clipped exactly the way the game's own labels
+        do. The game tags many of its Pixi containers with a plain-string <code>.label</code> property
+        (not a minified identifier — these read like <code>"GardenInfoCardSystem"</code>,
+        <code>"GardenInfoObjectCard"</code>), which is by far the most stable hook point across builds.
+      </p>
+      <pre><span class="tag">typescript</span><code><span class="tok-kw">function</span> findByLabel(root: <span class="tok-kw">any</span>, label: <span class="tok-kw">string</span>): <span class="tok-kw">any</span> {
+  <span class="tok-kw">return</span> findNode(root, (n) =&gt; n.label === label);
+}
+
+<span class="tok-com">// The card the game shows for whatever crop/egg/decor the player is looking at:</span>
+<span class="tok-kw">const</span> cardSystem = findByLabel(stage, <span class="tok-str">"GardenInfoCardSystem"</span>);
+
+<span class="tok-com">// Rather than re-searching on every frame, listen for the game's own `childAdded`</span>
+<span class="tok-com">// event on that container — it fires exactly when a new card is shown:</span>
+cardSystem.on(<span class="tok-str">"childAdded"</span>, (row: <span class="tok-kw">any</span>) =&gt; {
+  <span class="tok-kw">if</span> (row.label !== <span class="tok-str">"GardenInfoCardRow"</span>) <span class="tok-kw">return</span>;
+  <span class="tok-kw">const</span> card = findByLabel(row, <span class="tok-str">"GardenInfoObjectCard"</span>);
+  <span class="tok-kw">if</span> (!card) <span class="tok-kw">return</span>;
+  attachValueLabel(card, ctors);
+  card.once(<span class="tok-str">"destroyed"</span>, () =&gt; { <span class="tok-com">/* the card is gone, clean up your own children */</span> });
+});</code></pre>
+      <p class="warn">
+        Anything running inside a handler for one of the game's own scene-graph events (like
+        <code>childAdded</code> above) executes <em>synchronously inside the game's own render/update
+        loop</em>. If your handler throws, the exception bubbles up into the game's own rebuild and
+        aborts it partway through — symptom: the whole card visibly shifts or renders half-built, not a
+        clean crash. Wrap the entire body in try/catch and fail silently (log, don't rethrow).
+      </p>
+      <p>
+        Positioning text against an existing card reliably means anchoring to a stable reference point,
+        not the card's rendered bounds — a large/fully-grown crop's icon can visually overflow the
+        card's nominal box and throw off anything anchored to <code>getBounds()</code>. Prefer the
+        card's fixed <code>hitArea</code> dimensions, or a specific labeled child row within it (e.g. a
+        title row), over the whole card's bounding box.
+      </p>
+    </section>
+
+    <section id="rive-text">
+      <h2><span class="num">15</span>Text on Rive-animated objects</h2>
+      <p>
+        Not everything on screen is a Pixi display object. Pets and some decor are Rive animations —
+        a separate runtime with its own artboards and state machines, composited into the same canvas
+        but not reachable through <code>ctors.Text</code> at all. Rive has its own, much simpler
+        surface for this: a named <strong>text run</strong> baked into the artboard by whoever
+        authored it in the Rive editor, settable at runtime with one call.
+      </p>
+      <pre><span class="tag">typescript</span><code><span class="tok-com">// `artboard` here is a live Rive artboard instance — captured the same way</span>
+<span class="tok-com">// you'd capture a Pixi app: hook Rive's own instantiation entry point once,</span>
+<span class="tok-com">// record every instance that gets created, and look it up later by whichever</span>
+<span class="tok-com">// asset name / tag you attached to it at capture time.</span>
+<span class="tok-kw">try</span> {
+  artboard.setTextRunValue(<span class="tok-str">"CoinLabel"</span>, <span class="tok-str">"1,250"</span>);
+} <span class="tok-kw">catch</span> {
+  <span class="tok-com">// the artboard simply has no text run by that name — not every pet/decor</span>
+  <span class="tok-com">// asset defines one, so treat a throw here as "unsupported", not a bug</span>
+}</code></pre>
+      <p>
+        There is no equivalent of <code>addChild</code> here — you can only <em>set the value of a run
+        the original asset already defines</em>, not add a brand-new piece of text to an artboard that
+        never had one. If you need arbitrary new text on top of a Rive-animated object (a pet, say),
+        the practical answer is still the Pixi approach from the previous section: find the Pixi
+        container that hosts the Rive canvas/texture and attach a <code>Text</code> node to
+        <em>that</em>, positioned over it, rather than trying to inject a run into the artboard itself.
+      </p>
+      <p>
+        The same pattern extends past text: Rive artboards also expose named inputs (booleans,
+        numbers, triggers driving the state machine) settable the same way, which is how a mod can
+        force a specific animation state or swap a bound image without touching Pixi at all — outside
+        the scope of "drawing", but worth knowing the surface exists if a feature calls for driving a
+        pet's animation directly rather than just labeling it.
+      </p>
+    </section>
+
+    <section id="pixi-shapes">
+      <h2><span class="num">16</span>Drawing shapes &amp; badges</h2>
+      <p>
+        Use the <code>Graphics</code> constructor you found earlier the same way you'd use Pixi's public
+        API — <code>roundRect().fill()</code> for a simple rounded badge behind a text label, which is
+        the standard way to make custom text legible over arbitrary game art without needing to resize
+        anything the game itself drew:
+      </p>
+      <pre><span class="tag">typescript</span><code><span class="tok-kw">const</span> badge = <span class="tok-kw">new</span> graphicsCtor();
+card.addChild(badge); <span class="tok-com">// add once; redraw in place on every update</span>
+
+<span class="tok-kw">function</span> redrawBadge(width: <span class="tok-kw">number</span>, height: <span class="tok-kw">number</span>) {
+  badge.clear();
+  badge.roundRect(<span class="tok-num">0</span>, <span class="tok-num">0</span>, width, height, <span class="tok-num">6</span>).fill({ color: <span class="tok-num">0x000000</span>, alpha: <span class="tok-num">0.55</span> });
+}</code></pre>
+      <p>
+        <code>clear()</code> then redraw is the correct update pattern — <code>Graphics</code> instances
+        are meant to be reused across frames, not recreated. Recreating one every update leaks nodes
+        and is measurably slower for anything updating more than a couple of times a second.
+      </p>
+      <p>A full pattern for a value badge that tracks a moving game object, combining everything above:</p>
+      <pre><span class="tag">typescript — condensed from a working mod</span><code><span class="tok-kw">function</span> attachValueLabel(card: <span class="tok-kw">any</span>, ctors: PixiCtors) {
+  <span class="tok-kw">const</span> text = <span class="tok-kw">new</span> ctors.Text({ text: <span class="tok-str">"—"</span>, style: { fontFamily: <span class="tok-str">"Arial"</span>, fontSize: <span class="tok-num">14</span>, fill: <span class="tok-str">"#FFD84D"</span> } });
+  <span class="tok-kw">const</span> badge = <span class="tok-kw">new</span> graphicsCtor();
+  card.addChild(badge); <span class="tok-com">// badge behind...</span>
+  card.addChild(text);  <span class="tok-com">// ...text in front</span>
+
+  <span class="tok-kw">function</span> sync(coins: <span class="tok-kw">number</span>) {
+    <span class="tok-kw">try</span> {
+      text.text = coins.toLocaleString();
+      <span class="tok-kw">const</span> pad = <span class="tok-num">8</span>;
+      badge.clear();
+      badge.roundRect(-pad, -<span class="tok-num">4</span>, text.width + pad * <span class="tok-num">2</span>, text.height + <span class="tok-num">8</span>, <span class="tok-num">6</span>)
+           .fill({ color: <span class="tok-num">0x000000</span>, alpha: <span class="tok-num">0.55</span> });
+    } <span class="tok-kw">catch</span> (err) {
+      <span class="tok-com">// never let this throw back into the game's own render loop</span>
+      console.warn(<span class="tok-str">"[my-mod] badge sync failed"</span>, err);
+    }
+  }
+
+  <span class="tok-kw">return</span> { sync, destroy() { badge.destroy(); text.destroy(); } };
+}</code></pre>
+    </section>
+
+    <section id="pixi-sprites">
+      <h2><span class="num">17</span>Adding images / sprites</h2>
+      <p>
+        To draw an arbitrary image (an icon not already in the game's own texture atlas), decode it
+        into a <code>Texture</code> once and reuse it for every sprite you create from it — texture
+        decode is comparatively expensive, sprite creation is cheap:
+      </p>
+      <pre><span class="tag">typescript</span><code><span class="tok-kw">let</span> coinTexture: <span class="tok-kw">any</span> = <span class="tok-kw">null</span>;
+<span class="tok-kw">async</span> <span class="tok-kw">function</span> loadTexture(ctors: PixiCtors, base64: <span class="tok-kw">string</span>): <span class="tok-kw">Promise</span>&lt;<span class="tok-kw">any</span>&gt; {
+  <span class="tok-kw">if</span> (coinTexture) <span class="tok-kw">return</span> coinTexture;
+  <span class="tok-kw">const</span> img = <span class="tok-kw">new</span> <span class="tok-kw">Image</span>();
+  <span class="tok-kw">await</span> <span class="tok-kw">new</span> <span class="tok-kw">Promise</span>&lt;<span class="tok-kw">void</span>&gt;((resolve) =&gt; { img.onload = () =&gt; resolve(); img.src = base64; });
+  coinTexture = ctors.Texture.from(img);
+  <span class="tok-kw">return</span> coinTexture;
+}
+
+<span class="tok-kw">const</span> icon = <span class="tok-kw">new</span> ctors.Sprite(coinTexture);
+icon.width = icon.height = <span class="tok-num">16</span>;
+card.addChild(icon);</code></pre>
+      <p>
+        For images that need to exist <em>in the game world</em> (not attached to a UI card, but placed
+        at world coordinates and layered with tiles and the player avatar), see the world-overlay
+        pattern below — it handles z-ordering against the player correctly, which a bare
+        <code>addChild</code> on the world container does not.
+      </p>
+    </section>
+
+    <section id="pixi-world">
+      <h2><span class="num">18</span>Building a world overlay (mini-games, custom scenery)</h2>
+      <p>
+        Drawing something into the actual farm world — not a UI overlay, but new scenery or a mini-game
+        that temporarily takes over the player's own tiles — needs a few more pieces working together,
+        all reusable across however many such features you build:
+      </p>
+      <ol>
+        <li><strong>A dedicated draw layer per z-band.</strong> Create one <code>Graphics</code> or <code>Container</code> per named layer (e.g. <code>"background"</code>, <code>"foreground"</code>), each with its own <code>zIndex</code>, added as a child of the game's own world container. The farm sits near <code>zIndex: 0</code>, so background scenery needs a large negative index.</li>
+        <li><strong>A <code>RenderLayer</code> for anything drawn above the player avatar.</strong> Pixi's <code>RenderLayer</code> lets you sort a set of objects into a separate pass that composites above everything else, which is the only reliable way to draw in front of the player character — a raw large positive <code>zIndex</code> on the world container does not reliably beat the avatar's own sorting.</li>
+        <li><strong>Suppress the game's own tile redraw</strong> while your scene owns the space, and hide (don't destroy) the tiles/effects underneath so they can be restored byte-for-byte on exit.</li>
+        <li><strong>Claim "cinematic mode"</strong> (the same jotai atom from the state section) while active, so the game's own camera/input logic gets out of your way, and release your claim — not force it off — on exit, in case something else also claimed it.</li>
+        <li><strong>Herd active pets out of the affected tiles</strong> for the duration, and let them back in on exit.</li>
+      </ol>
+      <pre><span class="tag">typescript — shape of a reusable scene helper</span><code><span class="tok-kw">interface</span> WorldScene {
+  enter(): <span class="tok-kw">void</span>;
+  exit(): <span class="tok-kw">void</span>;
+  sync(): { system: <span class="tok-kw">any</span>; left: <span class="tok-kw">number</span>; top: <span class="tok-kw">number</span>; cols: <span class="tok-kw">number</span>; rows: <span class="tok-kw">number</span> } | <span class="tok-kw">null</span>;
+  addSprite(image: HTMLImageElement, opts: { x: <span class="tok-kw">number</span>; y: <span class="tok-kw">number</span>; zIndex: <span class="tok-kw">number</span>; layer: <span class="tok-kw">string</span> }): <span class="tok-kw">any</span>;
+}
+
+<span class="tok-kw">function</span> createWorldScene(config: {
+  owner: <span class="tok-kw">string</span>;                         <span class="tok-com">// unique id, namespaces your cinematic-mode claim + layer labels</span>
+  layers: <span class="tok-kw">Record</span>&lt;<span class="tok-kw">string</span>, <span class="tok-kw">number</span>&gt;;             <span class="tok-com">// layer name -> zIndex, farm sits near 0</span>
+  abovePlayer?: <span class="tok-kw">string</span>[];               <span class="tok-com">// which of the above layers use a RenderLayer instead</span>
+}): WorldScene {
+  <span class="tok-com">// ... find the world container off the stage, build one Graphics per layer,</span>
+  <span class="tok-com">// wrap the ones in `abovePlayer` in a RenderLayer, claim cinematic mode on</span>
+  <span class="tok-com">// enter(), release it and destroy every created node on exit().</span>
+  <span class="tok-kw">throw</span> <span class="tok-kw">new</span> <span class="tok-kw">Error</span>(<span class="tok-str">"sketch — see the source projects for a complete implementation"</span>);
+}</code></pre>
+      <p>
+        This is intentionally sketched rather than reproduced in full — the complete version threads
+        through several hundred lines coordinating tile visibility, pet penning, and teardown ordering
+        that only matters once you're actually shipping a mini-game. The five numbered responsibilities
+        above are the part worth carrying into a fresh implementation; the rest is bookkeeping specific
+        to how one particular mod chose to structure its own feature set.
+      </p>
+      <p class="note">
+        None of this ever sends a network message. A world scene reads the tile map and moves display
+        objects around on the client only — it cannot change what the server thinks the garden looks
+        like, which is exactly why it's safe to build purely cosmetic or mini-game features this way
+        without touching the command protocol at all.
+      </p>
+    </section>
+
+    <section id="multi-mod">
+      <h2><span class="num">19</span>Multi-mod collisions</h2>
+      <p>
+        If you're a userscript sharing the page (and the socket) with the real game client — and
+        potentially with <em>other</em> userscripts too — the command-sequence counter described earlier
+        becomes a genuine coordination problem, not just bookkeeping. The game keeps its own
+        module-private counter with no idea your script exists; the instant you send one command, both
+        counters have silently claimed the same next number for different things.
+      </p>
+      <p>Two independently-developed, compatible-in-spirit fixes:</p>
+      <div class="grid2">
+        <div class="card">
+          <h4>Renumber everything on the way out</h4>
+          <p>
+            Patch <code>WebSocket.prototype.send</code>. While you've sent nothing yet, stay a passive
+            observer: watch the game's own <code>commandSequence</code> values go by and track the
+            highest one seen. The moment <em>you</em> inject a command, you own the counter from then
+            on — rewrite every subsequent outgoing envelope, including the game's own, to the next
+            number from your counter before it hits the wire. One chooser, no collisions, and every
+            byte is untouched vanilla behavior until the first time you actually act.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Anchor to the server's own frontier</h4>
+          <p>
+            Rather than trusting a local counter at all, read the server's own confirmed
+            <code>executedCommandSequence</code> directly off the room connection object (or scrape it
+            out of incoming frames as a fallback) before stamping every outgoing command. If the server
+            has already run past your next number — because a second script renumbered independently —
+            jump forward to frontier+1. If a command comes back rejected as <code>invalid_sequence</code>,
+            resync down to frontier+1 immediately. This survives a second mod doing its own renumbering
+            on the same socket: a desync costs at most the one command that tripped it, not every
+            command after.
+          </p>
+        </div>
+      </div>
+      <p class="warn">
+        The concrete, load-bearing lesson here for a userscript's own command-envelope sender: never
+        assume you're the only writer on the socket. If you patch <code>send</code>, patch it once,
+        detect your own previously-built envelopes (a request-id set you populate yourself) so you
+        don't re-intercept or re-number your own outgoing traffic, and treat everything else passing
+        through as a foreign frame that might need renumbering.
+      </p>
+
+      <h3>A third refinement: brand your own wrapper</h3>
+      <p>
+        Beyond renumbering, there's a coordination problem one level up: if your script re-installs
+        its hook (a reconnect, a feature toggling on and off), how do you tell "my own wrapper is
+        still installed, leave it" apart from "a wrapper is installed, but it's someone else's, or a
+        stale one of mine from before a page navigation"? Tag every function you install with a
+        private marker, and check for your own marker — not just "is something installed" — before
+        deciding whether to wrap again:
+      </p>
+      <pre><span class="tag">typescript</span><code><span class="tok-kw">function</span> brandWrapper&lt;T <span class="tok-kw">extends</span> <span class="tok-kw">object</span>&gt;(fn: T, label: <span class="tok-kw">string</span>): T {
+  (fn <span class="tok-kw">as</span> <span class="tok-kw">any</span>).__myModWrapped = <span class="tok-kw">true</span>;
+  (fn <span class="tok-kw">as</span> <span class="tok-kw">any</span>).__myModLabel = label;
+  <span class="tok-kw">return</span> fn;
+}
+
+<span class="tok-kw">function</span> classifySlot(obj: <span class="tok-kw">object</span>, key: <span class="tok-kw">string</span>): <span class="tok-str">"clean"</span> | <span class="tok-str">"mine"</span> | <span class="tok-str">"foreign"</span> {
+  <span class="tok-kw">if</span> (!<span class="tok-kw">Object</span>.prototype.hasOwnProperty.call(obj, key)) <span class="tok-kw">return</span> <span class="tok-str">"clean"</span>; <span class="tok-com">// nothing installed at all</span>
+  <span class="tok-kw">const</span> value = (obj <span class="tok-kw">as</span> <span class="tok-kw">any</span>)[key];
+  <span class="tok-kw">if</span> (<span class="tok-kw">typeof</span> value !== <span class="tok-str">"function"</span>) <span class="tok-kw">return</span> <span class="tok-str">"clean"</span>;
+  <span class="tok-kw">return</span> value.__myModWrapped ? <span class="tok-str">"mine"</span> : <span class="tok-str">"foreign"</span>; <span class="tok-com">// unrecognized wrapper = assume foreign, never claim it</span>
+}</code></pre>
+      <p>
+        Pair this with an <strong>identity-guarded restore</strong>: when tearing your hook down, only
+        put the original function back if the slot still holds exactly the wrapper <em>you</em>
+        installed. If some other script wrapped <em>your</em> wrapper in the meantime (layering its
+        own hook on top of yours, which is completely legitimate), blindly restoring your captured
+        "original" would silently erase that other script's hook too — a bug that only shows up as
+        "the other mod's feature randomly stops working after mine unloads," which is a brutal one to
+        trace back to its cause.
+      </p>
+      <pre><span class="tag">typescript</span><code><span class="tok-kw">function</span> restoreSlot(obj: <span class="tok-kw">object</span>, key: <span class="tok-kw">string</span>, original: <span class="tok-kw">Function</span>, installedRef: <span class="tok-kw">Function</span>): <span class="tok-kw">boolean</span> {
+  <span class="tok-kw">if</span> ((obj <span class="tok-kw">as</span> <span class="tok-kw">any</span>)[key] !== installedRef) <span class="tok-kw">return</span> <span class="tok-kw">false</span>; <span class="tok-com">// someone wrapped ours after us — leave it alone</span>
+  (obj <span class="tok-kw">as</span> <span class="tok-kw">any</span>)[key] = original;
+  <span class="tok-kw">return</span> <span class="tok-kw">true</span>;
+}</code></pre>
+    </section>
+
+    <section id="sources">
+      <h2><span class="num">20</span>Sources &amp; disclaimer</h2>
+      <p>
+        Everything above was reconstructed by reading the public source of three independent
+        community projects, cross-checking where they overlap, and calling out where they don't:
+      </p>
+      <ul>
+        <li><a href="https://github.com/Ariedam64/MG-AriesMod" target="_blank">Ariedam64/MG-AriesMod</a> — browser userscript; primary source for the Pixi rendering material and the send-hook renumbering approach.</li>
+        <li><a href="https://github.com/Liam0306dis/garden-companion" target="_blank">Liam0306dis/garden-companion</a> — browser userscript; primary source for the jotai atom-cache approach and the frontier-anchored sequencer.</li>
+        <li><a href="https://github.com/Ariedam64/mg-afk-android" target="_blank">Ariedam64/mg-afk-android</a> — native Android client with no browser or game code involved at all; the cleanest, least-ambiguous source for the raw wire format, since it has to reimplement the protocol from nothing rather than piggyback on the game's own client.</li>
+        <li><a href="https://github.com/mg-tokyo/QPM-GR" target="_blank">mg-tokyo/QPM-GR</a> — "Quinoa Pet Manager," by far the largest of the four; primary source for the <code>MagicCircle_RoomConnection</code> object, the extended <code>QuinoaCommandResult</code> error codes, the wrapper-branding coexistence technique, and the Rive text-run material.</li>
+        <li><a href="https://github.com/Ariedam64/Magic-Garden-API" target="_blank">Ariedam64/Magic-Garden-API</a> — an unofficial REST/asset service that mirrors game data (sprites, pet/plant metadata) for other tools to consume. It doesn't talk to the room protocol above and isn't the subject of this guide, but if you need static game data rather than live room state, it's a maintained source for that.</li>
+      </ul>
+      <p>
+        This is not official documentation, and none of it is guaranteed to still be accurate the
+        moment the developers ship a client update — several sections above note exactly this (the
+        flat/wrapped migration, the <code>PartialState</code>/<code>RoomFrame</code> transition). Treat
+        every concrete field name and message shape here as "true as of the client builds these three
+        projects target," and re-verify against current mod source before depending on it for anything
+        that matters.
+      </p>
+      <footer>
+        Compiled by reading source, not by asking the developers — because as of this writing, no
+        official documentation for this API exists to ask about.
+      </footer>
+    </section>
+  </main>
+</div>
+
+<script>
+  // active-link highlighting on scroll
+  const links = Array.from(document.querySelectorAll('nav.side a[href^="#"]'));
+  const sections = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll(){
+    let idx = 0;
+    const y = window.scrollY + 100;
+    for (let i = 0; i < sections.length; i++){
+      if (sections[i].offsetTop <= y) idx = i;
+    }
+    links.forEach(l => l.classList.remove('active'));
+    if (links[idx]) links[idx].classList.add('active');
+  }
+  document.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+  // close mobile nav after a click
+  links.forEach(l => l.addEventListener('click', () => document.getElementById('sidenav').classList.remove('open')));
+</script>
+</body>
+</html>

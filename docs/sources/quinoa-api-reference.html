@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quinoa API Reference</title>
+<style>
+  :root{
+    --bg: #1e1f22;
+    --bg-side: #232428;
+    --bg-raised: #2b2d31;
+    --bg-code: #17181a;
+    --border: #3a3c41;
+    --border-soft: #2f3136;
+    --ink: #dcddde;
+    --ink-dim: #96989d;
+    --ink-faint: #6d6f76;
+    --accent: #5bd68e;
+    --accent-dim: #3f9c68;
+    --accent-soft: rgba(91,214,142,0.12);
+    --type-link: #6fb1e0;
+    --badge-wrapped: #e0a95b;
+    --badge-flat: #6fb1e0;
+    --badge-warn: #e0725b;
+    --mono: "JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+    --sans: "Inter",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+    font-size:14.5px; line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--type-link); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  code{font-family:var(--mono);}
+
+  /* ---------------- top bar ---------------- */
+  header.topbar{
+    height:56px; display:flex; align-items:center; gap:16px;
+    padding:0 18px; background:var(--bg-side); border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:40;
+  }
+  .brand{display:flex; align-items:center; gap:9px; font-weight:700; font-size:15px; color:var(--ink); flex:0 0 auto;}
+  .brand .dot{width:9px; height:9px; border-radius:2px; background:var(--accent); display:inline-block; transform:rotate(45deg);}
+  .brand small{color:var(--ink-faint); font-weight:500; font-size:11.5px; margin-left:2px;}
+  select.versionSel{
+    background:var(--bg-raised); color:var(--ink-dim); border:1px solid var(--border);
+    border-radius:6px; padding:5px 8px; font-size:12.5px; font-family:var(--mono);
+  }
+  .topsearch{
+    flex:1; max-width:420px; margin:0 auto; position:relative;
+  }
+  .topsearch input{
+    width:100%; background:var(--bg); border:1px solid var(--border); border-radius:7px;
+    padding:8px 12px 8px 32px; color:var(--ink); font-size:13px; font-family:var(--sans);
+  }
+  .topsearch input:focus{outline:none; border-color:var(--accent-dim);}
+  .topsearch::before{
+    content:"⌕"; position:absolute; left:11px; top:50%; transform:translateY(-50%);
+    color:var(--ink-faint); font-size:15px;
+  }
+  .topsearch kbd{
+    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    font-family:var(--mono); font-size:10.5px; color:var(--ink-faint);
+    border:1px solid var(--border); border-radius:4px; padding:1px 5px; background:var(--bg-raised);
+  }
+  header.topbar a.gh{color:var(--ink-dim); font-size:12.5px; white-space:nowrap;}
+  header.topbar a.gh:hover{color:var(--ink);}
+
+  /* ---------------- shell ---------------- */
+  .shell{display:flex; height:calc(100vh - 56px);}
+  nav.side{
+    width:272px; flex:0 0 272px; background:var(--bg-side); border-right:1px solid var(--border);
+    overflow-y:auto; padding:14px 0 60px;
+  }
+  nav.side::-webkit-scrollbar{width:8px;}
+  nav.side::-webkit-scrollbar-thumb{background:var(--border); border-radius:4px;}
+  .pkg{margin-bottom:2px;}
+  .pkg > .pkghead{
+    display:flex; align-items:center; gap:6px; padding:9px 16px; cursor:pointer;
+    font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); font-weight:700;
+  }
+  .pkg > .pkghead:hover{color:var(--ink-dim);}
+  .pkg .kind{padding:2px 0 8px;}
+  .pkg .kindlabel{padding:3px 16px 3px 24px; font-size:10.5px; color:var(--ink-faint); font-weight:600;}
+  .navitem{
+    display:flex; align-items:center; gap:7px; padding:5px 16px 5px 26px; font-size:13px;
+    color:var(--ink-dim); cursor:pointer; border-left:2px solid transparent; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .navitem:hover{background:rgba(255,255,255,0.03); color:var(--ink);}
+  .navitem.active{color:var(--accent); border-left-color:var(--accent); background:var(--accent-soft);}
+  .navitem .tag{
+    font-size:9px; padding:1px 5px; border-radius:3px; font-family:var(--mono); flex:0 0 auto;
+  }
+  .navitem .tag.C{background:rgba(111,177,224,0.16); color:var(--type-link);}
+  .navitem .tag.T{background:rgba(224,169,91,0.16); color:var(--badge-wrapped);}
+  .navitem .tag.E{background:rgba(224,114,91,0.16); color:var(--badge-warn);}
+  .navitem.hidden{display:none;}
+
+  main{flex:1; overflow-y:auto; padding:0;}
+  .content{max-width:900px; margin:0 auto; padding:40px 48px 120px;}
+  @media (max-width:860px){ .content{padding:28px 20px 100px;} }
+
+  /* ---------------- home ---------------- */
+  .home h1{font-size:30px; margin:0 0 10px;}
+  .home p.lede{color:var(--ink-dim); max-width:64ch; font-size:15px;}
+  .home .pkggrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px; margin-top:28px;}
+  .home .pkgcard{
+    background:var(--bg-raised); border:1px solid var(--border); border-radius:10px; padding:16px 18px;
+  }
+  .home .pkgcard h3{margin:0 0 6px; font-size:14px; color:var(--accent); font-family:var(--mono);}
+  .home .pkgcard p{margin:0; color:var(--ink-dim); font-size:12.8px;}
+  .home .pkgcard .counts{margin-top:10px; font-size:11.5px; color:var(--ink-faint);}
+  .home .note{
+    margin-top:32px; border-left:3px solid var(--accent-dim); padding:10px 0 10px 14px;
+    color:var(--ink-dim); font-size:13px; max-width:64ch;
+  }
+
+  /* ---------------- class/typedef/enum page ---------------- */
+  .crumb{font-size:12px; color:var(--ink-faint); margin-bottom:10px; font-family:var(--mono);}
+  .crumb a{color:var(--ink-faint);}
+  .crumb a:hover{color:var(--ink-dim);}
+  .pagehead{display:flex; align-items:flex-start; gap:14px; flex-wrap:wrap; margin-bottom:6px;}
+  .pagehead h1{font-size:27px; margin:0; font-family:var(--mono); font-weight:700;}
+  .kindbadge{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; padding:3px 8px;
+    border-radius:5px; font-weight:700; margin-top:6px;
+  }
+  .kindbadge.class{background:rgba(111,177,224,0.16); color:var(--type-link);}
+  .kindbadge.typedef{background:rgba(224,169,91,0.16); color:var(--badge-wrapped);}
+  .kindbadge.enum{background:rgba(224,114,91,0.16); color:var(--badge-warn);}
+  .extendsline{font-size:13px; color:var(--ink-dim); margin:8px 0 18px; font-family:var(--mono);}
+  .summary{color:#c7c8ca; max-width:70ch; margin:0 0 28px; font-size:14.5px;}
+
+  .sectionhead{
+    font-size:12px; text-transform:uppercase; letter-spacing:0.07em; color:var(--ink-faint);
+    font-weight:700; margin:34px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--border-soft);
+  }
+
+  table.proptable{width:100%; border-collapse:collapse; font-size:13px; margin-bottom:8px;}
+  table.proptable th{
+    text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:0.04em;
+    color:var(--ink-faint); border-bottom:1px solid var(--border); padding:6px 10px; font-weight:600;
+  }
+  table.proptable td{border-bottom:1px solid var(--border-soft); padding:8px 10px; vertical-align:top; color:#c7c8ca;}
+  table.proptable code{color:var(--ink);}
+  .opt{color:var(--ink-faint); font-size:11px;}
+
+  .member{
+    border:1px solid var(--border); border-radius:9px; background:var(--bg-raised);
+    margin-bottom:14px; overflow:hidden; scroll-margin-top:20px;
+  }
+  .member .sig{
+    display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:12px 16px;
+    font-family:var(--mono); font-size:13.5px; background:rgba(255,255,255,0.015);
+    border-bottom:1px solid var(--border-soft);
+  }
+  .member .sig .name{color:var(--accent); font-weight:700;}
+  .member .sig .punct{color:var(--ink-faint);}
+  .member .sig .ptype{color:var(--type-link);}
+  .member .sig .ret{color:var(--ink-dim);}
+  .member .sig a.permalink{margin-left:auto; color:var(--ink-faint); font-size:12px;}
+  .member .body{padding:14px 16px 16px;}
+  .member .body p{margin:0 0 12px; color:#c7c8ca; font-size:13.6px;}
+  .badgeset{display:flex; gap:6px; flex-wrap:wrap;}
+  .mbadge{
+    font-size:9.5px; padding:2px 6px; border-radius:4px; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:0.03em; font-weight:700;
+  }
+  .mbadge.wrapped{background:rgba(224,169,91,0.16); color:var(--badge-wrapped);}
+  .mbadge.flat{background:rgba(111,177,224,0.16); color:var(--type-link);}
+  .mbadge.room{background:rgba(224,114,91,0.16); color:var(--badge-warn);}
+  .mbadge.static{background:rgba(255,255,255,0.08); color:var(--ink-dim);}
+
+  h4.subhead{font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-faint); margin:14px 0 6px; font-weight:700;}
+  pre.example{
+    background:var(--bg-code); border:1px solid var(--border-soft); border-radius:7px;
+    padding:12px 14px; margin:8px 0 4px; overflow-x:auto; font-size:12.6px; line-height:1.55;
+  }
+  pre.example code{color:#d8d8d6;}
+  .tok-key{color:#6fb1e0;} .tok-str{color:#d3a35a;} .tok-num{color:#8fbf8f;} .tok-com{color:#6d6f76; font-style:italic;} .tok-kw{color:#e0725b;}
+
+  /* right-side outline */
+  aside.outline{
+    width:210px; flex:0 0 210px; padding:40px 20px; position:sticky; top:56px; align-self:flex-start;
+    max-height:calc(100vh - 56px); overflow-y:auto;
+  }
+  aside.outline .otitle{font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); margin-bottom:10px; font-weight:700;}
+  aside.outline a{display:block; font-size:12.4px; color:var(--ink-dim); padding:3px 0; border-left:2px solid transparent; padding-left:10px;}
+  aside.outline a:hover{color:var(--ink); text-decoration:none;}
+  .pagewrap{display:flex;}
+
+  .toggle-nav{
+    display:none; position:fixed; bottom:16px; right:16px; z-index:60; background:var(--accent);
+    color:#0c1a12; border:none; border-radius:50%; width:46px; height:46px; font-size:18px;
+  }
+  @media (max-width:1080px){ aside.outline{display:none;} }
+  @media (max-width:860px){
+    nav.side{position:fixed; left:-272px; top:56px; bottom:0; transition:left .18s; z-index:50;}
+    nav.side.open{left:0;}
+    .toggle-nav{display:block;}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="dot"></span>Quinoa<small>API Reference</small></div>
+  <select class="versionSel" id="versionSel">
+    <option>v1029 (stable)</option>
+    <option>v1040 (edge)</option>
+  </select>
+  <div class="topsearch">
+    <input id="searchbox" type="text" placeholder="Search classes, typedefs, members…" autocomplete="off">
+    <kbd>/</kbd>
+  </div>
+  <a class="gh" href="https://github.com/Ariedam64/MG-AriesMod" target="_blank">Sources ↗</a>
+</header>
+
+<div class="shell">
+  <nav class="side" id="sidenav"></nav>
+  <main id="main"></main>
+</div>
+
+<button class="toggle-nav" onclick="document.getElementById('sidenav').classList.toggle('open')">☰</button>
+
+<script>
+/* ======================================================================
+   DATA MODEL
+   A compact reconstruction of the Quinoa client surface, styled after
+   how discord.js/docs organizes discord.js itself: packages -> classes /
+   typedefs / enums, each class with constructor / properties / methods /
+   events, each member with a signature, params table, and description.
+   Reverse-engineered from public mod source — see individual method
+   notes for per-project attribution where behavior was uncertain.
+   ====================================================================== */
+
+const TYPE_NAMES = new Set(); // filled after DOCS is built, used to auto-link types in tables
+
+function p(name, type, description, opts = {}) {
+  return { name, type, description, optional: !!opts.optional, default: opts.default };
+}
+
+const DOCS = {
+  packages: [
+    { id: 'protocol', label: 'protocol', description: 'Connecting to a room and sending/receiving gameplay messages over the wire.' },
+    { id: 'state', label: 'state', description: 'Reading room/game state, either from the socket or from the page\'s own React/jotai internals.' },
+    { id: 'render', label: 'render', description: 'Drawing into the game\'s own Pixi.js scene graph and Rive-animated objects.' },
+  ],
+
+  classes: [
+    // ------------------------------------------------------------------ //
+    {
+      name: 'RoomSocket',
+      package: 'protocol',
+      summary: 'Owns the room connection\'s raw WebSocket: builds the connect URL, performs the handshake, answers the server\'s application-level keepalive, and re-emits every parsed inbound frame as a typed event. This is the layer to implement directly if you are not running inside the game\'s own page (e.g. a standalone or native client) — see RoomConnection for the friendlier, page-only alternative.',
+      extends: null,
+      implementsNote: 'EventEmitter<RoomSocketEvents>',
+      constructorDef: {
+        params: [
+          p('options', 'RoomSocketOptions', 'Host, room, credentials, and reconnect policy for this socket.'),
+        ],
+        description: 'Creates a socket wrapper. Call connect() to actually open the connection — the constructor does no I/O.',
+      },
+      properties: [
+        { name: 'room', type: 'string', readonly: true, description: 'The room slug currently connected (or last connected) to.' },
+        { name: 'playerId', type: 'string', readonly: true, description: 'This session\'s player id, set once the server reports it back via selfPlayerId on Welcome. Empty before the first Welcome — the connect URL never carries a client-chosen id.' },
+        { name: 'sequencer', type: 'CommandSequencer', readonly: true, description: 'The command-sequence counter this socket seeds from every incoming Welcome.' },
+      ],
+      methods: [
+        {
+          name: 'connect', badge: null, category: 'Connection',
+          params: [ p('options', 'ConnectOptions', 'Version, room, cookie, host, and reconnect policy.') ],
+          returns: { type: 'string', description: 'The wss:// URL that was opened, for logging/debugging.' },
+          description: 'Builds the connect URL (see buildConnectUrl()) and opens the WebSocket. Any previous socket on this instance is closed first. On open, sends VoteForGame and SetSelectedGame automatically — the server does not consider the connection game-ready until it sees both.',
+          example: `const socket = new RoomSocket();
+socket.on('welcome', (msg) => console.log('playerId:', msg.selfPlayerId));
+socket.connect({ host: "magicgarden.gg", version: "db34dc9", room: "", cookie: "mc_jwt=…" });`,
+        },
+        {
+          name: 'disconnect', badge: null, category: 'Connection',
+          params: [], returns: { type: 'void' },
+          description: 'Closes the socket with code 1000 and marks the disconnect as manual, which suppresses the automatic reconnect logic that a server-initiated close would otherwise trigger.',
+        },
+        {
+          name: 'send', badge: null, category: 'Connection',
+          params: [ p('payload', 'object', 'A JSON-serializable message, already shaped as either a flat action or a QuinoaCommand envelope.') ],
+          returns: { type: 'void' },
+          description: 'Sends a pre-built message verbatim. Prefer GameActions\' methods over calling this directly — they handle envelope wrapping and command-sequence numbering for you.',
+        },
+        {
+          name: 'buildConnectUrl', badge: 'static', category: 'Connection',
+          params: [ p('options', 'ConnectOptions', '') ],
+          returns: { type: 'string' },
+          description: 'Pure URL builder, split out from connect() so it can be unit tested or reused by a client that wants to open the socket itself. Every query value is JSON-encoded, quotes included — plain strings are sent as "like this", not like-this.',
+          example: `wss://magicgarden.gg/version/db34dc9/api/rooms/abcde12345/connect
+  ?surface="web"&platform="desktop"&version="db34dc9"
+  &capabilities="fbo_mipmap_unsupported"&locale="en"
+  &clientDocumentId="…"&clientConnectionAttempt=1
+  &clientNavigationType="navigate"&clientVisibilityState="visible"`,
+        },
+      ],
+      events: [
+        { name: 'welcome', payload: [ p('message', 'WelcomeMessage', '') ], description: 'The first message after a successful connect (and after every reconnect). Carries selfPlayerId, the seed for the command sequence, and the full room+game state snapshot.' },
+        { name: 'partialState', payload: [ p('message', 'PartialStateMessage', '') ], description: 'A batch of JSON-Patch operations to apply to the locally-held state tree. RoomFrame messages are normalized into this same shape before the event fires — see PartialStateMessage.' },
+        { name: 'commandResult', payload: [ p('message', 'QuinoaCommandResultMessage', '') ], description: 'Acknowledges (or rejects) a previously-sent QuinoaCommand envelope.' },
+        { name: 'close', payload: [ p('code', 'number', ''), p('reason', 'string', '') ], description: 'The socket closed, for any reason — including ones RoomSocket itself is about to auto-reconnect from. See CloseCode for known values.' },
+      ],
+    },
+
+    // ------------------------------------------------------------------ //
+    {
+      name: 'CommandSequencer',
+      package: 'protocol',
+      summary: 'Hands out the commandSequence numbers a QuinoaCommand envelope must carry. The server accepts a command only when its number is exactly one greater than the last one it executed — this class is the whole of that bookkeeping.',
+      extends: null,
+      constructorDef: { params: [], description: 'Starts at the pre-Welcome value (1); call seed() once the real Welcome arrives.' },
+      properties: [],
+      methods: [
+        {
+          name: 'seed', category: 'Numbering',
+          params: [ p('executedCommandSequence', 'number', 'Taken verbatim from Welcome.executedCommandSequence (or a later RoomFrame\'s field of the same name).') ],
+          returns: { type: 'void' },
+          description: 'Re-seeds the counter to executedCommandSequence + 1. Call this on every Welcome, not just the first — a reconnect is a brand-new server-side session and the old numbering no longer applies.',
+        },
+        {
+          name: 'take', category: 'Numbering',
+          params: [], returns: { type: 'number', description: 'The number to stamp on the command being sent right now.' },
+          description: 'Consumes and returns the next sequence number. Call exactly once per command actually sent — a number requested but never sent creates a permanent gap.',
+        },
+        {
+          name: 'reset', category: 'Numbering',
+          params: [], returns: { type: 'void' },
+          description: 'Returns to the pre-Welcome starting value. Call on a fresh connection (not a reconnect) or after a close, so a stale sequence from a dead session can never leak into a new one.',
+        },
+      ],
+      events: [],
+    },
+
+    // ------------------------------------------------------------------ //
+    {
+      name: 'GameActions',
+      package: 'protocol',
+      summary: 'Builds and sends every room/gameplay action the client can perform. Room-scoped actions (chat, emotes, player edits) are always sent flat; most gameplay actions are automatically wrapped in the QuinoaCommand envelope and stamped with the next command-sequence number — see each method\'s badge for which applies. A method marked FLAT sends { scopePath, type, ...params } directly; a method marked WRAPPED sends the params as command inside a QuinoaCommand envelope. This allowlist is a moving target as the server migrates more actions into the envelope — if a method that used to work silently stops doing anything, that\'s the first thing to re-check against current mod source.',
+      extends: null,
+      constructorDef: {
+        params: [
+          p('send', '(text: string) => void', 'Usually RoomSocket#send bound to an open socket.'),
+          p('sequencer', 'CommandSequencer', 'Shared with whatever seeds it from Welcome — typically the same RoomSocket\'s.', { optional: true, default: 'new CommandSequencer()' }),
+        ],
+        description: '',
+      },
+      properties: [],
+      methods: [
+        // Session / heartbeat
+        { name: 'ping', badge: 'flat', category: 'Session', params: [ p('id','number','Echoed back unchanged; conventionally the current timestamp.', {optional:true, default:'Date.now()'}) ], returns:{type:'void'}, description: 'Answered with a Pong. Distinct from the bare-string "ping"/"pong" transport keepalive, which RoomSocket answers on its own.' },
+        { name: 'voteForGame', badge: 'room', category: 'Session', params: [ p('gameName','string','', {optional:true, default:'"Quinoa"'}) ], returns:{type:'void'}, description: 'Part of the on-open handshake — send before setSelectedGame().' },
+        { name: 'setSelectedGame', badge: 'room', category: 'Session', params: [ p('gameName','string','', {optional:true, default:'"Quinoa"'}) ], returns:{type:'void'}, description: 'Part of the on-open handshake.' },
+        { name: 'restartGame', badge: 'room', category: 'Session', params: [ p('gameName','string','Field name on the wire is name, not gameName.', {optional:true, default:'"Quinoa"'}) ], returns:{type:'void'}, description: '' },
+        { name: 'checkWeatherStatus', badge: 'flat', category: 'Session', params: [], returns:{type:'void'}, description: 'Nudges the server to (re)confirm current weather.' },
+
+        // Social / chat
+        { name: 'chat', badge: 'room', category: 'Social', params: [ p('message','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'emote', badge: 'room', category: 'Social', params: [ p('emoteType','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'wish', badge: 'wrapped', category: 'Social', params: [ p('itemId','string','Omit entirely for an untargeted wish — do not pass null.', {optional:true}) ], returns:{type:'void'}, description: 'Throws a coin in the wishing well.' },
+        { name: 'kickPlayer', badge: 'room', category: 'Social', params: [ p('targetPlayerId','string','') ], returns:{type:'void'}, description: 'Host-only; enforced server-side.' },
+        { name: 'setPlayerData', badge: 'room', category: 'Social', params: [ p('name','string','', {optional:true}), p('cosmetic','object','', {optional:true}) ], returns:{type:'void'}, description: 'Include only the field(s) actually changing.' },
+        { name: 'usurpHost', badge: 'room', category: 'Social', params: [], returns:{type:'void'}, description: '' },
+        { name: 'markChatRead', badge: 'room', category: 'Social', params: [ p('seq','number','') ], returns:{type:'void'}, description: '' },
+
+        // Movement
+        { name: 'move', badge: 'flat', category: 'Movement', params: [ p('x','number',''), p('y','number','') ], returns:{type:'void'}, description: 'Broadcasts a continuous movement snapshot — not a discrete, ackable command, so it never appears in a QuinoaCommandResult.' },
+        { name: 'teleport', badge: 'flat', category: 'Movement', params: [ p('x','number',''), p('y','number','') ], returns:{type:'void'}, description: 'Instant position set, in tile-grid coordinates.' },
+
+        // Shop
+        { name: 'purchaseShopItem', badge: 'wrapped', category: 'Shop', params: [ p('shop','string','Lowercase shop key: "seed" | "tool" | "egg" | "decor" | "dawn" | …'), p('itemId','string','') ], returns:{type:'void'}, description: 'itemType and the id field name (species/toolId/eggId/decorId) are derived from where itemId appears in the game\'s static data — not from shop — because the "tool" shop mixes real Tool entries with Decor entries.' },
+
+        // Garden / crops
+        { name: 'plantSeed', badge: 'wrapped', category: 'Garden', params: [ p('slot','number',''), p('species','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'waterPlant', badge: 'wrapped', category: 'Garden', params: [ p('slot','number','') ], returns:{type:'void'}, description: '' },
+        { name: 'harvestCrop', badge: 'wrapped', category: 'Garden', params: [ p('slot','number',''), p('slotsIndex','number','', {optional:true}), p('cropItemId','string','Client-minted UUID for the resulting Produce item.', {optional:true, default:'crypto.randomUUID()'}) ], returns:{type:'void'}, description: 'cropItemId is mandatory as of a recent bundle — the server needs a client-supplied id to build the Produce item. Any fresh UUID works; read the actual result back from the next inventory patch.' },
+        { name: 'sellAllCrops', badge: 'wrapped', category: 'Garden', params: [], returns:{type:'void'}, description: '' },
+        { name: 'plantGardenPlant', badge: 'wrapped', category: 'Garden', params: [ p('slot','number',''), p('itemId','string','') ], returns:{type:'void'}, description: 'Re-plants a potted plant from inventory.' },
+        { name: 'potPlant', badge: 'wrapped', category: 'Garden', params: [ p('slot','number',''), p('plantItemId','string','', {optional:true, default:'crypto.randomUUID()'}) ], returns:{type:'void'}, description: 'Moves the growing plant on slot into inventory. The client-minted id lets the caller reference the new item immediately instead of waiting for a state patch.' },
+        { name: 'mutationPotion', badge: 'wrapped', category: 'Garden', params: [ p('tileObjectIdx','number',''), p('growSlotIdx','number',''), p('mutation','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'cropCleanser', badge: 'wrapped', category: 'Garden', params: [ p('tileObjectIdx','number',''), p('growSlotIdx','number','') ], returns:{type:'void'}, description: 'Strips mutations from a crop.' },
+        { name: 'placeCrystal', badge: 'wrapped', category: 'Garden', params: [ p('shard','CrystalShard',''), p('tileType','string','"Dirt" | "Boardwalk"'), p('localTileIndex','number','') ], returns:{type:'void'}, description: 'Same command as fuseCrystal() with a different intent — see that method.' },
+        { name: 'fuseCrystal', badge: 'wrapped', category: 'Garden', params: [ p('shard','CrystalShard',''), p('tileType','string',''), p('localTileIndex','number',''), p('mergeGainSeconds','number','') ], returns:{type:'void'}, description: 'Wire-identical to placeCrystal() but with intent.type "merge" instead of "place" — there is no separate fuse command. The server rejects a gain past the crystal\'s ceiling, so pass exactly what fits.' },
+        { name: 'pickupCrystal', badge: 'wrapped', category: 'Garden', params: [ p('crystalType','string',''), p('tileType','string',''), p('localTileIndex','number',''), p('itemId','string','', {optional:true, default:'crypto.randomUUID()'}) ], returns:{type:'void'}, description: 'Keeps the crystal\'s remaining time.' },
+        { name: 'removeGardenObject', badge: 'wrapped', category: 'Garden', params: [ p('slot','number',''), p('slotType','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'preserve', badge: 'wrapped', category: 'Garden', params: [ p('itemId','string',''), p('growSlotIdx','number','') ], returns:{type:'void'}, description: 'Turns a harvested crop into a preserve at the Preservation Station.' },
+        { name: 'displayCrop', badge: 'wrapped', category: 'Garden', params: [ p('tileType','string',''), p('localTileIndex','number',''), p('itemId','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'pickupDisplayedCrop', badge: 'wrapped', category: 'Garden', params: [ p('tileType','string',''), p('localTileIndex','number','') ], returns:{type:'void'}, description: '' },
+
+        // Decor
+        { name: 'placeDecor', badge: 'wrapped', category: 'Decor', params: [ p('decorId','string',''), p('tileType','string',''), p('localTileIndex','number',''), p('rotation','number','Omit for the default orientation.', {optional:true}) ], returns:{type:'void'}, description: '' },
+        { name: 'pickupDecor', badge: 'wrapped', category: 'Decor', params: [ p('tileType','string',''), p('localTileIndex','number','') ], returns:{type:'void'}, description: '' },
+
+        // Pets
+        { name: 'placePet', badge: 'wrapped', category: 'Pets', params: [ p('itemId','string',''), p('x','number',''), p('y','number',''), p('tileType','string',''), p('localTileIndex','number','') ], returns:{type:'void'}, description: '' },
+        { name: 'pickupPet', badge: 'wrapped', category: 'Pets', params: [ p('petId','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'feedPet', badge: 'wrapped', category: 'Pets', params: [ p('petItemId','string',''), p('cropItemId','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'useReplenishPotion', badge: 'wrapped', category: 'Pets', params: [ p('petItemId','string','') ], returns:{type:'void'}, description: 'Fully restores hunger. Requires standing on the pet\'s tile — teleport() there first if needed.' },
+        { name: 'sellPet', badge: 'wrapped', category: 'Pets', params: [ p('itemId','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'ridePet', badge: 'wrapped', category: 'Pets', params: [ p('petItemId','string','') ], returns:{type:'void'}, description: 'Required before dawnCapture() or thundercharge().' },
+        { name: 'dismountPet', badge: 'wrapped', category: 'Pets', params: [], returns:{type:'void'}, description: '' },
+        { name: 'dawnCapture', badge: 'wrapped', category: 'Pets', params: [ p('petItemId','string',''), p('x','number',''), p('y','number','') ], returns:{type:'void'}, description: 'Requires riding petItemId and being off cooldown.' },
+        { name: 'xpPotion', badge: 'wrapped', category: 'Pets', params: [ p('petItemId','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'thundercharge', badge: 'wrapped', category: 'Pets', params: [ p('petItemId','string',''), p('x','number',''), p('y','number','') ], returns:{type:'void'}, description: 'Same preconditions as dawnCapture().' },
+        { name: 'requestPetGreet', badge: 'flat', category: 'Pets', params: [ p('x','number',''), p('y','number','') ], returns:{type:'void'}, description: 'Asks nearby pets to greet the player at this position.' },
+        { name: 'equipPetCosmetic', badge: 'wrapped', category: 'Pets', params: [ p('petItemId','string',''), p('slotCategory','string',''), p('cosmeticId','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'namePet', badge: 'wrapped', category: 'Pets', params: [ p('petItemId','string',''), p('name','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'swapPet', badge: 'wrapped', category: 'Pets', params: [ p('petSlotId','string',''), p('petInventoryId','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'swapPetFromStorage', badge: 'wrapped', category: 'Pets', params: [ p('petSlotId','string',''), p('storagePetId','string',''), p('storageId','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'movePetSlot', badge: 'wrapped', category: 'Pets', params: [ p('movePetSlotId','string',''), p('toPetSlotIndex','number','') ], returns:{type:'void'}, description: '' },
+        { name: 'growEgg', badge: 'wrapped', category: 'Pets', params: [ p('slot','number',''), p('eggId','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'hatchEgg', badge: 'wrapped', category: 'Pets', params: [ p('slot','number','') ], returns:{type:'void'}, description: '' },
+        { name: 'upgradePetHutch', badge: 'flat', category: 'Pets', params: [], returns:{type:'void'}, description: '' },
+
+        // Pet teams
+        { name: 'savePetTeam', badge: 'wrapped', category: 'Pet Teams', params: [ p('teamId','string',''), p('name','string',''), p('petIds','string[]',''), p('isCreate','boolean','Distinguishes a brand-new team from an edit of an existing teamId.') ], returns:{type:'void'}, description: '' },
+        { name: 'applyPetTeam', badge: 'wrapped', category: 'Pet Teams', params: [ p('teamId','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'deletePetTeam', badge: 'wrapped', category: 'Pet Teams', params: [ p('teamId','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'movePetTeam', badge: 'wrapped', category: 'Pet Teams', params: [ p('movePetTeamId','string',''), p('toPetTeamIndex','number','') ], returns:{type:'void'}, description: '' },
+        { name: 'setPetTeamEmblem', badge: 'wrapped', category: 'Pet Teams', params: [ p('teamId','string',''), p('emblem','PetTeamEmblem','') ], returns:{type:'void'}, description: 'Send the emblem as an object discriminated on type — a bare string is silently dropped by the game\'s own reducer.' },
+
+        // Inventory / storage
+        { name: 'moveInventoryItem', badge: 'wrapped', category: 'Inventory', params: [ p('moveItemId','string',''), p('toInventoryIndex','number','') ], returns:{type:'void'}, description: '' },
+        { name: 'setSelectedItem', badge: 'flat', category: 'Inventory', params: [ p('itemIndex','number','') ], returns:{type:'void'}, description: '' },
+        { name: 'toggleLockItem', badge: 'wrapped', category: 'Inventory', params: [ p('itemId','string','') ], returns:{type:'void'}, description: '' },
+        { name: 'dropObject', badge: 'flat', category: 'Inventory', params: [], returns:{type:'void'}, description: 'Acts on whatever is currently held/stood-on — sending any parameter gets it rejected as malformed.' },
+        { name: 'pickupObject', badge: 'flat', category: 'Inventory', params: [], returns:{type:'void'}, description: 'Same no-parameter rule as dropObject().' },
+        { name: 'putItemInStorage', badge: 'wrapped', category: 'Inventory', params: [ p('itemId','string',''), p('storageId','string',''), p('toStorageIndex','number','Omit to append at the end.', {optional:true}), p('quantity','number','Omit to move the whole stack.', {optional:true}) ], returns:{type:'void'}, description: '' },
+        { name: 'retrieveItemFromStorage', badge: 'wrapped', category: 'Inventory', params: [ p('itemId','string',''), p('storageId','string',''), p('toInventoryIndex','number','', {optional:true}), p('quantity','number','', {optional:true}) ], returns:{type:'void'}, description: '' },
+        { name: 'moveStorageItem', badge: 'wrapped', category: 'Inventory', params: [ p('itemId','string',''), p('storageId','string',''), p('toStorageIndex','number','') ], returns:{type:'void'}, description: '' },
+        { name: 'swapItemWithStorage', badge: 'wrapped', category: 'Inventory', params: [ p('storageId','string',''), p('inventoryItemId','string',''), p('storageItemId','string',''), p('toStorageIndex','number','', {optional:true}), p('toInventoryIndex','number','', {optional:true}), p('draggedQuantity','number','Only sent together with draggedFromInventory, when splitting part of a stack.', {optional:true}), p('draggedFromInventory','boolean','', {optional:true, default:'false'}) ], returns:{type:'void'}, description: 'One atomic exchange rather than a retrieve+put pair — keeps both capacities unchanged mid-swap.' },
+        { name: 'logItems', badge: 'wrapped', category: 'Inventory', params: [], returns:{type:'void'}, description: '' },
+        { name: 'upgradeSeedSilo', badge: 'flat', category: 'Inventory', params: [], returns:{type:'void'}, description: '' },
+        { name: 'upgradeDecorShed', badge: 'flat', category: 'Inventory', params: [], returns:{type:'void'}, description: '' },
+        { name: 'upgradeToolShack', badge: 'flat', category: 'Inventory', params: [], returns:{type:'void'}, description: '' },
+
+        // Misc
+        { name: 'throwSnowball', badge: 'flat', category: 'Misc', params: [], returns:{type:'void'}, description: 'Seasonal.' },
+        { name: 'checkFriendBonus', badge: 'flat', category: 'Misc', params: [], returns:{type:'void'}, description: '' },
+        { name: 'quinoaTutorialSkipped', badge: 'flat', category: 'Misc', params: [], returns:{type:'void'}, description: '' },
+      ],
+      events: [],
+    },
+
+    // ------------------------------------------------------------------ //
+    {
+      name: 'JsonPatch',
+      package: 'protocol',
+      summary: 'Static helper implementing the restricted JSON-Pointer patch format the server sends inside PartialStateMessage. Not instantiable — every member is static.',
+      extends: null,
+      constructorDef: null,
+      properties: [],
+      methods: [
+        {
+          name: 'apply', badge: 'static', category: 'Patching',
+          params: [ p('root','unknown','The state tree (room or game) to patch. Mutated in place for arrays/objects created along the way; the return value is the new root.'), p('patch','Patch','A single operation from a PartialStateMessage\'s patches array.') ],
+          returns: { type: 'unknown', description: 'The patched root — reassign your held reference to this, since a leaf replacement returns a new value rather than mutating through.' },
+          description: 'Splits patch.path on "/", strips a leading /child prefix onto the game-state tree (root-relative otherwise), drops one more leading "data" segment to match fullState\'s own nesting, then walks the remaining segments — creating an array when the next segment is numeric, an object otherwise. At the leaf, op:"remove" deletes the key/index; anything else assigns value, extending an array with nulls if the index is past its current end.',
+          example: `let gameState = fullState.child.data;
+for (const patch of message.patches) {
+  if (patch.path.startsWith('/child')) {
+    gameState = JsonPatch.apply(gameState, { ...patch, path: patch.path.slice(6) });
+  }
+}`,
+        },
+      ],
+      events: [],
+    },
+
+    // ------------------------------------------------------------------ //
+    {
+      name: 'RoomConnection',
+      package: 'state',
+      summary: 'TypeScript shape of window.MagicCircle_RoomConnection — the object the game itself uses internally, and the friendlier integration point for a userscript running inside the real page instead of speaking raw WebSocket frames. Not a class you construct: retrieve the live instance with RoomConnection.get(). Fields below are typed optional because the exact shape has moved between game builds — feature-detect before relying on any one of them.',
+      extends: null,
+      constructorDef: null,
+      properties: [
+        { name: 'isCommandSessionReady', type: 'boolean', description: 'False before Welcome. An envelope sent via sendMessage() in that window gets queued and later flushed with a now-stale commandSequence — prefer trySendMessageNow() once this flips true.' },
+        { name: 'lastDistributedRoomPublication', type: '{ executedCommandSequence?: number }', description: 'The server\'s confirmed command frontier, updated on every frame — the same value Welcome/RoomFrame carry, but readable synchronously without holding your own subscription.' },
+        { name: 'lastRoomStateJsonable', type: 'unknown', description: 'A synchronous one-shot snapshot of the last-delivered room state, for when a full subscription is overkill.' },
+      ],
+      methods: [
+        { name: 'get', badge: 'static', category: 'Access', params: [], returns: { type: 'RoomConnection | null' }, description: 'Reads window.MagicCircle_RoomConnection off the page. Null before the game has established its own connection.' },
+        { name: 'sendMessage', category: 'Sending', params: [ p('payload','unknown','') ], returns: { type: 'void' }, description: 'Queues a message; delivered once the session is ready. Do not use this for QuinoaCommand envelopes — see trySendMessageNow().' },
+        { name: 'trySendMessageNow', category: 'Sending', params: [ p('payload','unknown','') ], returns: { type: 'boolean', description: 'false if disconnected or the session is not yet ready — the message is dropped, not queued.' }, description: 'Immediate, synchronous send. QuinoaCommand envelopes must use this: sendMessage() would queue them for a later session where the stamped commandSequence is no longer valid.' },
+        { name: 'subscribeToWelcome', category: 'Subscribing', params: [ p('callback','(state: unknown, publishedAtServerMs?: number, executedCommandSequence?: number) => void','') ], returns: { type: '() => void', description: 'Unsubscribe function.' }, description: 'Fires on the initial connection and again after every reconnect — replaces listening for a raw "Welcome" message type by hand. Fires immediately with the current state if subscribed after the fact.' },
+        { name: 'subscribeToRoomFrames', category: 'Subscribing', params: [ p('callback','(frame: RoomFrameMessage) => void','') ], returns: { type: '() => void' }, description: 'Fires on every RoomFrame — the modern successor to raw PartialState messages.' },
+        { name: 'subscribeToPatches', category: 'Subscribing', params: [ p('callback','(patches: unknown, fullState: unknown) => void','') ], returns: { type: '(() => void) | { currentState: unknown, unsubscribe: () => void }', description: 'Shape varies by game build — handle both a bare function and the record form.' }, description: 'Fires on every room state update. The preferred atom-free source for the state tree when this method is present.' },
+      ],
+      events: [],
+    },
+
+    // ------------------------------------------------------------------ //
+    {
+      name: 'JotaiBridge',
+      package: 'state',
+      summary: 'Wraps the page\'s exposed jotai atom cache so individual atoms can be recognized by their debug label and driven the same way the game\'s own UI would — the only way to reach pure client-UI state (which modal is open, cinematic mode) that never touches the wire at all.',
+      extends: null,
+      constructorDef: { params: [], description: '' },
+      properties: [],
+      methods: [
+        { name: 'install', category: 'Setup', params: [], returns: { type: 'void' }, description: 'Wraps window.jotaiAtomCache.get (creating the cache object if the game hasn\'t yet) so every atom that flows through it is inspected once as it\'s registered.' },
+        { name: 'find', category: 'Access', params: [ p('labelSuffix','string','A trailing substring of the atom\'s internal debug label, e.g. "/activeModalStateAtom" — labels are far more stable across builds than object identity or a minified variable name.') ], returns: { type: 'JotaiAtom | null' }, description: 'Returns the first recognized atom whose label ends with labelSuffix, or null if it has not been registered yet (install() must run first, and the atom must actually have been read at least once by the game\'s own React tree).' },
+        { name: 'write', category: 'Access', params: [ p('atom','JotaiAtom','Must be the real writable source atom — a derived read-only atom throws "write is not a function".'), p('value','unknown','') ], returns: { type: 'unknown' }, description: 'Calls the atom through jotai\'s own captured set() closure, exactly as the game\'s own UI would. The closure is captured lazily, the first time any wrapped atom\'s write fires — so this throws until at least one atom write has happened natively.' },
+      ],
+      events: [],
+    },
+
+    // ------------------------------------------------------------------ //
+    {
+      name: 'PixiStage',
+      package: 'render',
+      summary: 'Static helpers for locating the game\'s live Pixi.js scene graph and recovering its display-object constructors, none of which are exposed as a global on the page.',
+      extends: null,
+      constructorDef: null,
+      properties: [],
+      methods: [
+        { name: 'capture', badge: 'static', category: 'Discovery', params: [], returns: { type: 'void' }, description: 'Installs wrappers around the public window.__PIXI_APP_INIT__ / window.__PIXI_RENDERER_INIT__ hooks, recording whichever fires (an Application may not always be constructed) and calling through to any previous hook (e.g. devtools). Re-fires on renderer recreation, which happens after a WebGL context loss from being backgrounded.' },
+        { name: 'getCtors', badge: 'static', category: 'Discovery', params: [ p('stage','unknown','The live root container, from PixiStage.stage.') ], returns: { type: 'PixiCtors | null', description: 'null if the stage has not rendered a sprite and a genuine text node yet — poll on requestAnimationFrame and retry.' }, description: 'Duck-types a real Sprite and a real Text node already in the stage and reads their .constructor. A Text match additionally requires renderPipeId === "text" (falling back to a looser check) so the game\'s Rive-based nodes — which also expose .text/.style — never get misidentified; their constructor throws on Pixi-shaped arguments. Cache the result at module scope: re-deriving it walks the entire stage, tens of thousands of nodes on the world/tile layer alone.' },
+        { name: 'getGraphicsCtor', badge: 'static', category: 'Discovery', params: [ p('stage','unknown','') ], returns: { type: 'unknown | null' }, description: 'Finds a node exposing the public, unminified roundRect()/clear() Graphics API and returns its constructor — used for drawing custom shapes/badges without needing PIXI itself exposed globally.' },
+        { name: 'findByLabel', badge: 'static', category: 'Discovery', params: [ p('root','unknown',''), p('label','string','A plain-string .label the game assigned to a container, e.g. "GardenInfoCardSystem" — not a minified identifier, and far more stable across builds.') ], returns: { type: 'unknown | null' }, description: '' },
+        { name: 'findNode', badge: 'static', category: 'Discovery', params: [ p('root','unknown',''), p('predicate','(node: unknown) => boolean',''), p('limit','number','', {optional:true, default:'25000'}) ], returns: { type: 'unknown | null' }, description: 'General depth-first search underlying findByLabel() and getCtors().' },
+      ],
+      events: [],
+    },
+
+    // ------------------------------------------------------------------ //
+    {
+      name: 'RiveArtboard',
+      package: 'render',
+      summary: 'TypeScript shape of a live Rive artboard instance, as used by pets and some decor — a separate animation runtime from Pixi, composited into the same canvas but not reachable through PixiStage at all.',
+      extends: null,
+      constructorDef: null,
+      properties: [],
+      methods: [
+        { name: 'setTextRunValue', category: 'Text', params: [ p('name','string','The text run\'s name, as authored in the Rive editor for that asset.'), p('value','string','') ], returns: { type: 'void' }, description: 'Sets a named text run baked into the artboard. Throws if the artboard defines no run by that name — not every pet/decor asset has one, so treat a throw as "unsupported", not a bug. There is no way to add a brand-new text run to an artboard that never defined one; for arbitrary new text over a Rive-animated object, attach a Pixi Text node to the container hosting its canvas/texture instead (see PixiStage).' },
+        { name: 'setBooleanInput', category: 'State machine', params: [ p('name','string',''), p('value','boolean','') ], returns: { type: 'void' }, description: 'Drives a named boolean input on the artboard\'s state machine — the same mechanism the game uses to switch a pet between animation states.' },
+        { name: 'setNumberInput', category: 'State machine', params: [ p('name','string',''), p('value','number','') ], returns: { type: 'void' }, description: '' },
+        { name: 'fireTrigger', category: 'State machine', params: [ p('name','string','') ], returns: { type: 'void' }, description: '' },
+      ],
+      events: [],
+    },
+
+    // ------------------------------------------------------------------ //
+    {
+      name: 'WorldScene',
+      package: 'render',
+      summary: 'Reusable plumbing for a feature that temporarily takes over the player\'s own farm tiles to draw something else on them (a mini-game, custom scenery). Reads the tile map and moves display objects around only — it never sends a network message, so it cannot change what the server thinks the garden looks like.',
+      extends: null,
+      constructorDef: { params: [ p('config','WorldSceneConfig','Owner id, named z-index layers, and which of those layers render above the player avatar.') ], description: '' },
+      properties: [],
+      methods: [
+        { name: 'enter', category: 'Lifecycle', params: [], returns: { type: 'void' }, description: 'Takes over the farm: builds the configured Graphics layers (and a RenderLayer for anything listed in abovePlayer — a raw high zIndex does not reliably beat the avatar\'s own sorting), suppresses the game\'s own tile redraw, hides (not destroys) the tiles/effects underneath, claims cinematic mode, and pens active pets out of the way. Safe to call repeatedly.' },
+        { name: 'exit', category: 'Lifecycle', params: [], returns: { type: 'void' }, description: 'Hands the farm back: destroys every node this scene created, restores hidden tiles/effects, releases (not forces off) its cinematic-mode claim, and lets pets back in. Safe to call when never entered.' },
+        { name: 'sync', category: 'Lifecycle', params: [], returns: { type: 'WorldGeometry | null', description: 'null when the farm cannot be read yet.' }, description: 'Per-frame upkeep: builds the scene if needed and returns the geometry to draw against.' },
+        { name: 'addSprite', category: 'Drawing', params: [ p('image','HTMLImageElement',''), p('options','SpriteOptions','') ], returns: { type: 'unknown | null' }, description: 'Adds an image to the world under this scene\'s ownership — destroyed automatically on exit().' },
+        { name: 'removeSprite', category: 'Drawing', params: [ p('sprite','unknown | null','') ], returns: { type: 'void' }, description: 'Destroys one sprite early, for a scene whose pieces come and go during play.' },
+      ],
+      events: [],
+    },
+  ],
+
+  typedefs: [
+    {
+      name: 'WelcomeMessage', package: 'protocol',
+      description: 'The first message after connecting, and after every reconnect.',
+      properties: [
+        p('type', '"Welcome"', ''),
+        p('selfPlayerId', 'string', 'This session\'s player id — the server assigns it; the connect URL never carries a client-chosen one.'),
+        p('executedCommandSequence', 'number', 'Seed value for CommandSequencer#seed().'),
+        p('fullState', 'FullState', ''),
+      ],
+    },
+    {
+      name: 'FullState', package: 'protocol',
+      description: 'Room and game state snapshot carried by Welcome.',
+      properties: [
+        p('data', 'unknown', 'Room state: players[], chat, hostPlayerId, …'),
+        p('child', '{ data: unknown }', 'One level deeper: game/farm state — garden tiles, inventory, shops, weather. Note the extra nesting versus a patch\'s /child path prefix, which strips to reach the same tree.'),
+      ],
+    },
+    {
+      name: 'PartialStateMessage', package: 'protocol',
+      description: 'A batch of state updates. RoomFrameMessage carries the identical patches array one level deeper (message.state.patches) — normalize it into this shape at the door rather than special-casing it downstream.',
+      properties: [
+        p('type', '"PartialState"', ''),
+        p('patches', 'Patch[]', ''),
+      ],
+    },
+    {
+      name: 'RoomFrameMessage', package: 'protocol',
+      description: 'Newer transport for the same patch payload as PartialStateMessage.',
+      properties: [
+        p('type', '"RoomFrame"', ''),
+        p('executedCommandSequence', 'number', '', { optional: true }),
+        p('state', '{ patches?: Patch[] }', ''),
+      ],
+    },
+    {
+      name: 'Patch', package: 'protocol',
+      description: 'One restricted JSON-Pointer operation, as consumed by JsonPatch.apply().',
+      properties: [
+        p('path', 'string', 'A / -delimited JSON Pointer, optionally prefixed with /child for the game-state tree.'),
+        p('value', 'unknown', 'Present unless op is "remove".', { optional: true }),
+        p('op', '"remove"', 'Anything other than "remove" (including absent) means set/replace.', { optional: true }),
+      ],
+    },
+    {
+      name: 'QuinoaCommandResultMessage', package: 'protocol',
+      description: 'Server acknowledgment (or rejection) of a QuinoaCommand envelope.',
+      properties: [
+        p('type', '"QuinoaCommandResult"', ''),
+        p('requestId', 'string', 'Correlates back to the envelope that caused this result.', { optional: true }),
+        p('commandType', 'string', '', { optional: true }),
+        p('ok', 'boolean', ''),
+        p('code', 'ResultCode', 'Present only when ok is false.', { optional: true }),
+      ],
+    },
+    {
+      name: 'ConnectOptions', package: 'protocol',
+      description: 'Everything RoomSocket#connect() needs.',
+      properties: [
+        p('host', 'string', '', { optional: true, default: '"magicgarden.gg"' }),
+        p('version', 'string', 'Current client build hash. Stale value ⇒ closed with CloseCode.VersionExpired.'),
+        p('room', 'string', 'Room slug. Empty/omitted ⇒ a fresh private room.', { optional: true }),
+        p('cookie', 'string', '"mc_jwt=<token>" for an authenticated connection.', { optional: true }),
+        p('userAgent', 'string', '', { optional: true }),
+        p('reconnect', 'ReconnectConfig', '', { optional: true }),
+      ],
+    },
+    {
+      name: 'ReconnectConfig', package: 'protocol',
+      description: 'Backoff policy for RoomSocket\'s automatic reconnect.',
+      properties: [
+        p('unknown', 'boolean', 'Whether to reconnect on a close code not otherwise listed.', { optional: true, default: 'true' }),
+        p('codes', 'Record<number, boolean>', 'Per-CloseCode override.', { optional: true }),
+        p('supersededDelayMs', 'number', '', { optional: true, default: '30000' }),
+        p('baseDelayMs', 'number', '', { optional: true, default: '1500' }),
+        p('maxDelayMs', 'number', '', { optional: true, default: '60000' }),
+      ],
+    },
+    {
+      name: 'RoomSocketOptions', package: 'protocol', description: 'Alias of ConnectOptions accepted by the RoomSocket constructor.',
+      properties: [ p('…', 'ConnectOptions', 'Same shape as ConnectOptions.') ],
+    },
+    {
+      name: 'PixiCtors', package: 'render',
+      description: 'Display-object constructors recovered from the live stage — see PixiStage.getCtors().',
+      properties: [
+        p('Container', 'unknown', ''), p('Sprite', 'unknown', ''), p('Texture', 'unknown', ''),
+        p('Rectangle', 'unknown', ''), p('Text', 'unknown', ''),
+      ],
+    },
+    {
+      name: 'WorldGeometry', package: 'render',
+      description: 'Returned by WorldScene#sync().',
+      properties: [
+        p('system', 'unknown', 'The game\'s world-container node.'),
+        p('left', 'number', ''), p('top', 'number', ''), p('cols', 'number', ''), p('rows', 'number', ''),
+      ],
+    },
+    {
+      name: 'WorldSceneConfig', package: 'render',
+      description: 'WorldScene constructor options.',
+      properties: [
+        p('owner', 'string', 'Unique id — namespaces this scene\'s cinematic-mode claim and render-layer label.'),
+        p('layers', 'Record<string, number>', 'Layer name → zIndex. The farm sits near 0.'),
+        p('abovePlayer', 'string[]', 'Which of the above layers get lifted into a RenderLayer that sorts above the player avatar.', { optional: true }),
+      ],
+    },
+    {
+      name: 'SpriteOptions', package: 'render',
+      description: 'WorldScene#addSprite() options.',
+      properties: [ p('x','number',''), p('y','number',''), p('zIndex','number',''), p('layer','string','Must match a key in WorldSceneConfig.layers.') ],
+    },
+    {
+      name: 'JotaiAtom', package: 'state',
+      description: 'Minimal shape this bridge cares about.',
+      properties: [ p('write', '(get, set, ...args: unknown[]) => unknown', 'Present on a writable atom. A derived read-only atom omits or proxies this — calling it directly throws.', { optional: true }) ],
+    },
+    {
+      name: 'CrystalShard', package: 'protocol', description: 'An inventory item reference passed to placeCrystal()/fuseCrystal().',
+      properties: [ p('itemId','string',''), p('crystalType','string','') ],
+    },
+    {
+      name: 'PetTeamEmblem', package: 'protocol', description: 'Discriminated-union badge payload for setPetTeamEmblem().',
+      properties: [ p('type','string','Discriminant — the shape of the remaining fields depends on this.') ],
+    },
+  ],
+
+  enums: [
+    {
+      name: 'CloseCode', package: 'protocol',
+      description: 'Application-defined WebSocket close codes observed above the 4000 range. Codes not otherwise listed here are treated as reconnect-worthy by default.',
+      members: [
+        { name: 'Superseded', value: 4250, description: 'Session superseded (heartbeat-based). Reconnect with reclaimSupersededSession=true.' },
+        { name: 'SupersededByNewerSession', value: 4300, description: '"newer user session" — reconnect the same as Superseded, but check the reason string doesn\'t say "heartbeat" first.' },
+        { name: 'IdleTimeout', value: 4400, description: 'Stopped answering application-level pings for ~30s. Reconnect immediately.' },
+        { name: 'VersionExpired', value: 4710, description: 'Connected with a stale client build hash. Re-fetch the current version before reconnecting or you\'ll be closed again immediately.' },
+        { name: 'AuthFailed', value: 4800, description: 'Bad/expired mc_jwt, or a player record was found with none of the expected identity fields. Use bounded retries only.' },
+        { name: 'Unspecified4100', value: 4100, description: 'Server-defined, not otherwise documented by public mod source.' },
+        { name: 'Unspecified4200', value: 4200, description: 'Server-defined, not otherwise documented.' },
+        { name: 'Unspecified4310', value: 4310, description: 'Server-defined, not otherwise documented.' },
+        { name: 'Unspecified4500', value: 4500, description: 'Server-defined, not otherwise documented.' },
+        { name: 'Unspecified4700', value: 4700, description: 'Server-defined, not otherwise documented.' },
+      ],
+    },
+    {
+      name: 'ResultCode', package: 'protocol',
+      description: 'Values seen in QuinoaCommandResultMessage.code on a rejection (ok: false).',
+      members: [
+        { name: 'InvalidMessage', value: 'invalid_message', description: 'Malformed envelope — usually a command type sent flat that needed wrapping, or a missing required field.' },
+        { name: 'InvalidSequence', value: 'invalid_sequence', description: 'commandSequence was not exactly frontier+1.' },
+        { name: 'NoSlot', value: 'no_slot', description: 'No free slot for what the command tried to create/place (e.g. inventory or storage full).' },
+        { name: 'RateLimited', value: 'rate_limited', description: 'Sent too many of that command too quickly.' },
+        { name: 'NotAckable', value: 'not_ackable', description: 'Wrapped a type the server still expects flat — the mirror image of InvalidMessage.' },
+        { name: 'HandlerError', value: 'handler_error', description: 'The server\'s own handler threw mid-execution. The mutation may or may not have applied — a genuinely unknown outcome, never a confirmed one. Never retry on this code alone.' },
+        { name: 'DroppedStale', value: 'dropped_stale', description: 'Not a wire value — a client-side inference some implementations synthesize when a later executedCommandSequence passes an envelope\'s number with no result ever arriving for it. Treat as a confirmed drop, safe to retry once.' },
+      ],
+    },
+  ],
+};
+
+/* ======================================================================
+   RENDERING
+   ====================================================================== */
+
+// Build a lookup of every documented type name, for auto-linking inside
+// signatures and property tables.
+for (const c of DOCS.classes) TYPE_NAMES.add(c.name);
+for (const t of DOCS.typedefs) TYPE_NAMES.add(t.name);
+for (const e of DOCS.enums) TYPE_NAMES.add(e.name);
+
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Turns a type string like "CrystalShard | null" or "string[]" into HTML,
+// linking any recognized type name to its page.
+function linkType(typeStr){
+  if (!typeStr) return '';
+  const parts = typeStr.split(/([A-Za-z_][A-Za-z0-9_]*)/g);
+  return parts.map(part => {
+    if (TYPE_NAMES.has(part)) return `<a href="#${part}" onclick="event.stopPropagation()">${esc(part)}</a>`;
+    return esc(part);
+  }).join('');
+}
+
+function findDoc(name){
+  return DOCS.classes.find(c => c.name === name)
+    || DOCS.typedefs.find(t => t.name === name)
+    || DOCS.enums.find(e => e.name === name)
+    || null;
+}
+function kindOf(name){
+  if (DOCS.classes.some(c => c.name === name)) return 'class';
+  if (DOCS.typedefs.some(t => t.name === name)) return 'typedef';
+  if (DOCS.enums.some(e => e.name === name)) return 'enum';
+  return null;
+}
+
+function renderSidebar(filter){
+  const nav = document.getElementById('sidenav');
+  const f = (filter || '').trim().toLowerCase();
+  let html = '';
+  for (const pkg of DOCS.packages){
+    const classes = DOCS.classes.filter(c => c.package === pkg.id);
+    const typedefs = DOCS.typedefs.filter(t => t.package === pkg.id);
+    const enums = DOCS.enums.filter(e => e.package === pkg.id);
+    html += `<div class="pkg"><div class="pkghead">📦 ${esc(pkg.label)}</div>`;
+    if (classes.length){
+      html += `<div class="kindlabel">Classes</div>`;
+      for (const c of classes){
+        const hide = f && !c.name.toLowerCase().includes(f) ? ' hidden' : '';
+        html += `<div class="navitem${hide}" data-name="${c.name}" onclick="navigate('${c.name}')"><span class="tag C">C</span>${esc(c.name)}</div>`;
+      }
+    }
+    if (typedefs.length){
+      html += `<div class="kindlabel">Typedefs</div>`;
+      for (const t of typedefs){
+        const hide = f && !t.name.toLowerCase().includes(f) ? ' hidden' : '';
+        html += `<div class="navitem${hide}" data-name="${t.name}" onclick="navigate('${t.name}')"><span class="tag T">T</span>${esc(t.name)}</div>`;
+      }
+    }
+    if (enums.length){
+      html += `<div class="kindlabel">Enums</div>`;
+      for (const e of enums){
+        const hide = f && !e.name.toLowerCase().includes(f) ? ' hidden' : '';
+        html += `<div class="navitem${hide}" data-name="${e.name}" onclick="navigate('${e.name}')"><span class="tag E">E</span>${esc(e.name)}</div>`;
+      }
+    }
+    html += `</div>`;
+  }
+  nav.innerHTML = html;
+}
+
+function paramSig(params){
+  if (!params || !params.length) return '';
+  return params.map(pr => `${esc(pr.name)}${pr.optional ? '<span class="punct">?</span>' : ''}`).join('<span class="punct">, </span>');
+}
+
+function paramsTable(params){
+  if (!params || !params.length) return '';
+  let rows = params.map(pr => `
+    <tr>
+      <td><code>${esc(pr.name)}</code>${pr.optional ? ' <span class="opt">optional</span>' : ''}</td>
+      <td><code>${linkType(pr.type)}</code></td>
+      <td>${pr.default ? `<code>${esc(pr.default)}</code>` : '—'}</td>
+      <td>${esc(pr.description || '')}</td>
+    </tr>`).join('');
+  return `<h4 class="subhead">Parameters</h4>
+    <table class="proptable">
+      <tr><th>Name</th><th>Type</th><th>Default</th><th>Description</th></tr>
+      ${rows}
+    </table>`;
+}
+
+function renderExample(code){
+  if (!code) return '';
+  // very light manual highlighting: strings, comments, numbers, a few keywords
+  let out = esc(code);
+  out = out.replace(/(\/\/.*$)/gm, '<span class="tok-com">$1</span>');
+  out = out.replace(/(&quot;[^&]*?&quot;|'[^']*?')/g, '<span class="tok-str">$1</span>');
+  out = out.replace(/\b(const|let|new|for|of|if|await)\b/g, '<span class="tok-kw">$1</span>');
+  out = out.replace(/\b(\d+)\b/g, '<span class="tok-num">$1</span>');
+  return `<h4 class="subhead">Example</h4><pre class="example"><code>${out}</code></pre>`;
+}
+
+function renderMethod(m, ownerName){
+  const badges = [];
+  if (m.badge === 'wrapped') badges.push('<span class="mbadge wrapped">wrapped</span>');
+  else if (m.badge === 'flat') badges.push('<span class="mbadge flat">flat</span>');
+  else if (m.badge === 'room') badges.push('<span class="mbadge room">room-scoped</span>');
+  else if (m.badge === 'static') badges.push('<span class="mbadge static">static</span>');
+  const anchor = `${ownerName}-${m.name}`;
+  return `
+  <div class="member" id="${anchor}">
+    <div class="sig">
+      <span class="name">.${esc(m.name)}</span><span class="punct">(</span>${paramSig(m.params)}<span class="punct">)</span>
+      <span class="ret punct">: ${linkType(m.returns ? m.returns.type : 'void')}</span>
+      <div class="badgeset">${badges.join('')}</div>
+      <a class="permalink" href="#${ownerName}-${m.name}">#</a>
+    </div>
+    <div class="body">
+      ${m.description ? `<p>${esc(m.description)}</p>` : ''}
+      ${m.returns && m.returns.description ? `<p><strong>Returns:</strong> ${esc(m.returns.description)}</p>` : ''}
+      ${paramsTable(m.params)}
+      ${renderExample(m.example)}
+    </div>
+  </div>`;
+}
+
+function renderEvent(ev, ownerName){
+  const anchor = `${ownerName}-event-${ev.name}`;
+  return `
+  <div class="member" id="${anchor}">
+    <div class="sig">
+      <span class="name">${esc(ev.name)}</span>
+      <span class="ret punct">(${paramSig(ev.payload)})</span>
+      <a class="permalink" href="#${anchor}">#</a>
+    </div>
+    <div class="body">
+      ${ev.description ? `<p>${esc(ev.description)}</p>` : ''}
+      ${paramsTable(ev.payload)}
+    </div>
+  </div>`;
+}
+
+function groupBy(list, key){
+  const map = new Map();
+  for (const item of list){
+    const k = item[key] || '';
+    if (!map.has(k)) map.set(k, []);
+    map.get(k).push(item);
+  }
+  return map;
+}
+
+function renderClassPage(c){
+  let html = `<div class="crumb"><a href="#" onclick="navigate('')">Home</a> / <a href="#">${esc(c.package)}</a> / ${esc(c.name)}</div>`;
+  html += `<div class="pagehead"><h1>${esc(c.name)}</h1><span class="kindbadge class">Class</span></div>`;
+  if (c.implementsNote) html += `<div class="extendsline">implements <code>${esc(c.implementsNote)}</code></div>`;
+  html += `<p class="summary">${esc(c.summary)}</p>`;
+
+  const outline = [];
+
+  if (c.constructorDef){
+    outline.push({id:`${c.name}-constructor`, label:'Constructor'});
+    html += `<div class="sectionhead" id="${c.name}-constructor">Constructor</div>`;
+    html += `<div class="member">
+      <div class="sig"><span class="name">new ${esc(c.name)}</span><span class="punct">(</span>${paramSig(c.constructorDef.params)}<span class="punct">)</span></div>
+      <div class="body">
+        ${c.constructorDef.description ? `<p>${esc(c.constructorDef.description)}</p>` : ''}
+        ${paramsTable(c.constructorDef.params)}
+      </div>
+    </div>`;
+  }
+
+  if (c.properties && c.properties.length){
+    outline.push({id:`${c.name}-properties`, label:'Properties'});
+    html += `<div class="sectionhead" id="${c.name}-properties">Properties</div>`;
+    html += `<table class="proptable"><tr><th>Name</th><th>Type</th><th>Description</th></tr>`;
+    for (const pr of c.properties){
+      html += `<tr><td><code>${esc(pr.name)}</code>${pr.readonly ? ' <span class="opt">readonly</span>' : ''}</td><td><code>${linkType(pr.type)}</code></td><td>${esc(pr.description||'')}</td></tr>`;
+    }
+    html += `</table>`;
+  }
+
+  if (c.methods && c.methods.length){
+    outline.push({id:`${c.name}-methods`, label:'Methods'});
+    html += `<div class="sectionhead" id="${c.name}-methods">Methods</div>`;
+    const byCat = groupBy(c.methods, 'category');
+    for (const [cat, methods] of byCat){
+      if (cat) html += `<h4 class="subhead" style="margin-top:20px;">${esc(cat)}</h4>`;
+      for (const m of methods) html += renderMethod(m, c.name);
+    }
+  }
+
+  if (c.events && c.events.length){
+    outline.push({id:`${c.name}-events`, label:'Events'});
+    html += `<div class="sectionhead" id="${c.name}-events">Events</div>`;
+    for (const ev of c.events) html += renderEvent(ev, c.name);
+  }
+
+  return { html, outline };
+}
+
+function renderTypedefPage(t){
+  let html = `<div class="crumb"><a href="#" onclick="navigate('')">Home</a> / <a href="#">${esc(t.package)}</a> / ${esc(t.name)}</div>`;
+  html += `<div class="pagehead"><h1>${esc(t.name)}</h1><span class="kindbadge typedef">Typedef</span></div>`;
+  html += `<p class="summary">${esc(t.description || '')}</p>`;
+  html += `<div class="sectionhead" id="${t.name}-properties">Properties</div>`;
+  html += `<table class="proptable"><tr><th>Name</th><th>Type</th><th>Description</th></tr>`;
+  for (const pr of t.properties){
+    html += `<tr><td><code>${esc(pr.name)}</code>${pr.optional ? ' <span class="opt">optional</span>' : ''}</td><td><code>${linkType(pr.type)}</code></td><td>${esc(pr.description||'')}${pr.default ? ` <span class="opt">default ${esc(pr.default)}</span>` : ''}</td></tr>`;
+  }
+  html += `</table>`;
+  return { html, outline: [{id:`${t.name}-properties`, label:'Properties'}] };
+}
+
+function renderEnumPage(e){
+  let html = `<div class="crumb"><a href="#" onclick="navigate('')">Home</a> / <a href="#">${esc(e.package)}</a> / ${esc(e.name)}</div>`;
+  html += `<div class="pagehead"><h1>${esc(e.name)}</h1><span class="kindbadge enum">Enum</span></div>`;
+  html += `<p class="summary">${esc(e.description || '')}</p>`;
+  html += `<div class="sectionhead" id="${e.name}-members">Members</div>`;
+  html += `<table class="proptable"><tr><th>Name</th><th>Value</th><th>Description</th></tr>`;
+  for (const mem of e.members){
+    html += `<tr><td><code>${esc(mem.name)}</code></td><td><code>${esc(JSON.stringify(mem.value))}</code></td><td>${esc(mem.description||'')}</td></tr>`;
+  }
+  html += `</table>`;
+  return { html, outline: [{id:`${e.name}-members`, label:'Members'}] };
+}
+
+function renderHome(){
+  let html = `<div class="home">
+    <h1>Quinoa API Reference</h1>
+    <p class="lede">A structured, class-by-class reference for Magic Garden's ingame API, in the shape of a
+    generated package reference rather than a narrative guide — reverse-engineered from public mod
+    source (AriesMod, garden-companion, mg-afk-android, QPM-GR). Pick a class, typedef, or enum from
+    the sidebar, or search above.</p>
+    <div class="pkggrid">`;
+  for (const pkg of DOCS.packages){
+    const nClasses = DOCS.classes.filter(c=>c.package===pkg.id).length;
+    const nTypedefs = DOCS.typedefs.filter(t=>t.package===pkg.id).length;
+    const nEnums = DOCS.enums.filter(e=>e.package===pkg.id).length;
+    html += `<div class="pkgcard"><h3>${esc(pkg.label)}</h3><p>${esc(pkg.description)}</p>
+      <div class="counts">${nClasses} classes · ${nTypedefs} typedefs${nEnums ? ' · '+nEnums+' enums' : ''}</div></div>`;
+  }
+  html += `</div>
+    <p class="note">This is not official documentation. Method behavior, wire shapes, and the
+    flat/wrapped split for any given action are all a moving target as the game's own client
+    changes — re-verify against current mod source before depending on any one detail here.</p>
+  </div>`;
+  return { html, outline: [] };
+}
+
+function renderOutline(outline){
+  if (!outline.length) return '';
+  return `<aside class="outline"><div class="otitle">On this page</div>
+    ${outline.map(o => `<a href="#${o.id}">${esc(o.label)}</a>`).join('')}
+  </aside>`;
+}
+
+function navigate(name){
+  location.hash = name ? '#' + encodeURIComponent(name) : '#';
+}
+
+// A hash can name a page directly ("GameActions") or a sub-anchor within a
+// page ("GameActions-harvestCrop", from a permalink or an "on this page"
+// outline link — both are generated as <pageName>-<section/member>). Since
+// routing and in-page anchors share the same location.hash, resolve the
+// longest known page name that the requested hash starts with, so a
+// sub-anchor lands on the right page and can then be scrolled to — rather
+// than being looked up as a page in its own right and failing.
+function resolvePage(rawName){
+  if (!rawName) return { doc: null, kind: null, pageName: '', anchor: null };
+  if (findDoc(rawName)) return { doc: findDoc(rawName), kind: kindOf(rawName), pageName: rawName, anchor: null };
+
+  const allNames = [
+    ...DOCS.classes.map(c => c.name),
+    ...DOCS.typedefs.map(t => t.name),
+    ...DOCS.enums.map(e => e.name),
+  ].sort((a, b) => b.length - a.length); // longest first, most specific match wins
+
+  for (const candidate of allNames){
+    if (rawName.length > candidate.length && rawName.startsWith(candidate) && rawName[candidate.length] === '-'){
+      return { doc: findDoc(candidate), kind: kindOf(candidate), pageName: candidate, anchor: rawName };
+    }
+  }
+  return { doc: null, kind: null, pageName: rawName, anchor: null };
+}
+
+function render(){
+  const requested = decodeURIComponent(location.hash.replace(/^#/, ''));
+  const main = document.getElementById('main');
+
+  let result, pageName;
+  if (!requested){
+    result = renderHome();
+    pageName = '';
+  } else {
+    const { doc, kind, pageName: resolvedName, anchor } = resolvePage(requested);
+    pageName = resolvedName;
+    if (!doc){
+      result = { html: `<div class="content"><p>Nothing documented under "${esc(requested)}".</p></div>`, outline: [] };
+      main.innerHTML = `<div class="pagewrap"><div class="content">${result.html}</div></div>`;
+      document.querySelectorAll('.navitem').forEach(el => el.classList.remove('active'));
+      return;
+    }
+    if (kind === 'class') result = renderClassPage(doc);
+    else if (kind === 'typedef') result = renderTypedefPage(doc);
+    else result = renderEnumPage(doc);
+
+    if (anchor){
+      // Sub-anchor within this page: scroll to it once rendered instead of
+      // resetting to the top.
+      main.innerHTML = `<div class="pagewrap"><div class="content">${result.html}</div>${renderOutline(result.outline)}</div>`;
+      document.querySelectorAll('.navitem').forEach(el => el.classList.toggle('active', el.dataset.name === pageName));
+      const target = document.getElementById(anchor);
+      if (target && typeof target.scrollIntoView === 'function') target.scrollIntoView({ block: 'start' });
+      return;
+    }
+  }
+
+  document.querySelectorAll('.navitem').forEach(el => el.classList.toggle('active', el.dataset.name === pageName));
+  main.innerHTML = `<div class="pagewrap"><div class="content">${result.html}</div>${renderOutline(result.outline)}</div>`;
+  main.scrollTop = 0;
+}
+
+document.getElementById('searchbox').addEventListener('input', (e) => renderSidebar(e.target.value));
+document.addEventListener('keydown', (e) => {
+  if (e.key === '/' && document.activeElement !== document.getElementById('searchbox')){
+    e.preventDefault();
+    document.getElementById('searchbox').focus();
+  }
+});
+window.addEventListener('hashchange', render);
+
+renderSidebar('');
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{
+  "name": "mg.js",
+  "version": "0.1.4",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "magicgarden.js: an all-purpose API wrapper for Magic Garden, as a bootstrapped (userscript) client and a headless client over a shared protocol core.",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "typecheck": "tsc -b --force && tsc -p tsconfig.tests.json",
+    "typecheck:src": "tsc -b --force",
+    "test": "npm run test --workspaces --if-present",
+    "test:common": "npm test -w @mg.js/common",
+    "test:headless": "npm test -w @mg.js/headless",
+    "test:bootstrapped": "npm test -w @mg.js/bootstrapped",
+    "verify": "npm run lint && npm run typecheck && npm run build && npm test && npm run docs:check",
+    "clean": "tsc -b --clean && rm -rf packages/*/dist",
+    "verify:catalog": "tsx scripts/verify-catalog.ts",
+    "verify:socket": "tsx scripts/verify-socket.ts",
+    "probe:guest": "tsx scripts/probe-guest-encoding.ts",
+    "docs:build": "node scripts/api-docs/build.mjs",
+    "docs:check": "node scripts/api-docs/check.mjs && node scripts/api-docs/check-naming.mjs"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.13",
+    "@types/node": "^24.0.0",
+    "@types/ws": "^8.5.13",
+    "tsx": "^4.19.0",
+    "typedoc": "^0.28.20",
+    "typescript": "^5.9.0",
+    "ws": "^8.19.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
