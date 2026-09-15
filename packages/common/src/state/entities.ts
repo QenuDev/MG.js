@@ -216,6 +216,18 @@ export interface Tile extends StateView {
   readonly id: number;
   /** What this tile holds. Only `plant` tiles carry crops. */
   readonly objectType: ItemType;
+  /**
+   * When the tile's contents were placed, in server milliseconds.
+   *
+   * An egg tile carries this, and it is the start of the hatching period. `0` when the field is absent.
+   */
+  readonly plantedAt: number;
+  /**
+   * When the tile's contents are due to finish, in server milliseconds.
+   *
+   * Present on an egg tile and on a plant tile. `0` when the field is absent.
+   */
+  readonly maturedAt: number;
   /** The crops planted on this tile, in the game's own order. Empty for a bare tile. */
   readonly plots: Crop[];
   /** Everything else the tile carries, read by name. The escape hatch. */
@@ -232,8 +244,16 @@ export interface Tile extends StateView {
 export interface Garden extends StateView {
   /** The path of this garden: `.../userSlots/<slot>/data/garden`. */
   readonly entityPath: string;
-  /** Every tile in this garden, ordered by tile id. */
+  /** Every plantable tile, ordered by tile id, from the game's `tileObjects`. */
   readonly tiles: Tile[];
+  /**
+   * The garden's boardwalk, from `boardwalkTileObjects`, ordered by tile id.
+   *
+   * Kept apart from {@link tiles} on purpose. The two maps are keyed independently, so the same key can
+   * name a plantable tile and a boardwalk tile at once, and merging them into one list silently dropped
+   * whichever lost the collision. A boardwalk tile is where decoration such as a pet hutch sits.
+   */
+  readonly boardwalkTiles: Tile[];
   /** Everything else the garden carries, read by name. The escape hatch. */
   readonly record: StateRecordLike;
 }
