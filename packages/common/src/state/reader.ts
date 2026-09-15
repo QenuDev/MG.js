@@ -362,6 +362,7 @@ export function toCrop(value: unknown, nowMs: number, entityPath: string): Crop 
     x: record.number('x'),
     y: record.number('y'),
     rotation: record.number('rotation'),
+    positioned: record.has('x') || record.has('y'),
     flipped: record.boolean('flipped'),
     preserved: record.boolean('preserved'),
     ready: endTime > 0 && remainingMs === 0,

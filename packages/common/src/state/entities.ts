@@ -172,10 +172,18 @@ export interface Crop extends StateView {
   readonly size: number;
   /** Every mutation on this crop. */
   readonly mutations: Mutation[];
-  /** Tile position. */
+  /** Where on its plant or tile it sits. `0` when the save does not state one. */
   readonly x: number;
-  /** Tile position. */
+  /** Where on its plant or tile it sits. `0` when the save does not state one. */
   readonly y: number;
+  /**
+   * True when the save stated a position at all.
+   *
+   * The position is optional on the wire, and a crop that carries none is not at zero: the game places it at
+   * `plant.slotOffsets[slotId]` from the blueprint. Without this, a missing position and a position of zero
+   * are the same value, and every crop on a potted plant reads as being at the plant's middle.
+   */
+  readonly positioned: boolean;
   /** Rotation in degrees. The game's own set is `0, -360, 90, -90, 180, -180, 270, -270`. */
   readonly rotation: number;
   /** True when the crop is drawn mirrored. */
