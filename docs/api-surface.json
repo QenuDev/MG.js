@@ -690,6 +690,7 @@
         "playerCount",
         "pointerContains",
         "resolvePointer",
+        "toCrops",
         "toCurrency",
         "toInventory",
         "toInventoryItem",

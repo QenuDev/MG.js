@@ -16,7 +16,7 @@
  *
  * ## The snapshot
  *
- * 149 runtime names from `packages/common/src/index.ts`. 133 were measured at `737b`-era HEAD
+ * 150 runtime names from `packages/common/src/index.ts`. 133 were measured at `737b`-era HEAD
  * `db7371f`. The named state accessors and the game's server clock added the rest: `StateReader`,
  * `StateRecord`, `asRecord`, `ServerClock`, `asFiniteMs`, `MUTATIONS`, `mutationName` and the four
  * documented field-name lists, in the same commit as this line. `toCurrency` followed, in the commit that
@@ -177,6 +177,7 @@ const EXPECTED_EXPORTS: readonly string[] = [
   'scopeForForm',
   'serializeFrame',
   'summarizeError',
+  'toCrops',
   'toCurrency',
   'toInventory',
   'toInventoryItem',

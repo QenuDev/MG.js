@@ -51,6 +51,7 @@ export {
   StateReader,
   StateRecord,
   StateWaitError,
+  toCrops,
   toCurrency,
   toInventory,
   toInventoryItem,

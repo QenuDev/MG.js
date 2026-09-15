@@ -220,7 +220,7 @@ export function toPlayerRecord(value: unknown): PlayerRecord {
  * not the same as the field being absent: a spent tool and a tool that never had a life are two different
  * items, and the save tells them apart only by whether the field is there.
  */
-export function toInventoryItem(value: unknown, entityPath: string): InventoryItem {
+export function toInventoryItem(value: unknown, entityPath: string, nowMs = 0): InventoryItem {
   const record = new StateRecord(value);
   return {
     entityPath,
@@ -238,44 +238,46 @@ export function toInventoryItem(value: unknown, entityPath: string): InventoryIt
     eggId: record.string('eggId'),
     decorId: record.string('decorId'),
     name: record.string('name'),
+    // A potted plant's crops live under the same `slots` field a garden tile's do.
+    crops: toCrops(record.read('slots'), nowMs, `${entityPath}/slots`),
     record,
   };
 }
 
 /** One container: the decoration it came from, its size, and what is inside it. */
-export function toStorage(value: unknown, entityPath: string): Storage {
+export function toStorage(value: unknown, entityPath: string, nowMs = 0): Storage {
   const record = new StateRecord(value);
   return {
     entityPath,
     decorId: record.string('decorId'),
     capacitySlots: record.number('capacitySlots'),
-    items: toInventoryItems(record.read('items'), `${entityPath}/items`),
+    items: toInventoryItems(record.read('items'), `${entityPath}/items`, nowMs),
     record,
   };
 }
 
 /** A list of inventory entries, each carrying its own path. */
-export function toInventoryItems(value: unknown, entityPath: string): InventoryItem[] {
+export function toInventoryItems(value: unknown, entityPath: string, nowMs = 0): InventoryItem[] {
   if (!Array.isArray(value)) return [];
   const items: InventoryItem[] = [];
   for (let index = 0; index < value.length; index += 1) {
-    items.push(toInventoryItem(value[index], `${entityPath}/${index}`));
+    items.push(toInventoryItem(value[index], `${entityPath}/${index}`, nowMs));
   }
   return items;
 }
 
 /** Everything a player owns, from `userSlots[<n>]/data/inventory`. */
-export function toInventory(value: unknown, entityPath: string): Inventory {
+export function toInventory(value: unknown, entityPath: string, nowMs = 0): Inventory {
   const record = new StateRecord(value);
   const rawStorages = record.read('storages');
   const storages: Storage[] = [];
   if (Array.isArray(rawStorages)) {
     for (let index = 0; index < rawStorages.length; index += 1) {
-      storages.push(toStorage(rawStorages[index], `${entityPath}/storages/${index}`));
+      storages.push(toStorage(rawStorages[index], `${entityPath}/storages/${index}`, nowMs));
     }
   }
   return {
-    items: toInventoryItems(record.read('items'), `${entityPath}/items`),
+    items: toInventoryItems(record.read('items'), `${entityPath}/items`, nowMs),
     storages,
   };
 }
@@ -327,6 +329,23 @@ export function toActivityEntry(value: unknown, entityPath: string): ActivityEnt
  * `id` is the wire's `slotId`, which the schemas declare as a number and which the commands send as
  * `slotsIndex` / `growSlotIdx`.
  */
+/**
+ * The crops under a `slots` array.
+ *
+ * Both a garden tile and a potted plant keep what is growing in them under `slots`, so one reader serves
+ * both and a plant in the bag reports its crops the way a tile does.
+ */
+export function toCrops(value: unknown, nowMs: number, entityPath: string): Crop[] {
+  if (!Array.isArray(value)) return [];
+  const crops: Crop[] = [];
+  for (let index = 0; index < value.length; index += 1) {
+    const entry = value[index];
+    if (entry === null || typeof entry !== 'object') continue;
+    crops.push(toCrop(entry, nowMs, `${entityPath}/slots/${index}`));
+  }
+  return crops;
+}
+
 export function toCrop(value: unknown, nowMs: number, entityPath: string): Crop {
   const record = new StateRecord(value);
   const endTime = record.number('endTime');
@@ -360,15 +379,7 @@ export function toCrop(value: unknown, nowMs: number, entityPath: string): Crop 
  */
 export function toTile(id: number, value: unknown, nowMs: number, entityPath: string): Tile {
   const record = new StateRecord(value);
-  const rawSlots = record.raw['slots'];
-  const plots: Crop[] = [];
-  if (Array.isArray(rawSlots)) {
-    for (let index = 0; index < rawSlots.length; index += 1) {
-      const entry = rawSlots[index];
-      if (entry === null || typeof entry !== 'object') continue;
-      plots.push(toCrop(entry, nowMs, `${entityPath}/slots/${index}`));
-    }
-  }
+  const plots = toCrops(record.raw['slots'], nowMs, entityPath);
 
   return {
     entityPath,
@@ -925,6 +936,7 @@ export class StateReader {
       inventory: toInventory(
         dataPath === null ? undefined : this.store.get(`${dataPath}/inventory`),
         `${dataPath ?? `${USER_SLOTS}/${index}/data`}/inventory`,
+        nowMs,
       ),
       garden: toGarden(gardenValue, nowMs, `${dataPath ?? `${USER_SLOTS}/${index}/data`}/garden`),
       pets: slotIndex === null ? [] : this.pets(slotIndex),

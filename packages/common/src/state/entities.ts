@@ -384,6 +384,14 @@ export interface InventoryItem extends StateView {
   readonly decorId: string;
   /** The name the player gave it, for a pet in the bag. `''` for every other kind. */
   readonly name: string;
+  /**
+   * What is growing in it, for a potted plant. Empty for every other kind.
+   *
+   * A plant item is a pot with crops in it, and the save holds those crops under `slots`, the same field a
+   * garden tile uses. Reading them here is what tells a potted plant with something growing from one that
+   * is bare.
+   */
+  readonly crops: Crop[];
   /** Everything else the item carries, read by name. The escape hatch. */
   readonly record: StateRecordLike;
 }
