@@ -286,6 +286,8 @@ export function toTile(id: number, value: unknown, nowMs: number, entityPath: st
     entityPath,
     id,
     objectType: record.string('objectType'),
+    plantedAt: record.number('plantedAt'),
+    maturedAt: record.number('maturedAt'),
     plots,
     record,
   };
@@ -303,23 +305,30 @@ export function toTile(id: number, value: unknown, nowMs: number, entityPath: st
 export function toGarden(value: unknown, nowMs: number, entityPath: string): Garden | null {
   if (value === null || typeof value !== 'object') return null;
   const record = new StateRecord(value);
-  const tiles = new Map<number, Tile>();
 
-  for (const field of ['tileObjects', 'boardwalkTileObjects'] as const) {
+  /**
+   * One of the garden's two tile maps, read in id order.
+   *
+   * The maps are read separately rather than merged: their keys are independent, so the same number can
+   * address a plantable tile and a boardwalk tile at once, and merging would drop one of them.
+   */
+  const readMap = (field: string): Tile[] => {
     const map = record.raw[field];
-    if (map === null || typeof map !== 'object') continue;
+    if (map === null || typeof map !== 'object') return [];
+    const found: Tile[] = [];
     for (const [key, tile] of Object.entries(map as Record<string, unknown>)) {
       const id = Number(key);
-      // A non-numeric key cannot be sent back to the server as a tile index, so it is not a tile. A key
-      // already claimed by `tileObjects` wins, because that is where a plant lives.
-      if (!Number.isInteger(id) || tiles.has(id)) continue;
-      tiles.set(id, toTile(id, tile, nowMs, `${entityPath}/${field}/${key}`));
+      // A non-numeric key cannot be sent back to the server as a tile index, so it is not a tile.
+      if (!Number.isInteger(id)) continue;
+      found.push(toTile(id, tile, nowMs, `${entityPath}/${field}/${key}`));
     }
-  }
+    return found.sort((left, right) => left.id - right.id);
+  };
 
   return {
     entityPath,
-    tiles: [...tiles.entries()].sort(([left], [right]) => left - right).map(([, tile]) => tile),
+    tiles: readMap('tileObjects'),
+    boardwalkTiles: readMap('boardwalkTileObjects'),
     record,
   };
 }

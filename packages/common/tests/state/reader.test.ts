@@ -272,6 +272,54 @@ void test('the garden is read from tileObjects, three levels deep', () => {
   );
 });
 
+void test('a boardwalk tile is kept even when its key collides with a ground tile', () => {
+  // The two maps are keyed independently, so key 12 can name a plantable tile and a boardwalk tile at
+  // once. Merging them into one list dropped whichever lost the collision, which silently lost decoration.
+  const store = new ObservableStore({
+    initial: {
+      data: { players: [{ id: 'p_1' }] },
+      child: {
+        data: {
+          userSlots: [
+            {
+              userId: 'p_1',
+              data: {
+                garden: {
+                  tileObjects: { '12': { objectType: 'plant', species: 'Clover', slots: [] } },
+                  boardwalkTileObjects: {
+                    '12': { objectType: 'decor', decorId: 'PetHutch' },
+                    '7': { objectType: 'decor', decorId: 'FeedingTrough' },
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+  });
+  const state = new StateReader(store);
+  state.selfPlayerId = 'p_1';
+
+  const garden = state.garden(0);
+  assert.notEqual(garden, null);
+  assert.deepEqual(
+    garden?.tiles.map((tile) => tile.id),
+    [12],
+    'the ground keeps its own key 12',
+  );
+  assert.deepEqual(
+    garden?.boardwalkTiles.map((tile) => tile.id),
+    [7, 12],
+    'the boardwalk keeps both of its tiles, including the colliding key',
+  );
+  assert.equal(garden?.boardwalkTiles[1]?.record.string('decorId'), 'PetHutch');
+
+  // And the ground tile at the same key is the plant, not the hutch.
+  assert.equal(garden?.tiles[0]?.objectType, 'plant');
+  assert.equal(garden?.tiles[0]?.record.string('species'), 'Clover');
+});
+
 void test('a crop id is the wire slotId, and a tile id is the tileObjects key', () => {
   const { state } = readerWithClock();
   const tiles = state.self?.garden?.tiles ?? [];
