@@ -6,6 +6,7 @@ export { asFiniteMs, ServerClock } from './clock.js';
 export type {
   ActivityEntry,
   Crop,
+  Currency,
   Garden,
   ItemType,
   Mutation,
@@ -42,6 +43,6 @@ export {
   resolvePointer,
 } from './pointer.js';
 export type { WaitOptions, Watchable, WatchTarget } from './reader.js';
-export { asRecord, StateReader, StateRecord, StateWaitError } from './reader.js';
+export { asRecord, StateReader, StateRecord, StateWaitError, toCurrency } from './reader.js';
 export type { ObservableStoreOptions, StateChange, StateSubscriber } from './store.js';
 export { emptyStateTree, ObservableStore } from './store.js';

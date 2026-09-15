@@ -114,9 +114,9 @@ function sampleStore(): ObservableStore {
     initial: {
       data: {
         players: [
-          { id: 'p_1', name: 'Ada', discordUserId: '111', coins: 1250 },
+          { id: 'p_1', name: 'Ada', discordUserId: '111' },
           { id: 'p_2', name: 'Bo' },
-          { id: 'p_3', name: 'Cy', databaseUserId: '333', coins: 40 },
+          { id: 'p_3', name: 'Cy', databaseUserId: '333' },
         ],
         chat: [{ message: 'hi', authorId: 'p_1' }],
         hostPlayerId: 'p_1',
@@ -127,6 +127,9 @@ function sampleStore(): ObservableStore {
             {
               userId: 'p_1',
               data: {
+                // The saved object a player's garden and balances are both fields of.
+                coinsCount: 1250,
+                magicDustCount: 226_100,
                 garden: { tileObjects: REAL_TILE_OBJECTS, boardwalkTileObjects: {} },
                 petSlots: [
                   {
@@ -188,7 +191,12 @@ void test('the room reads its players, chat and host from the documented room pa
   );
   assert.equal(state.room.players.length, 3);
   assert.equal(state.room.players[0]?.name, 'Ada');
-  assert.equal(state.room.players[0]?.coins, 1250);
+  // The balances come from the player's saved data, not from the room's list of who is here.
+  assert.equal(state.room.players[0]?.coinsCount, 1250);
+  assert.equal(state.room.players[0]?.magicDustCount, 226_100);
+  // A player with no saved data reads as nothing spent, not as a missing field.
+  assert.equal(state.room.players[1]?.coinsCount, 0);
+  assert.equal(state.room.players[1]?.magicDustCount, 0);
   assert.deepEqual(
     state.room.chat.map((record) => record.raw),
     store.get('/data/chat'),

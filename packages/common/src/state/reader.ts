@@ -37,6 +37,7 @@ import { asFiniteMs, ServerClock } from './clock.js';
 import type {
   ActivityEntry,
   Crop,
+  Currency,
   Garden,
   Mutation,
   Pet,
@@ -191,8 +192,8 @@ function toStringArray(value: unknown): string[] {
 /**
  * One player as the room's own list carries them.
  *
- * The room player schema is `{ id, name, coins, ... }`. The Discord id has two documented spellings,
- * so both are probed.
+ * The room player schema is `{ id, name, ... }` and no more: it is the room's list of who is here, and it
+ * carries no balance. The Discord id has two documented spellings, so both are probed.
  */
 export function toPlayerRecord(value: unknown): PlayerRecord {
   const record = new StateRecord(value);
@@ -201,8 +202,21 @@ export function toPlayerRecord(value: unknown): PlayerRecord {
     name: record.string('name'),
     discordUserId: record.string(DISCORD_ID_FIELDS[0]),
     databaseUserId: record.string(DISCORD_ID_FIELDS[1]),
-    coins: record.number('coins'),
     hasDiscordId: DISCORD_ID_FIELDS.some((field) => record.string(field) !== ''),
+  };
+}
+
+/**
+ * What a player can spend, from the saved object their garden also lives in.
+ *
+ * The room's list of players does not carry a balance, so this is read from the player's own slot. Both
+ * fields keep the save's names: `coinsCount` and `magicDustCount`.
+ */
+export function toCurrency(value: unknown): Currency {
+  const record = new StateRecord(value);
+  return {
+    coinsCount: record.number('coinsCount'),
+    magicDustCount: record.number('magicDustCount'),
   };
 }
 
@@ -824,13 +838,16 @@ export class StateReader {
     const record = toPlayerRecord(value);
     const slotIndex = this.slotIndexFor(record.id, index, total);
     const dataPath = slotIndex === null ? null : `${USER_SLOTS}/${slotIndex}/data`;
+    // The garden and the balances are fields of one saved object, so both are read from the same place and
+    // both are empty when the join to that object failed.
+    const saved = dataPath === null ? undefined : this.store.get(dataPath);
     const gardenValue = dataPath === null ? undefined : this.store.get(`${dataPath}/garden`);
 
     return {
       entityPath: playerPath(index),
       id: record.id,
       name: record.name,
-      coins: record.coins,
+      ...toCurrency(saved),
       garden: toGarden(gardenValue, nowMs, `${dataPath ?? `${USER_SLOTS}/${index}/data`}/garden`),
       pets: slotIndex === null ? [] : this.pets(slotIndex),
       activityLog: slotIndex === null ? [] : this.activityLogs(slotIndex),

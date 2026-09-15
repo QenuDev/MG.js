@@ -295,8 +295,9 @@ export interface Pet extends StateView {
 /**
  * One player, as the room's `players` array carries them.
  *
- * Documented: `id` matches `Welcome.selfPlayerId`; the Discord id appears under either spelling; and a
- * player's coins live at `/data/players/<index>/coins`.
+ * This is the room's own list, and the room says nothing about money: an entry is an id, a name and the
+ * Discord id under one of two spellings. A balance lives in the player's saved data, which is
+ * {@link Currency} and is read from their slot rather than from here.
  */
 export interface PlayerRecord {
   /** This session's id for the player, matching `Welcome.selfPlayerId`. */
@@ -307,10 +308,25 @@ export interface PlayerRecord {
   readonly discordUserId: string;
   /** The same value under the older build's name. Empty when the build sends `discordUserId`. */
   readonly databaseUserId: string;
-  /** The player's coin count. `0` when the field is absent, which is different from a real zero. */
-  readonly coins: number;
   /** True when either Discord id field was present, which is how a signed-in player is told from a guest. */
   readonly hasDiscordId: boolean;
+}
+
+/**
+ * What a player can spend, from their saved data.
+ *
+ * Both balances are fields of the same saved object the garden lives in, so they are read from the player's
+ * own slot. The room's player list does not carry them: an early revision of this library read coins from
+ * there, and every player's balance came back as zero.
+ *
+ * The names are the save's own. An abbreviated one (`dust` for `magicDustCount`) would be this library
+ * inventing a currency rather than reporting one.
+ */
+export interface Currency {
+  /** Coins, as `coinsCount` in the player's saved data. */
+  readonly coinsCount: number;
+  /** Magic Dust, as `magicDustCount` in the player's saved data. */
+  readonly magicDustCount: number;
 }
 
 /**
@@ -320,15 +336,13 @@ export interface PlayerRecord {
  * {@link garden} is `null` exactly when that join failed, which is not the same as a garden with no tiles
  * and must not be read as one.
  */
-export interface Player extends StateView {
+export interface Player extends StateView, Currency {
   /** The player's path in the room's own list: `/data/players/<index>`. */
   readonly entityPath: string;
   /** This session's id for the player, matching `Welcome.selfPlayerId`. */
   readonly id: string;
   /** The player's display name, as the room shows it. */
   readonly name: string;
-  /** The player's coin count. */
-  readonly coins: number;
   /**
    * The player's garden, or `null` when their slot could not be resolved.
    *

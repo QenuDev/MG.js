@@ -689,13 +689,15 @@
         "player",
         "playerCount",
         "pointerContains",
-        "resolvePointer"
+        "resolvePointer",
+        "toCurrency"
       ],
       "Interface": [
         "ActivityEntry",
         "ApplyPatchOptions",
         "ApplyPatchResult",
         "Crop",
+        "Currency",
         "Garden",
         "MutationInfo",
         "ObservableStoreOptions",
