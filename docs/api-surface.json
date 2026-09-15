@@ -730,6 +730,7 @@
         "MutationGroup",
         "PointerTokens",
         "StateSubscriber",
+        "TileType",
         "WatchTarget"
       ],
       "Variable": [

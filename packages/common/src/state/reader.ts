@@ -49,6 +49,7 @@ import type {
   StateRecordLike,
   Storage,
   Tile,
+  TileType,
 } from './entities.js';
 import { ACTIVITY_ACTION_FIELDS, ACTIVITY_PARAMETER_FIELDS, DISCORD_ID_FIELDS } from './entities.js';
 import {
@@ -376,14 +377,23 @@ export function toCrop(value: unknown, nowMs: number, entityPath: string): Crop 
  *
  *     ts = d({ objectType, species, slots, plantedAt, maturedAt })
  *
- * @param id The tile's key in `tileObjects`, which the schemas declare as a number.
+ * @param id The tile's key in its own map, which the schemas declare as a number.
+ * @param tileType Which of the garden's two maps it was read from, because the keys of one do not address
+ *   the other. The tile itself does not carry this: the map it is keyed in is where the game says it.
  */
-export function toTile(id: number, value: unknown, nowMs: number, entityPath: string): Tile {
+export function toTile(
+  id: number,
+  value: unknown,
+  nowMs: number,
+  entityPath: string,
+  tileType: TileType,
+): Tile {
   const record = new StateRecord(value);
   const plots = toCrops(record.raw['slots'], nowMs, entityPath);
 
   return {
     entityPath,
+    tileType,
     id,
     objectType: record.string('objectType'),
     plantedAt: record.number('plantedAt'),
@@ -396,9 +406,9 @@ export function toTile(id: number, value: unknown, nowMs: number, entityPath: st
 /**
  * One garden, from `userSlots[i].data.garden`.
  *
- * Both tile maps the game sends are merged into one ordered list. A boardwalk tile holds décor and
- * crystals rather than crops, but it is still a tile in the garden, so splitting them would make a
- * caller read two fields to answer "what is in my garden".
+ * The game's two tile maps are read as two, never merged: they are keyed independently, so the same number
+ * can address a soil tile and a boardwalk tile at once and a merge would drop one of them. Each tile says
+ * which ground it came from, so a caller that wants one list can join them without losing the distinction.
  *
  * @returns `null` when the value is not an object at all, which is how a failed slot join surfaces.
  */
@@ -412,7 +422,7 @@ export function toGarden(value: unknown, nowMs: number, entityPath: string): Gar
    * The maps are read separately rather than merged: their keys are independent, so the same number can
    * address a plantable tile and a boardwalk tile at once, and merging would drop one of them.
    */
-  const readMap = (field: string): Tile[] => {
+  const readMap = (field: string, tileType: TileType): Tile[] => {
     const map = record.raw[field];
     if (map === null || typeof map !== 'object') return [];
     const found: Tile[] = [];
@@ -420,15 +430,15 @@ export function toGarden(value: unknown, nowMs: number, entityPath: string): Gar
       const id = Number(key);
       // A non-numeric key cannot be sent back to the server as a tile index, so it is not a tile.
       if (!Number.isInteger(id)) continue;
-      found.push(toTile(id, tile, nowMs, `${entityPath}/${field}/${key}`));
+      found.push(toTile(id, tile, nowMs, `${entityPath}/${field}/${key}`, tileType));
     }
     return found.sort((left, right) => left.id - right.id);
   };
 
   return {
     entityPath,
-    tiles: readMap('tileObjects'),
-    boardwalkTiles: readMap('boardwalkTileObjects'),
+    tiles: readMap('tileObjects', 'Dirt'),
+    boardwalkTiles: readMap('boardwalkTileObjects', 'Boardwalk'),
     record,
   };
 }

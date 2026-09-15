@@ -23,6 +23,7 @@
  */
 
 import type { CrystalShard, PetTeamEmblem } from '../protocol/wire.js';
+import type { TileType } from '../state/entities.js';
 
 // ---------------------------------------------------------------- session & heartbeat
 
@@ -170,7 +171,12 @@ export type CrystalIntent = { type: 'place' } | { type: 'merge'; mergeGainSecond
 export interface PlaceCrystalParams {
   /** The inventory item reference. The reference method takes this first, as `shard`. */
   shard: CrystalShard;
-  tileType: string;
+  /**
+   * Which ground the tile is on. Both grounds are numbered from zero and hold more than their usual
+   * contents — a shard can be charged on the boardwalk and decoration can stand in the soil — so the index
+   * below addresses nothing without this.
+   */
+  tileType: TileType;
   localTileIndex: number;
 }
 
@@ -180,7 +186,7 @@ export interface FuseCrystalParams extends PlaceCrystalParams {
 
 export interface PickupCrystalParams {
   crystalType: string;
-  tileType: string;
+  tileType: TileType;
   localTileIndex: number;
   /** Client-minted so the crystal keeps its remaining time. Minted for you when omitted. */
   itemId?: string;
@@ -197,13 +203,13 @@ export interface PreserveParams {
 }
 
 export interface DisplayCropParams {
-  tileType: string;
+  tileType: TileType;
   localTileIndex: number;
   itemId: string;
 }
 
 export interface LocalTileParams {
-  tileType: string;
+  tileType: TileType;
   localTileIndex: number;
 }
 
@@ -211,7 +217,7 @@ export interface LocalTileParams {
 
 export interface PlaceDecorParams {
   decorId: string;
-  tileType: string;
+  tileType: TileType;
   localTileIndex: number;
   /** Omit for the default orientation. */
   rotation?: number;
@@ -224,7 +230,7 @@ export interface PlacePetParams {
   /** The wire nests these under `position`. */
   x: number;
   y: number;
-  tileType: string;
+  tileType: TileType;
   localTileIndex: number;
 }
 

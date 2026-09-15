@@ -21,6 +21,7 @@ export type {
   StateRecordLike,
   Storage,
   Tile,
+  TileType,
 } from './entities.js';
 export {
   ACTIVITY_ACTION_FIELDS,

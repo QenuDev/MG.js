@@ -425,6 +425,72 @@ void test('a boardwalk tile is kept even when its key collides with a ground til
   // And the ground tile at the same key is the plant, not the hutch.
   assert.equal(garden?.tiles[0]?.objectType, 'plant');
   assert.equal(garden?.tiles[0]?.record.string('species'), 'Clover');
+
+  // Each tile says which ground it is on, because an index on its own is not an address: 12 names both of
+  // these. It is the game's own name for the pair, and the map the tile is keyed in is where it says so —
+  // nothing on the tile itself does, since a hutch can stand in the soil and a shard can charge on the
+  // boardwalk.
+  assert.equal(garden?.tiles[0]?.tileType, 'Dirt', 'the soil tile says it is soil');
+  assert.deepEqual(
+    garden?.boardwalkTiles.map((tile) => tile.tileType),
+    ['Boardwalk', 'Boardwalk'],
+    'and every boardwalk tile says it is boardwalk',
+  );
+});
+
+void test('the ground a tile is on is the map, not what the tile holds', () => {
+  // Both grounds hold more than their usual contents: decoration stands in the soil and a shard is charged
+  // on the boardwalk. Reading the contents as the place is what put a garden's decoration on the rim.
+  const store = new ObservableStore({
+    initial: {
+      data: { players: [{ id: 'p_1' }] },
+      child: {
+        data: {
+          userSlots: [
+            {
+              userId: 'p_1',
+              data: {
+                garden: {
+                  tileObjects: {
+                    '4': { objectType: 'decor', decorId: 'MarblePedestal' },
+                    '5': {
+                      objectType: 'Crystal',
+                      crystalType: 'Hunger',
+                      remainingActiveSeconds: 1_440,
+                    },
+                  },
+                  boardwalkTileObjects: {
+                    '6': {
+                      objectType: 'Crystal',
+                      crystalType: 'XP',
+                      remainingActiveSeconds: 900,
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+  });
+  const state = new StateReader(store);
+  state.selfPlayerId = 'p_1';
+  const garden = state.garden(0);
+
+  assert.deepEqual(
+    garden?.tiles.map((tile) => [tile.id, tile.objectType, tile.tileType]),
+    [
+      [4, 'decor', 'Dirt'],
+      [5, 'Crystal', 'Dirt'],
+    ],
+    'decoration and a shard in the soil are both soil tiles',
+  );
+  assert.deepEqual(
+    garden?.boardwalkTiles.map((tile) => [tile.id, tile.objectType, tile.tileType]),
+    [[6, 'Crystal', 'Boardwalk']],
+    'and a shard on the boardwalk is a boardwalk tile',
+  );
 });
 
 void test('a crop id is the wire slotId, and a tile id is the tileObjects key', () => {

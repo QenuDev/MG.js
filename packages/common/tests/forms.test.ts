@@ -153,7 +153,7 @@ describe('GameActions surface', () => {
     const actions = new GameActions(sender);
     actions.fuseCrystal({
       shard: { itemId: 'shard-1', crystalType: 'ruby' },
-      tileType: 'garden',
+      tileType: 'Dirt',
       localTileIndex: 4,
       mergeGainSeconds: 120,
     });
@@ -167,7 +167,7 @@ describe('GameActions surface', () => {
     const actions = new GameActions(sender);
     actions.placeCrystal({
       shard: { itemId: 'shard-1', crystalType: 'ruby' },
-      tileType: 'garden',
+      tileType: 'Dirt',
       localTileIndex: 4,
     });
     assert.deepEqual(calls[0]?.params.intent, { type: 'place' });

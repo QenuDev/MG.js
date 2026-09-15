@@ -205,6 +205,21 @@ export interface Crop extends StateView {
 }
 
 /**
+ * Which of the garden's two grounds a tile belongs to.
+ *
+ * The game keeps two tile maps — `garden.tileObjects` for the soil and `garden.boardwalkTileObjects` for the
+ * boardwalk — and an index only means something with the map it came from, because the two are keyed
+ * independently: the same key can name a soil tile and a boardwalk tile at once. The game's own name for the
+ * pair is `tileType`, and it is what every tile-addressed action states beside the index (`PlaceCrystal`,
+ * `PickupCrystal`, `PlaceDecor`, `PlacePet`, …).
+ *
+ * It says which ground, not what is on it. Both grounds hold more than their usual contents: a shard can be
+ * charged on the boardwalk, and decoration can stand in the soil, so nothing about the object on a tile says
+ * which of the two maps it is keyed in.
+ */
+export type TileType = 'Dirt' | 'Boardwalk';
+
+/**
  * One garden tile: the tile schema `ts` in the game's bundle.
  *
  *     ts = d({ objectType, species, slots, plantedAt, maturedAt })
@@ -215,6 +230,14 @@ export interface Crop extends StateView {
 export interface Tile extends StateView {
   /** The path of this tile: `.../garden/tileObjects/<id>`. */
   readonly entityPath: string;
+  /**
+   * Which ground this tile is on: the map it was read from.
+   *
+   * Not a field the game sends — the save says it by which of the two maps the tile is keyed in — so this is
+   * that reading, under the game's own name for it. It is what makes {@link id} an address: the boardwalk
+   * numbers its keys from zero as well, so an id on its own names a soil tile and a boardwalk tile at once.
+   */
+  readonly tileType: TileType;
   /**
    * The tile's key in `garden.tileObjects`: what the wire calls a tile object index.
    *
@@ -243,23 +266,28 @@ export interface Tile extends StateView {
 }
 
 /**
- * One garden: a player's tiles.
+ * One garden: a player's tiles, as the game's two grounds.
  *
- * Both tile maps the game sends are merged into {@link tiles}, in tile-id order. A boardwalk tile holds
- * décor and crystals rather than crops, but it is still part of the garden, so splitting the two would
- * make a caller read two fields to answer "what is in my garden".
+ * The game sends two tile maps and they are read as two, never merged: they are keyed independently, so the
+ * same key can name a soil tile and a boardwalk tile at once and a merge would drop whichever lost. Each tile
+ * says which ground it is on ({@link Tile.tileType}), so a caller that wants them together can say so itself
+ * without losing the distinction.
+ *
+ * What is on a tile does not say which ground it is on. Decoration can stand in the soil and a shard can be
+ * charged on the boardwalk, so a caller classifying by `objectType` puts both in the wrong place.
  */
 export interface Garden extends StateView {
   /** The path of this garden: `.../userSlots/<slot>/data/garden`. */
   readonly entityPath: string;
-  /** Every plantable tile, ordered by tile id, from the game's `tileObjects`. */
+  /** The soil: every plantable tile, ordered by tile id, from the game's `tileObjects`. */
   readonly tiles: Tile[];
   /**
    * The garden's boardwalk, from `boardwalkTileObjects`, ordered by tile id.
    *
    * Kept apart from {@link tiles} on purpose. The two maps are keyed independently, so the same key can
    * name a plantable tile and a boardwalk tile at once, and merging them into one list silently dropped
-   * whichever lost the collision. A boardwalk tile is where decoration such as a pet hutch sits.
+   * whichever lost the collision. A boardwalk tile usually holds decoration such as a pet hutch, but it is
+   * the ground that makes it a boardwalk tile, not the hutch: a shard charged there is a boardwalk tile too.
    */
   readonly boardwalkTiles: Tile[];
   /** Everything else the garden carries, read by name. The escape hatch. */
