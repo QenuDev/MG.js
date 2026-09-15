@@ -929,14 +929,17 @@
     },
     "headless/version": {
       "Class": [
+        "RoomVersionSource",
         "VersionResolver",
         "VersionUnavailableError"
       ],
       "Function": [
-        "extractVersion"
+        "extractVersion",
+        "roomPageVersion"
       ],
       "Interface": [
         "ResolvedVersion",
+        "RoomVersionSourceOptions",
         "VersionResolverOptions",
         "VersionSource"
       ]

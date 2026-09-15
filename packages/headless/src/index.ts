@@ -102,6 +102,17 @@ export {
   originQueryHint,
   StandaloneTransport,
 } from './transport/index.js';
-export type { ResolvedVersion, VersionResolverOptions, VersionSource } from './version.js';
-// Version discovery: the 4710 cure.
-export { extractVersion, VersionResolver, VersionUnavailableError } from './version.js';
+export type {
+  ResolvedVersion,
+  RoomVersionSourceOptions,
+  VersionResolverOptions,
+  VersionSource,
+} from './version.js';
+// Version discovery: the 4710 cure, room-scoped when a room is named.
+export {
+  extractVersion,
+  RoomVersionSource,
+  roomPageVersion,
+  VersionResolver,
+  VersionUnavailableError,
+} from './version.js';

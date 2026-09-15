@@ -248,6 +248,15 @@ export class HeadlessClient extends Emitter<HeadlessClientEvents> {
       // refetch a `4710` forces.
       this.resolver = new VersionResolver({
         ...options.versionOptions,
+        // A named room's build is what this connection needs, not the newest build in the game: rooms are
+        // updated one at a time, and a room that has not rolled refuses the newest build with `4710` however
+        // often the platform endpoint is re-read. Only the resolver's own default source uses this, so a
+        // caller who supplied a source or a fetcher keeps it.
+        ...(options.versionOptions?.room === undefined &&
+        options.room !== undefined &&
+        options.room.length > 0
+          ? { room: options.room }
+          : {}),
         ...(options.version !== undefined && options.version.length > 0
           ? { initialVersion: options.version }
           : {}),

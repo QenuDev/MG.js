@@ -36,6 +36,25 @@
  * {@link VersionResolver.refresh}, which bypasses the cache unconditionally. There is no "the version
  * changed but we did not notice" path, because the one signal that the version moved (`4710`) forces a
  * refresh by construction.
+ *
+ * WHY A NAMED ROOM'S OWN PAGE, AND NOT THE PLATFORM ENDPOINT
+ * ---------------------------------------------------------
+ * `/platform/v1/version` states the build of the **newest** room, and the game updates its rooms one at a
+ * time. Measured on 2026-09-15 while the game was rolling 1176 → 1177, with one fixed cookie that is not a
+ * session (so the close is the *first* check the socket makes, before the cookie matters):
+ *
+ *     room `8T7R`    + version/1176 → 4710 VersionExpired     + version/1177 → 4840 SessionExpired
+ *     room `GOOBERS` + version/1176 → 4840 SessionExpired     + version/1177 → 4710 VersionExpired
+ *
+ * — and the platform endpoint said `1177` throughout. So for a caller that names a room, the platform's
+ * answer is the one build that room is guaranteed to refuse, and the refusal cannot be cured by
+ * re-resolving: the refresh returns `1177` again. That is the endless `4710` this file exists to prevent,
+ * reached with every number correct except the room's.
+ *
+ * A room's own page states the build it is served at, because every asset it links is under
+ * `/version/<n>/` — `GET https://magicgarden.gg/r/GOOBERS` → `<script src="/version/1176/assets/…">` — which
+ * is what {@link RoomVersionSource} reads. A room the game does not serve is answered at the newest build,
+ * which is what the platform endpoint states, so an invented slug is served correctly by the fallback.
  */
 
 import type { CatalogKind } from '@mg.js/common';
@@ -54,6 +73,98 @@ export interface VersionSource {
   load(kind: CatalogKind): Promise<unknown>;
 }
 
+/** Options for {@link RoomVersionSource}. */
+export interface RoomVersionSourceOptions {
+  /** The room slug whose build is wanted, spelled as the connect URL spells it. */
+  room: string;
+  /** Origin, without a trailing slash. Default `https://magicgarden.gg`. */
+  baseUrl?: string | undefined;
+  /** The fetch a room page is read with. Defaults to the global one; injected by tests. */
+  fetch?: typeof fetch | undefined;
+  /**
+   * What to ask when the room's own page cannot be read or states nothing.
+   *
+   * Defaults to a live {@link PlatformApiSource}, and it is not a nicety: {@link VersionResolver.refresh} is
+   * strict, so a source that yields nothing after a `4710` stops the client rather than retrying it, and an
+   * unreachable page would then be an unrecoverable connect instead of a merely stale build.
+   */
+  fallback?: VersionSource | undefined;
+}
+
+/**
+ * The build a room's page is served at, from the first `/version/<n>/` it links, or `null`.
+ *
+ * Pure, and exported, so the shape it depends on can be pinned by a test without a network call. The page is
+ * the game's own build output: the first versioned URL in it is the first `<script src>` in its `<head>`, so
+ * the first match is the build, not a later asset of some other one.
+ */
+export function roomPageVersion(html: string): string | null {
+  const found = /\/version\/([0-9]+)\//.exec(html);
+  return found?.[1] ?? null;
+}
+
+/**
+ * The build a named room is being served at, read from that room's own page.
+ *
+ * The file header carries the measurement that makes this the right source for a named room. The page is
+ * fetched once per {@link VersionResolver} cache window rather than per attempt, because the resolver, not
+ * this class, owns the TTL.
+ */
+export class RoomVersionSource implements VersionSource {
+  readonly id: string;
+
+  private readonly room: string;
+  private readonly baseUrl: string;
+  private readonly read: typeof fetch | undefined;
+  private readonly fallback: VersionSource;
+
+  constructor(options: RoomVersionSourceOptions) {
+    this.room = options.room;
+    this.baseUrl = (options.baseUrl ?? 'https://magicgarden.gg').replace(/\/+$/, '');
+    this.read = options.fetch;
+    this.fallback =
+      options.fallback ??
+      (new PlatformApiSource({
+        ...(options.baseUrl !== undefined ? { baseUrl: options.baseUrl } : {}),
+      }) as unknown as VersionSource);
+    this.id = `room-page:${options.room}`;
+  }
+
+  async load(kind: CatalogKind): Promise<unknown> {
+    if (kind !== 'version') return null;
+    return this.fetchVersion();
+  }
+
+  /** The build this room is served at, or the fallback's answer when its own page says nothing usable. */
+  async fetchVersion(): Promise<string> {
+    const stated = await this.readRoomPage();
+    if (stated !== null) return stated;
+
+    const fallbackVersion = extractVersion(await this.fallback.load('version'));
+    if (fallbackVersion === null) {
+      throw new VersionUnavailableError(
+        `Could not read the version of room ${this.room}: its page stated none and ` +
+          `${this.fallback.id} had none either.`,
+      );
+    }
+    return fallbackVersion;
+  }
+
+  /** The room's stated build, or `null` when the page could not be read or named no version. */
+  private async readRoomPage(): Promise<string | null> {
+    try {
+      const response = await (this.read ?? fetch)(`${this.baseUrl}/r/${encodeURIComponent(this.room)}`, {
+        headers: { accept: 'text/html' },
+      });
+      if (!response.ok) return null;
+      return roomPageVersion(await response.text());
+    } catch {
+      // A page that cannot be read is the fallback's business, not an error of its own.
+      return null;
+    }
+  }
+}
+
 /** A resolved version plus where and when it came from. */
 export interface ResolvedVersion {
   /** The client build identifier, e.g. `"1157"`. Opaque. */
@@ -69,10 +180,22 @@ export interface ResolvedVersion {
 /** Options for {@link VersionResolver}. */
 export interface VersionResolverOptions {
   /**
-   * Where to read the version from. Defaults to a live {@link PlatformApiSource}
-   * (`https://magicgarden.gg/platform/v1/version`).
+   * Where to read the version from. Defaults to {@link RoomVersionSource} when {@link room} is given, and to
+   * a live {@link PlatformApiSource} (`https://magicgarden.gg/platform/v1/version`) when it is not.
    */
   source?: VersionSource | undefined;
+  /**
+   * The room the connection is for, so the version resolved is the build *that room* is served at.
+   *
+   * Rooms are updated one at a time, so the platform's version is the newest room's and a named older room
+   * refuses it: see the file header for the measurement. Ignored when {@link source} or {@link fetcher} is
+   * supplied, since a caller who decided where the version comes from has decided.
+   */
+  room?: string | undefined;
+  /** The fetch {@link RoomVersionSource} reads a room page with. Defaults to the global one. */
+  roomFetch?: typeof fetch | undefined;
+  /** Origin for the room page and the platform endpoint alike, without a trailing slash. */
+  baseUrl?: string | undefined;
   /**
    * How long a cached version stays usable, in ms. Default 5 minutes.
    *
@@ -153,7 +276,14 @@ export class VersionResolver {
       // The only network default in this package. `headless.ts` never reaches it unless the caller
       // supplied neither a resolver nor a version, because an offline/test host must not be surprised
       // by an outbound request.
-      this.source = new PlatformApiSource() as unknown as VersionSource;
+      this.source =
+        options.room !== undefined && options.room.length > 0
+          ? new RoomVersionSource({
+              room: options.room,
+              ...(options.baseUrl !== undefined ? { baseUrl: options.baseUrl } : {}),
+              ...(options.roomFetch !== undefined ? { fetch: options.roomFetch } : {}),
+            })
+          : (new PlatformApiSource() as unknown as VersionSource);
     }
 
     if (options.initialVersion !== undefined && options.initialVersion.length > 0) {
