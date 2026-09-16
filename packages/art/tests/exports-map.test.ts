@@ -32,7 +32,7 @@ const manifest = JSON.parse(readFileSync(resolve(packageRoot, 'package.json'), '
 const REQUIRED_RUNTIME_EXPORTS: Record<string, readonly string[]> = {
   '.': ['frameBox', 'REFERENCE_TILE_PX', 'boxOf', 'extentOf', 'placePart', 'fitPicture'],
   './bundle': [],
-  './source': ['contentRevision'],
+  './source': ['contentRevision', 'gameVersion', 'atlasPacks', 'atlasImage'],
   './node': [],
 };
 

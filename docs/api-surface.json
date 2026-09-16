@@ -24,6 +24,20 @@
         "REFERENCE_TILE_PX"
       ]
     },
+    "art/source": {
+      "Function": [
+        "atlasImage",
+        "atlasPacks",
+        "contentRevision",
+        "gameVersion"
+      ],
+      "Interface": [
+        "ArtSourceOptions"
+      ],
+      "TypeAlias": [
+        "RevisionInput"
+      ]
+    },
     "bootstrapped/attach": {
       "Class": [
         "AttachedTransport"

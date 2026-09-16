@@ -1,0 +1,63 @@
+{
+  "bundles": [
+    {
+      "name": "default",
+      "assets": [
+        {
+          "alias": ["atlases/sprites-0.json"],
+          "src": [
+            {
+              "src": "atlases/sprites-1x-0.json",
+              "progressSize": 7970.03,
+              "resolution": 1
+            },
+            {
+              "src": "atlases/sprites-2x-0.json",
+              "progressSize": 18365.030000000002,
+              "resolution": 2
+            }
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": ["atlases/tiles.json"],
+          "src": [
+            {
+              "src": "atlases/tiles-1x.json",
+              "progressSize": 872.6600000000001,
+              "resolution": 1
+            },
+            {
+              "src": "atlases/tiles-2x.json",
+              "progressSize": 1733.99,
+              "resolution": 2
+            }
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": ["atlases/weather.json"],
+          "src": [
+            {
+              "src": "atlases/weather-1x.json",
+              "progressSize": 274.64,
+              "resolution": 1
+            },
+            {
+              "src": "atlases/weather-2x.json",
+              "progressSize": 727.15,
+              "resolution": 2
+            }
+          ],
+          "data": {
+            "tags": {}
+          }
+        }
+      ]
+    }
+  ]
+}
