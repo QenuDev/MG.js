@@ -19,7 +19,9 @@ endpoint nowhere — so it cannot live in the package whose rule is that the ser
 | `@mg.js/art/node` | `node:` modules (`zlib`, `fs`, and `module`/`path`/`url` through the transcoder) | The pixels — KTX2 to RGBA, frame cropping, the PNG codec — and the shipped tables: `artDataVersions()` and `readArtData(version)` read `data/<version>.json` the way the sync wrote it, validated by the same parser a fetched document goes through. |
 
 Three tests hold that table up: the two pure entries import nothing, `bootstrapped` never reaches `art`
-(it has a bundle-size budget), and the exports map resolves to the names it promises. The extractor's
+(checked on its sources, which is the only guard here — the bundle-size budget that used to backstop it moved
+with the artifact to the example userscript's repository), and the exports map resolves to the names it
+promises. The extractor's
 predicates are pure too, but that one is structural rather than tested: `predicates.ts` imports only its
 own shape module and types, so the same AST gives the same tables with no clock, no disk and no socket.
 An earlier draft of this paragraph listed it among the tests, which overstated what the suite checks —

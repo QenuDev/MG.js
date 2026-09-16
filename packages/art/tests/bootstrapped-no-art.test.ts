@@ -1,13 +1,19 @@
 /**
  * The userscript must not reach the art package, and a size budget is the only thing that notices when it does.
  *
- * `@mg.js/bootstrapped` ships into a page whose bundle size is asserted
- * (`bootstrapped/scripts/assert-bundle-size.ts`). A re-export is the way art tables would arrive there:
- * somebody adds `export * from '@mg.js/art'` to a barrel to save an import, nothing typechecks differently,
- * the budget moves by however large the tables are, and the page pays for a drawing model it does not use.
+ * `@mg.js/bootstrapped` is a library, and a re-export is the way art tables would arrive in whatever page
+ * consumes it: somebody adds `export * from '@mg.js/art'` to a barrel to save an import, nothing typechecks
+ * differently, and the page pays for a drawing model it does not use.
  *
- * So the check is on the sources, not on the built bundle: it names the file that did it, before the budget
- * has to.
+ * **This test is the guard, and it is the only one here.** An earlier version of this comment named a bundle
+ * size budget in `bootstrapped/scripts/assert-bundle-size.ts` as the thing that would notice; that file does
+ * not exist, and never did in this repository's current shape — the bundle, its Tampermonkey banner and its
+ * size budget moved to the example userscript's own repository, which owns the artifact
+ * (`packages/bootstrapped/src/index.ts:22-24`, `.github/workflows/ci.yml:46-49`). Naming a guard that lives
+ * somewhere else is worse than naming none, because it reads as covered.
+ *
+ * So the check is on the sources, not on a built bundle: it names the file that did it, before anything has
+ * to measure a size.
  */
 
 import assert from 'node:assert/strict';
