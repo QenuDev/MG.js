@@ -5,14 +5,25 @@
  *
  *   - KTX2 to RGBA, through the Basis Universal transcoder that ships in `assets/`. The game publishes its
  *     atlas as KTX2 with Zstandard supercompression and UASTC payload, which is not a format Node reads.
- *   - frame cropping: an atlas frame's rect out of the decoded atlas.
+ *   - frame cropping: an atlas frame's rect out of the decoded atlas, un-rotated and padded back to its
+ *     source size when the frame is trimmed.
  *   - the PNG codec, so a consumer can decode a sprite, composite layers and encode a result without
- *     reaching for a native image library.
+ *     reaching for a native image library. It moved here from the viewer's own `png.mjs`, with the tests
+ *     that covered it.
  *
  * `node:zlib` and `node:fs` are the whole reason this is a separate entry rather than part of the model.
- *
- * The PNG codec is exported here, moved from the viewer's own `png.mjs` with the tests that covered it. The
- * transcoder and the frame cropping land with the atlas work.
  */
 
+export {
+  type AtlasFrame,
+  type DecodedAtlas,
+  decodeKtx2,
+  decodeKtx2File,
+  type FrameRect,
+  frameBytes,
+  frameSize,
+  type Ktx2Header,
+  type Ktx2Level,
+  readKtx2Header,
+} from './ktx2.js';
 export { decodePng, drawOver, encodePng, type PngImage, pngSize, scaled, washArt } from './png.js';

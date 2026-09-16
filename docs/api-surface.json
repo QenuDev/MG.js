@@ -40,14 +40,24 @@
     },
     "art/node": {
       "Function": [
+        "decodeKtx2",
+        "decodeKtx2File",
         "decodePng",
         "drawOver",
         "encodePng",
+        "frameBytes",
+        "frameSize",
         "pngSize",
+        "readKtx2Header",
         "scaled",
         "washArt"
       ],
       "Interface": [
+        "AtlasFrame",
+        "DecodedAtlas",
+        "FrameRect",
+        "Ktx2Header",
+        "Ktx2Level",
         "PngImage"
       ]
     },

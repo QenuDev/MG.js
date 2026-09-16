@@ -43,7 +43,19 @@ const REQUIRED_RUNTIME_EXPORTS: Record<string, readonly string[]> = {
   ],
   './bundle': [],
   './source': [],
-  './node': ['decodePng', 'encodePng', 'drawOver', 'scaled', 'pngSize', 'washArt'],
+  './node': [
+    'readKtx2Header',
+    'decodeKtx2',
+    'decodeKtx2File',
+    'frameSize',
+    'frameBytes',
+    'decodePng',
+    'encodePng',
+    'drawOver',
+    'scaled',
+    'pngSize',
+    'washArt',
+  ],
 };
 
 const target = (subpath: string) => {
