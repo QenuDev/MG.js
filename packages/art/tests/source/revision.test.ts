@@ -49,10 +49,12 @@ void test('a changed atlas frame changes the revision', () => {
 });
 
 void test('the order two layers stack in is part of the revision', () => {
+  // Built from `inputs()` twice rather than by casting the first one's parts to `unknown[]`: the cast
+  // typechecked inside this file and failed `tsconfig.tests.json`, which is the project that sees every
+  // test file. A cast that hides the element type is exactly what a second project notices and one
+  // project does not.
   const forward = inputs();
-  const reversed = inputs();
-  const parts = [...(forward.parts as unknown[])];
-  reversed.parts = [...parts].reverse();
+  const reversed = { ...inputs(), parts: [...inputs().parts].reverse() };
   assert.notEqual(contentRevision(forward), contentRevision(reversed));
 });
 
