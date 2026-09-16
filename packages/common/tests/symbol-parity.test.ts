@@ -21,7 +21,9 @@
  * `StateRecord`, `asRecord`, `ServerClock`, `asFiniteMs`, `MUTATIONS`, `mutationName` and the four
  * documented field-name lists, in the same commit as this line. `toCurrency` followed, in the commit that
  * moved a player's balances out of the room's player list and into their saved data, and then the four
- * inventory readers and `toStorage` with the inventory itself.
+ * inventory readers and `toStorage` with the inventory itself. The contract-checked community source
+ * added five more: `CommunityApiSource`, `CommunityApiContractError`, `DEFAULT_COMMUNITY_API_URL`,
+ * `SUPPORTED_API_CONTRACT` and `verifyContract` (measured: 153 runtime names).
  *
  *     node --import tsx -e \
  *       "import('./packages/common/src/index.ts').then(m=>console.log(Object.keys(m).sort().join('\n')))"
@@ -57,7 +59,10 @@ const EXPECTED_EXPORTS: readonly string[] = [
   'CloseCode',
   'CommandHandle',
   'CommandSequencer',
+  'CommunityApiContractError',
+  'CommunityApiSource',
   'ConsoleLogSink',
+  'DEFAULT_COMMUNITY_API_URL',
   'DEFAULT_HEADERS',
   'DEFAULT_HOST',
   'DEFAULT_LIFECYCLE_TIMEOUTS',
@@ -108,6 +113,7 @@ const EXPECTED_EXPORTS: readonly string[] = [
   'SCOPE_QUINOA',
   'SCOPE_ROOM',
   'SOURCE_FAILURE_CODE',
+  'SUPPORTED_API_CONTRACT',
   'ServerClock',
   'STATIC_SOURCE_ID',
   'StateReader',
@@ -186,6 +192,7 @@ const EXPECTED_EXPORTS: readonly string[] = [
   'toStorage',
   'unrefTimer',
   'utf8ByteLength',
+  'verifyContract',
   'watchUntil',
   'weatherAt',
 ];

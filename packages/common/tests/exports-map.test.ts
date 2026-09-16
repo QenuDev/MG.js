@@ -75,11 +75,16 @@ const REQUIRED_RUNTIME_EXPORTS: Record<string, readonly string[]> = {
   './catalog': [
     'CatalogClient',
     'CATALOG_KINDS',
+    'CommunityApiContractError',
+    'CommunityApiSource',
+    'DEFAULT_COMMUNITY_API_URL',
     'emptyCatalog',
     'GAME_GRID_MS',
     'restockCountdown',
     'RemoteJsonSource',
     'StaticCatalogSource',
+    'SUPPORTED_API_CONTRACT',
+    'verifyContract',
   ],
   './transport': ['DEFAULT_LIFECYCLE_TIMEOUTS'],
 };

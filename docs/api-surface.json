@@ -508,6 +508,8 @@
     "common/catalog": {
       "Class": [
         "CatalogClient",
+        "CommunityApiContractError",
+        "CommunityApiSource",
         "HttpError",
         "PlatformApiSource",
         "RemoteJsonSource",
@@ -522,12 +524,15 @@
         "normaliseWeatherSlot",
         "normalizeEntityMap",
         "restockCountdown",
+        "verifyContract",
         "weatherAt"
       ],
       "Interface": [
         "AbilityDef",
         "CatalogClientOptions",
         "CatalogSource",
+        "CommunityApiContract",
+        "CommunityApiSourceOptions",
         "DecorDef",
         "DomainCatalog",
         "EggDef",
@@ -543,22 +548,26 @@
         "ShopState",
         "ShopsSnapshot",
         "StaticCatalogSourceOptions",
+        "VerifyContractOptions",
         "WeatherForecast",
         "WeatherSlot"
       ],
       "TypeAlias": [
         "CatalogKind",
+        "CommunityApiContractErrorReason",
         "WeatherPayload"
       ],
       "Variable": [
         "CATALOG_KINDS",
+        "DEFAULT_COMMUNITY_API_URL",
         "DEFAULT_HEADERS",
         "DEFAULT_MAX_RESPONSE_BYTES",
         "DEFAULT_REMOTE_PATHS",
         "GAME_GRID_MS",
         "PLATFORM_PATHS",
         "SOURCE_FAILURE_CODE",
-        "STATIC_SOURCE_ID"
+        "STATIC_SOURCE_ID",
+        "SUPPORTED_API_CONTRACT"
       ]
     },
     "common/client": {
