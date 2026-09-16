@@ -119,6 +119,8 @@ export function extractArtTables(chunks: readonly ParsedChunkLike[]): Extraction
     anchors: take(accepted, 'anchors'),
     plants: take(accepted, 'plants'),
     harvestTypes: take(accepted, 'harvestTypes'),
+    iconFills: take(accepted, 'iconFills'),
+    itemTypes: take(accepted, 'itemTypes'),
     scale: take(accepted, 'scale'),
     overMutations: take(accepted, 'overMutations'),
     placement: take(accepted, 'placement'),

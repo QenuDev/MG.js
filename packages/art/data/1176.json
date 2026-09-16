@@ -64,6 +64,78 @@
       "start": 901635,
       "support": ["B", "Pa"]
     },
+    "iconFills": {
+      "chunk": "LayoutMotionController-CwhDlPns.js",
+      "coverage": {
+        "counts": {
+          "bakeFrames": 1,
+          "bakeRoutes": 1,
+          "builderFunctions": 1,
+          "canvasLiteralCalls": 1,
+          "defaultShares": 4,
+          "fitFunctions": 1,
+          "itemTypes": 7,
+          "routerFunctions": 1,
+          "statedShares": 2
+        },
+        "notes": [
+          "Plant: 0.6 (stated)",
+          "Produce: 0.4 (stated)",
+          "Seed: 1 (fit-default)",
+          "Tool: 1 (fit-default)",
+          "Decor: 1 (fit-default)",
+          "Egg: 1 (fit-default)",
+          "Pet: 1 (bake-frame)"
+        ]
+      },
+      "declaration": "$c",
+      "end": 99775,
+      "invariant": "exactly the game's seven item types, each accounted for once: six routed by the switch, two of them stating a share in (0, 1] and four reaching the builder with no `sizeRatio`, and the pet routed beside the switch through the portrait bake, which states no share of its own",
+      "looksFor": "the fit function that scales a rendered item into the game's 256-pixel icon square through a `sizeRatio` option defaulting to 1, the icon builder that calls it with the literal 256 and generates a texture in a `(0, 0, 256, 256)` frame, and the inventory renderer's `switch (<entry>.itemType)` whose branches reach that builder",
+      "predicate": "icon-fill-table",
+      "start": 98983,
+      "support": [
+        "Qc",
+        "Uc",
+        "Vc",
+        "Wc",
+        "Xc",
+        "Yc",
+        "al",
+        "cl",
+        "co",
+        "dl",
+        "el",
+        "il",
+        "ll",
+        "nl",
+        "po",
+        "rl",
+        "sl",
+        "tl",
+        "ul",
+        "vs",
+        "zo"
+      ]
+    },
+    "itemTypes": {
+      "chunk": "quinoaPredictionAtoms-ptrrFeF6.js",
+      "coverage": {
+        "counts": {
+          "membersAssignedInThisChunk": 7,
+          "membersRequestedByTheIconTable": 7,
+          "membersWithConflictingLiterals": 0
+        },
+        "notes": []
+      },
+      "declaration": "O",
+      "end": 844295,
+      "invariant": "every item kind the icon-fill table names is a member of exactly one such enum, assigned one literal, so the table's keys are strings the game states rather than names this package made up",
+      "looksFor": "the game's own item-type string enum: the enum object whose members are exactly the item kinds the icon-fill table routes, each assigned a backtick literal",
+      "predicate": "item-type-enum",
+      "start": 844166,
+      "support": []
+    },
     "mutationArt": {
       "chunk": "LayoutMotionController-CwhDlPns.js",
       "coverage": {
@@ -742,6 +814,45 @@
     "harvestTypes": {
       "Multiple": "Multiple",
       "Single": "Single"
+    },
+    "iconFills": {
+      "Decor": {
+        "fill": 1,
+        "source": "fit-default"
+      },
+      "Egg": {
+        "fill": 1,
+        "source": "fit-default"
+      },
+      "Pet": {
+        "fill": 1,
+        "source": "bake-frame"
+      },
+      "Plant": {
+        "fill": 0.6,
+        "source": "stated"
+      },
+      "Produce": {
+        "fill": 0.4,
+        "source": "stated"
+      },
+      "Seed": {
+        "fill": 1,
+        "source": "fit-default"
+      },
+      "Tool": {
+        "fill": 1,
+        "source": "fit-default"
+      }
+    },
+    "itemTypes": {
+      "Decor": "Decor",
+      "Egg": "Egg",
+      "Pet": "Pet",
+      "Plant": "Plant",
+      "Produce": "Produce",
+      "Seed": "Seed",
+      "Tool": "Tool"
     },
     "mutationArt": {
       "Ambercharged": {

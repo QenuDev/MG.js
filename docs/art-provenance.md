@@ -16,6 +16,8 @@ Read from the game's own chunks for game version **1176** (art version **1176**)
 | `anchors` | `anchor-table` | `LayoutMotionController-CwhDlPns.js` #Uo [44646,45114) | mutationAnchor(species, artName, art, harvestType) |
 | `plants` | `plant-table` | `quinoaPredictionAtoms-ptrrFeF6.js` #V [901975,936353) | spriteName(record, part), mutationAnchor(species, artName, art, harvestType) |
 | `harvestTypes` | `harvest-type-enum` | `quinoaPredictionAtoms-ptrrFeF6.js` [901635,901743) | mutationAnchor(species, artName, art, harvestType) |
+| `iconFills` | `icon-fill-table` | `LayoutMotionController-CwhDlPns.js` #$c [98983,99775) | iconArt(entry), ICON_FILL |
+| `itemTypes` | `item-type-enum` | `quinoaPredictionAtoms-ptrrFeF6.js` #O [844166,844295) | iconArt(entry), ICON_FILL |
 | `scale` | `scale-cap` | `LayoutMotionController-CwhDlPns.js` #Wo [45118,45121) | mutationAnchor(species, artName, art, harvestType), iconArt(entry) |
 | `overMutations` | `mutation-over-set` | `LayoutMotionController-CwhDlPns.js` #Ko [45490,45552) | mutationStack(mutation), plantPicture(...) |
 | `placement` | `placement-function` | `LayoutMotionController-CwhDlPns.js` #Go [45122,45483) | mutationAnchor(species, artName, art, harvestType), mutationPlacement(mutation, icon, art) |
@@ -89,6 +91,32 @@ Read from the game's own chunks for game version **1176** (art version **1176**)
 - **Read from**: `quinoaPredictionAtoms-ptrrFeF6.js`, bytes [901635,901743)
 - **Read with**: `B`, `Pa`
 - **Measured**: membersRequestedByThePlantTable 2, membersAssignedInThisChunk 2, membersWithConflictingLiterals 0
+
+## `iconFills`
+
+- **Looks for**: the fit function that scales a rendered item into the game's 256-pixel icon square through a `sizeRatio` option defaulting to 1, the icon builder that calls it with the literal 256 and generates a texture in a `(0, 0, 256, 256)` frame, and the inventory renderer's `switch (<entry>.itemType)` whose branches reach that builder
+- **Invariant**: exactly the game's seven item types, each accounted for once: six routed by the switch, two of them stating a share in (0, 1] and four reaching the builder with no `sizeRatio`, and the pet routed beside the switch through the portrait bake, which states no share of its own
+- **Confirmed by**: icon-fill-table: every item type is a literal the game's item-type enum assigns exactly once
+- **Consumers**: iconArt(entry), ICON_FILL
+- **Read from**: `LayoutMotionController-CwhDlPns.js` declaration `$c`, bytes [98983,99775)
+- **Read with**: `Qc`, `Uc`, `Vc`, `Wc`, `Xc`, `Yc`, `al`, `cl`, `co`, `dl`, `el`, `il`, `ll`, `nl`, `po`, `rl`, `sl`, `tl`, `ul`, `vs`, `zo`
+- **Measured**: itemTypes 7, statedShares 2, defaultShares 4, bakeFrames 1, fitFunctions 1, builderFunctions 1, canvasLiteralCalls 1, routerFunctions 1, bakeRoutes 1
+  - Plant: 0.6 (stated)
+  - Produce: 0.4 (stated)
+  - Seed: 1 (fit-default)
+  - Tool: 1 (fit-default)
+  - Decor: 1 (fit-default)
+  - Egg: 1 (fit-default)
+  - Pet: 1 (bake-frame)
+
+## `itemTypes`
+
+- **Looks for**: the game's own item-type string enum: the enum object whose members are exactly the item kinds the icon-fill table routes, each assigned a backtick literal
+- **Invariant**: every item kind the icon-fill table names is a member of exactly one such enum, assigned one literal, so the table's keys are strings the game states rather than names this package made up
+- **Confirmed by**: icon-fill-table: every item type is a literal the game's item-type enum assigns exactly once
+- **Consumers**: iconArt(entry), ICON_FILL
+- **Read from**: `quinoaPredictionAtoms-ptrrFeF6.js` declaration `O`, bytes [844166,844295)
+- **Measured**: membersRequestedByTheIconTable 7, membersAssignedInThisChunk 7, membersWithConflictingLiterals 0
 
 ## `scale`
 

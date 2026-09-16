@@ -57,6 +57,28 @@ export interface DisplayFlags {
   readonly isNarrowDisplay: boolean;
 }
 
+/**
+ * How the game states one item kind's share of the **256x256** inventory icon box.
+ *
+ * `stated` is a `sizeRatio` the fit is called with (or the `256 * <const>` scale the plant path computes);
+ * `fit-default` is the fit's own default of 1, because the kind reaches the icon builder with no `sizeRatio` at
+ * all; `bake-frame` is the pet, which is the one kind the item-kind switch does not route -- the game renders a
+ * pet's portrait through a separate bake service, and that service's own renderer reaches the same 256-frame
+ * builder with no `sizeRatio`, so its share is the fit's default rather than a figure any branch states.
+ *
+ * The distinction is the point: presenting all seven as "the game states them" would be a lie about the
+ * evidence, and so would calling the pet's share a bake's consequence when it is the same default the other
+ * four kinds take -- what is different about the pet is the route, not the number.
+ */
+export type IconFillSource = 'stated' | 'fit-default' | 'bake-frame';
+
+export interface IconFill {
+  /** The share of the icon box the kind's art is fitted to, in `(0, 1]`. */
+  readonly fill: number;
+  /** Where the share comes from: a stated `sizeRatio`, the fit's default, or the pet's route outside the switch. */
+  readonly source: IconFillSource;
+}
+
 /** A number, or the per-part overrides the game states for one species. */
 export type AnchorValue = number | { readonly [part: string]: number | AnchorValue };
 
@@ -71,6 +93,15 @@ export interface ArtTables {
   readonly plants: Readonly<Record<string, PlantRecord>>;
   /** member -> the literal the game's enum assigns it. */
   readonly harvestTypes: Readonly<Record<string, string>>;
+  /**
+   * item type -> the share of the icon box its art fills, and how the game states that share.
+   *
+   * The kinds are the game's own item-type members, which `itemTypes` carries beside this table; the share is
+   * the fit function's, not a figure this package chose.
+   */
+  readonly iconFills: Readonly<Record<string, IconFill>>;
+  /** member -> the literal the game's own item-type enum assigns it (the consumer's `itemType` string). */
+  readonly itemTypes: Readonly<Record<string, string>>;
   readonly scale: {
     readonly cap: number;
     readonly referenceTilePx: number;
@@ -113,6 +144,8 @@ export const MODEL_TABLES = [
   'anchors',
   'plants',
   'harvestTypes',
+  'iconFills',
+  'itemTypes',
   'scale',
   'overMutations',
   'placement',

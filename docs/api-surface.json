@@ -38,6 +38,7 @@
         "DisplayFlags",
         "Evidence",
         "Extraction",
+        "IconFill",
         "MutationArt",
         "MutationRecord",
         "MutationTint",
@@ -70,6 +71,7 @@
       "TypeAlias": [
         "AnchorValue",
         "AtlasFrames",
+        "IconFillSource",
         "ShapeValue",
         "SpritePath",
         "TableId"
@@ -95,6 +97,23 @@
       "TypeAlias": [
         "CropLayerKind",
         "StatedMutationArt"
+      ]
+    },
+    "art/icon": {
+      "Function": [
+        "iconArt"
+      ],
+      "Interface": [
+        "IconArt",
+        "IconArtTables",
+        "IconEntry"
+      ],
+      "TypeAlias": [
+        "IconArtKind",
+        "IconType"
+      ],
+      "Variable": [
+        "ICON_FILL"
       ]
     },
     "art/model": {

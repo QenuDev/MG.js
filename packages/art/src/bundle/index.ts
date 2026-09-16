@@ -75,6 +75,8 @@ export {
   type Coverage,
   type DisplayFlags,
   type Evidence,
+  type IconFill,
+  type IconFillSource,
   MODEL_TABLES,
   type MutationArt,
   type MutationRecord,

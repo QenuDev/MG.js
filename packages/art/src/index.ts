@@ -20,7 +20,9 @@
  * plant -- with the mutation record as an argument rather than as a table written down here; `placement.ts`
  * holds where a mutation lands on a species' own art and how large it is drawn, with the game's own tables as
  * an argument for the same reason; `sprite.ts` holds which sprite the game draws a thing from, and turns that
- * name into the frame the atlas states for it.
+ * name into the frame the atlas states for it; `icon.ts` holds the share of the icon box each item kind's art
+ * fills -- the extraction's table, published as `ICON_FILL` -- and `iconArt`, which pairs an inventory entry
+ * with the sprite, frame and share it draws at.
  */
 
 export type {
@@ -33,6 +35,8 @@ export type {
   StatedSpeciesRecord,
 } from './crop.js';
 export { cropComposition } from './crop.js';
+export type { IconArt, IconArtKind, IconArtTables, IconEntry, IconType } from './icon.js';
+export { ICON_FILL, iconArt } from './icon.js';
 export type {
   ArtBox,
   AtlasFrame,

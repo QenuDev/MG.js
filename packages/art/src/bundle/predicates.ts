@@ -26,6 +26,7 @@ import {
   leafStrings,
   memberValue,
   type ParsedChunk,
+  type ShapeFunction,
   type ShapeObjectLiteral,
   type ShapeValue,
 } from './shape.js';
@@ -33,6 +34,7 @@ import type {
   AnchorValue,
   ArtTables,
   Coverage,
+  IconFill,
   PlacementExternal,
   PlantPart,
   PlantRecord,
@@ -1234,6 +1236,393 @@ const placementFunction: TablePredicate<ArtTables['placement']> = {
   },
 };
 
+/**
+ * The icon-box fill shapes.
+ *
+ * The share of the icon box an item kind's art fills is not a table: it is the fit function's own default of 1
+ * for four kinds, a `sizeRatio` two branches state, and a baked frame for the pet. What separates this reading
+ * from the bundle's other per-kind number tables is the literal 256x256 frame the fit is called with -- a
+ * size-dependent button multiplier, a flight-animation end size, a card scale and a hotbar scale all look like
+ * a per-kind table too, and none of them fits a rendered item into a 256-pixel square.
+ */
+const ICON_SQUARE_PX = 256;
+
+/** The fit's own option, with its default: `sizeRatio: <binding> = 1`, beside the canvas the fit scales. */
+const ICON_SIZE_RATIO = /sizeRatio\s*:\s*([A-Za-z_$][\w$]*)\s*=\s*1\b/;
+
+/** The texture the builder generates, in the game's literal icon square. */
+const ICON_FRAME = /frame\s*:\s*new\s+[A-Za-z_$][\w$]*\s*\(\s*0\s*,\s*0\s*,\s*256\s*,\s*256\s*\)/;
+
+/** The pet icon's own cache-key prefix, which is what its route states instead of a fit. */
+const ICON_BAKE = /pet-icon/;
+
+/** The item-type members the captured build routes, which is the invariant's own number. */
+const ICON_ITEM_TYPES = 7;
+
+/** The declaration named by a call, or `null` for a callee the chunk does not declare. */
+function functionIndex(chunk: ParsedChunk): ReadonlyMap<string, ShapeFunction> {
+  const index = new Map<string, ShapeFunction>();
+  for (const fn of chunk.functions) if (fn.name !== null) index.set(fn.name, fn);
+  return index;
+}
+
+/** The names a body calls, whether or not the chunk declares them. */
+function calledNames(text: string): readonly string[] {
+  return [...text.matchAll(/([A-Za-z_$][\w$]*)\s*\(/g)].map((match) => match[1] ?? '');
+}
+
+/**
+ * The smallest function whose body contains an offset, which is how the site of a route is named.
+ *
+ * The pet's route sits in the function that hands every kind to the renderer, which is one level above the
+ * switch and is not called by it; naming it is what puts the route into the fixture beside the switch.
+ */
+function enclosingFunction(chunk: ParsedChunk, offset: number): ShapeFunction | null {
+  let best: ShapeFunction | null = null;
+  for (const fn of chunk.functions) {
+    if (fn.start > offset || fn.end < offset) continue;
+    if (best === null || fn.end - fn.start < best.end - best.start) best = fn;
+  }
+  return best;
+}
+
+/**
+ * The names a function binds itself: its parameters and the locals its own body declares.
+ *
+ * Following a call through them would follow a parameter that happens to share a name with a declaration
+ * elsewhere in the chunk -- a minified build has hundreds of one- and two-letter names, so that is not a
+ * hypothetical -- and the closure would then name declarations the predicate never read.
+ */
+function boundNames(fn: ShapeFunction): ReadonlySet<string> {
+  const bound = new Set<string>(fn.parameters);
+  for (const match of fn.text.matchAll(/\b(?:let|const|var)\s+([A-Za-z_$][\w$]*)/g)) {
+    if (match[1] !== undefined) bound.add(match[1]);
+  }
+  for (const match of fn.text.matchAll(/\bfunction\s+([A-Za-z_$][\w$]*)/g)) {
+    if (match[1] !== undefined) bound.add(match[1]);
+  }
+  return bound;
+}
+
+/** Every declared function those names reach by calling, following the chunk's own definitions. */
+function reachableFunctions(
+  chunk: ParsedChunk,
+  from: Iterable<string>,
+  stop: ReadonlySet<string> = new Set(),
+): ReadonlySet<string> {
+  const index = functionIndex(chunk);
+  const seen = new Set<string>();
+  const queue = [...from];
+  while (queue.length > 0) {
+    const name = queue.pop();
+    if (name === undefined || seen.has(name)) continue;
+    const fn = index.get(name);
+    if (fn === undefined) continue;
+    seen.add(name);
+    // A function this predicate has already resolved -- the fit and the icon builder -- is reached, not read
+    // through: its own callees are not part of what a branch states, and following them would put half the
+    // chunk in the evidence.
+    if (stop.has(name)) continue;
+    const bound = boundNames(fn);
+    for (const callee of calledNames(fn.text)) {
+      if (index.has(callee) && !bound.has(callee) && !seen.has(callee)) queue.push(callee);
+    }
+  }
+  return seen;
+}
+
+/** Whether a body multiplies by a name, which is how the fit applies the share it destructured. */
+function multipliesBy(text: string, name: string): boolean {
+  return new RegExp(`\\*\\s*${escapeForRegExp(name)}\\b`).test(text);
+}
+
+/** A name as a literal regular expression, because a minified name is not always an identifier. */
+function escapeForRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * The share a set of functions states, if any: a `sizeRatio: <const>` the fit is called with, or a
+ * `256 * <const>` a canvas scale is computed from. Both are read as the constant's own value, and the constant
+ * is what the evidence then names -- the branch is prose, the number is the table.
+ */
+function statedIconShare(
+  chunk: ParsedChunk,
+  reached: ReadonlySet<string>,
+): { readonly value: number; readonly refs: readonly string[] } | null {
+  const index = functionIndex(chunk);
+  const found: { value: number; refs: readonly string[] }[] = [];
+  for (const name of reached) {
+    const text = index.get(name)?.text;
+    if (text === undefined) continue;
+    const ratio = /sizeRatio\s*:\s*([A-Za-z_$][\w$]*)/.exec(text);
+    if (ratio !== null) {
+      const ref = ratio[1];
+      const declared = chunk.declarations.find((declaration) => declaration.name === ref)?.value;
+      const value = declared?.kind === 'number' ? declared.value : null;
+      if (ref !== undefined && value !== null) found.push({ value, refs: [ref] });
+    }
+    const scaled = /256\s*\*\s*([A-Za-z_$][\w$]*)/.exec(text);
+    if (scaled !== null) {
+      const ref = scaled[1];
+      const declared = chunk.declarations.find((declaration) => declaration.name === ref)?.value;
+      const value = declared?.kind === 'number' ? declared.value : null;
+      if (ref !== undefined && value !== null) found.push({ value, refs: [ref] });
+    }
+  }
+  return found.length === 1 ? (found[0] ?? null) : null;
+}
+
+/** One chunk's reading of the icon fills, or `null` when it holds no fit function at all. */
+function iconFillCandidate(chunk: ParsedChunk): TableCandidate<ArtTables['iconFills']> | null {
+  const index = functionIndex(chunk);
+  const fits = chunk.functions.filter((fn) => {
+    const binding = ICON_SIZE_RATIO.exec(fn.text)?.[1];
+    return binding !== undefined && multipliesBy(fn.text, binding);
+  });
+  if (fits.length === 0) return null;
+  const fit = fits[0];
+  if (fit?.name == null) return null;
+
+  const fitCall = new RegExp(`\\b${escapeForRegExp(fit.name)}\\s*\\([^()]*,\\s*${ICON_SQUARE_PX}\\s*\\)`);
+  const everyFitCall = new RegExp(fitCall.source, 'g');
+  const builders = chunk.functions.filter((fn) => fitCall.test(fn.text) && ICON_FRAME.test(fn.text));
+  const builder = builders[0];
+  const canvasLiteralCalls = chunk.functions.reduce(
+    (total, fn) => total + [...fn.text.matchAll(everyFitCall)].length,
+    0,
+  );
+
+  const stop = new Set<string>([fit.name, ...(builder?.name == null ? [] : [builder.name])]);
+  const routers =
+    builder?.name == null
+      ? []
+      : chunk.functions.filter(
+          (fn) =>
+            /switch\s*\(\s*[A-Za-z_$][\w$]*\s*\.itemType\s*\)/.test(fn.text) &&
+            reachableFunctions(
+              chunk,
+              calledNames(fn.text).filter((name) => !boundNames(fn).has(name)),
+              stop,
+            ).has(builder.name as string),
+        );
+  const router = routers[0];
+  const alias =
+    router === undefined
+      ? undefined
+      : /case\s+([A-Za-z_$][\w$]*)\.[A-Za-z_$][\w$]*\s*:/.exec(router.text)?.[1];
+
+  const fills: Record<string, IconFill> = {};
+  const read = new Set<string>([fit.name, ...(builder?.name == null ? [] : [builder.name])]);
+  if (router !== undefined && router.name !== null) read.add(router.name);
+  if (router !== undefined && alias !== undefined && builder?.name != null) {
+    const cases = [
+      ...router.text.matchAll(
+        new RegExp(`case\\s+${escapeForRegExp(alias)}\\.([A-Za-z_$][\\w$]*)\\s*:`, 'g'),
+      ),
+    ];
+    for (const [at, match] of cases.entries()) {
+      const kind = match[1];
+      if (kind === undefined) continue;
+      const body = router.text.slice(
+        (match.index ?? 0) + match[0].length,
+        at + 1 < cases.length ? (cases[at + 1]?.index ?? router.text.length) : router.text.length,
+      );
+      const reached = reachableFunctions(
+        chunk,
+        calledNames(body).filter((name) => !boundNames(router).has(name)),
+        stop,
+      );
+      for (const name of reached) read.add(name);
+      const share = statedIconShare(chunk, reached);
+      if (share !== null) {
+        fills[kind] = { fill: share.value, source: 'stated' };
+        for (const ref of share.refs) read.add(ref);
+      } else if (reached.has(builder.name)) {
+        fills[kind] = { fill: 1, source: 'fit-default' };
+      }
+    }
+  }
+
+  // The pet is not in that switch: its route is a conditional beside it, and what that route reaches is the
+  // portrait-bake key rather than the icon builder. The kind is still accounted for -- its row is the seventh,
+  // and the evidence says why no branch states its share.
+  let bakeRoutes = 0;
+  if (alias !== undefined) {
+    const outside = new RegExp(
+      `\\.itemType\\s*===\\s*${escapeForRegExp(alias)}\\.([A-Za-z_$][\\w$]*)\\s*\\?`,
+      'g',
+    );
+    for (const match of chunk.text.matchAll(outside)) {
+      const kind = match[1];
+      if (kind === undefined || Object.hasOwn(fills, kind)) continue;
+      const rest = chunk.text.slice(
+        (match.index ?? 0) + match[0].length,
+        (match.index ?? 0) + match[0].length + 200,
+      );
+      const callee = /^([A-Za-z_$][\w$]*)\s*\(/.exec(rest)?.[1];
+      if (callee === undefined || !ICON_BAKE.test(index.get(callee)?.text ?? '')) continue;
+      bakeRoutes += 1;
+      read.add(callee);
+      const site = enclosingFunction(chunk, match.index ?? 0);
+      if (site?.name != null) read.add(site.name);
+      fills[kind] = { fill: 1, source: 'bake-frame' };
+    }
+  }
+
+  const sources = Object.values(fills);
+  const count = (source: IconFill['source']): number =>
+    sources.filter((entry) => entry.source === source).length;
+  const declaration = router?.name ?? fit.name;
+  return {
+    id: 'iconFills',
+    predicate: iconFillTable.predicate,
+    looksFor: iconFillTable.looksFor,
+    invariant: iconFillTable.invariant,
+    chunk: chunk.file,
+    declaration,
+    start: router?.start ?? fit.start,
+    end: router?.end ?? fit.end,
+    support: [...read].filter((name) => name !== declaration).sort(),
+    coverage: {
+      counts: {
+        itemTypes: sources.length,
+        statedShares: count('stated'),
+        defaultShares: count('fit-default'),
+        bakeFrames: count('bake-frame'),
+        fitFunctions: fits.length,
+        builderFunctions: builders.length,
+        canvasLiteralCalls,
+        routerFunctions: routers.length,
+        bakeRoutes,
+      },
+      notes: Object.entries(fills).map(([kind, entry]) => `${kind}: ${entry.fill} (${entry.source})`),
+    },
+    value: fills,
+  };
+}
+
+const iconFillTable: TablePredicate<ArtTables['iconFills']> = {
+  id: 'iconFills',
+  predicate: 'icon-fill-table',
+  looksFor:
+    "the fit function that scales a rendered item into the game's 256-pixel icon square through a `sizeRatio` option defaulting to 1, the icon builder that calls it with the literal 256 and generates a texture in a `(0, 0, 256, 256)` frame, and the inventory renderer's `switch (<entry>.itemType)` whose branches reach that builder",
+  invariant:
+    "exactly the game's seven item types, each accounted for once: six routed by the switch, two of them stating a share in (0, 1] and four reaching the builder with no `sizeRatio`, and the pet routed beside the switch through the portrait bake, which states no share of its own",
+  candidates(context) {
+    const found: TableCandidate<ArtTables['iconFills']>[] = [];
+    for (const chunk of context.chunks) {
+      const candidate = iconFillCandidate(chunk);
+      if (candidate !== null) found.push(candidate);
+    }
+    return found;
+  },
+  violations(candidate) {
+    const problems: string[] = [];
+    const counts = candidate.coverage.counts;
+    if ((counts['itemTypes'] ?? 0) !== ICON_ITEM_TYPES) {
+      problems.push(`${counts['itemTypes'] ?? 0} of ${ICON_ITEM_TYPES} item types are routed`);
+    }
+    if ((counts['fitFunctions'] ?? 0) !== 1) {
+      problems.push(`${counts['fitFunctions'] ?? 0} fit functions, not one`);
+    }
+    if ((counts['builderFunctions'] ?? 0) !== 1) {
+      problems.push(`${counts['builderFunctions'] ?? 0} icon builders, not one`);
+    }
+    if ((counts['canvasLiteralCalls'] ?? 0) !== 1) {
+      problems.push(`${counts['canvasLiteralCalls'] ?? 0} calls pass the 256 canvas, not one`);
+    }
+    if ((counts['routerFunctions'] ?? 0) !== 1) {
+      problems.push(`${counts['routerFunctions'] ?? 0} item-type routers reach the icon builder, not one`);
+    }
+    if ((counts['bakeRoutes'] ?? 0) !== 1) {
+      problems.push(`${counts['bakeRoutes'] ?? 0} branches outside the switch bake a portrait, not one`);
+    }
+    for (const [kind, entry] of Object.entries(candidate.value)) {
+      if (!(entry.fill > 0 && entry.fill <= 1)) {
+        problems.push(`${kind} fills ${entry.fill} of the icon box, which is not in (0, 1]`);
+      }
+    }
+    return problems;
+  },
+};
+
+/** The members of a string-enum idiom: `e.<member> = `<literal>` for each member the object builder sets. */
+function enumMembers(text: string): Readonly<Record<string, string>> | null {
+  const members: Record<string, string> = {};
+  let found = 0;
+  for (const match of text.matchAll(/\.([A-Za-z_$][\w$]*)\s*=\s*`([^`]*)`/g)) {
+    const member = match[1];
+    const literal = match[2];
+    if (member === undefined || literal === undefined) continue;
+    found += 1;
+    members[member] = literal;
+  }
+  return found === 0 ? null : members;
+}
+
+const itemTypeEnum: TablePredicate<ArtTables['itemTypes']> = {
+  id: 'itemTypes',
+  predicate: 'item-type-enum',
+  looksFor:
+    "the game's own item-type string enum: the enum object whose members are exactly the item kinds the icon-fill table routes, each assigned a backtick literal",
+  invariant:
+    "every item kind the icon-fill table names is a member of exactly one such enum, assigned one literal, so the table's keys are strings the game states rather than names this package made up",
+  candidates(context) {
+    const requested = new Set(Object.keys(context.tables.iconFills ?? {}));
+    const found: TableCandidate<ArtTables['itemTypes']>[] = [];
+    for (const chunk of context.chunks) {
+      for (const declaration of chunk.declarations) {
+        const members = enumMembers(declaration.text);
+        if (members === null) continue;
+        const names = Object.keys(members);
+        if (names.length !== requested.size) continue;
+        if (!names.every((name) => requested.has(name))) continue;
+        const literals = Object.values(members);
+        found.push({
+          id: 'itemTypes',
+          predicate: itemTypeEnum.predicate,
+          looksFor: itemTypeEnum.looksFor,
+          invariant: itemTypeEnum.invariant,
+          chunk: chunk.file,
+          declaration: declaration.name,
+          // The declaration's *initializer*: a fixture cuts the initializer, not the `const` wrapper, so the
+          // evidence range has to be the range a fixture can translate back.
+          start: declaration.valueStart,
+          end: declaration.valueEnd,
+          support: [],
+          coverage: {
+            counts: {
+              membersRequestedByTheIconTable: requested.size,
+              membersAssignedInThisChunk: names.length,
+              membersWithConflictingLiterals: literals.length - new Set(literals).size,
+            },
+            notes:
+              requested.size === 0
+                ? ['the icon-fill table names no item kind, so there is no enum to read']
+                : [],
+          },
+          value: members,
+        });
+      }
+    }
+    return found;
+  },
+  violations(candidate) {
+    const problems: string[] = [];
+    const counts = candidate.coverage.counts;
+    if ((counts['membersAssignedInThisChunk'] ?? 0) < (counts['membersRequestedByTheIconTable'] ?? 0)) {
+      problems.push(
+        `${counts['membersAssignedInThisChunk'] ?? 0} of ${counts['membersRequestedByTheIconTable'] ?? 0} item kinds are assigned a literal`,
+      );
+    }
+    if ((counts['membersWithConflictingLiterals'] ?? 0) > 0) {
+      problems.push(`${counts['membersWithConflictingLiterals'] ?? 0} members share a literal`);
+    }
+    return problems;
+  },
+};
+
 /** Every predicate, in the order the extraction runs them: each stage may read the ones before it. */
 export const PREDICATES = [
   spriteNameTable,
@@ -1246,6 +1635,8 @@ export const PREDICATES = [
   scaleCap,
   mutationOverSet,
   placementFunction,
+  iconFillTable,
+  itemTypeEnum,
 ] as unknown as readonly TablePredicate<never>[];
 
 /** `null` for a number that is not a number, so a note can say so rather than print `NaN`. */

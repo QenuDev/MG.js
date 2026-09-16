@@ -78,6 +78,18 @@ export const PROVENANCE: Readonly<Record<TableId, TableProvenance>> = {
     confirmedBy: [],
     consumers: ['mutationAnchor(species, artName, art, harvestType)'],
   },
+  iconFills: {
+    predicate: 'icon-fill-table',
+    validator: "icon-fill-table: every item type is a literal the game's item-type enum assigns exactly once",
+    confirmedBy: [],
+    consumers: ['iconArt(entry)', 'ICON_FILL'],
+  },
+  itemTypes: {
+    predicate: 'item-type-enum',
+    validator: "icon-fill-table: every item type is a literal the game's item-type enum assigns exactly once",
+    confirmedBy: [],
+    consumers: ['iconArt(entry)', 'ICON_FILL'],
+  },
   scale: {
     predicate: 'scale-cap',
     validator: 'scale-cap: the cap is a fraction and the divisor is a tile size',

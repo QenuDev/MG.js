@@ -236,6 +236,32 @@ export function validateTables(tables: ArtTables, atlas: AtlasFrames): readonly 
     }
   }
 
+  // 8. The icon fills are keyed by the strings the game's own item-type enum *assigns*, exactly once each:
+  //    a consumer passes the enum's literal as `itemType`, so a key that is only the enum's member name -- or
+  //    a literal with no fill -- is a string nobody can ask with. This is the same shape as the harvest-type
+  //    check above, one level stricter: there the member name is what a plant states, here the literal is what
+  //    a caller states, and the two chunks that state them are different ones.
+  const iconOffenders: string[] = [];
+  const literalCounts = new Map<string, number>();
+  for (const literal of Object.values(tables.itemTypes)) {
+    literalCounts.set(literal, (literalCounts.get(literal) ?? 0) + 1);
+  }
+  for (const kind of Object.keys(tables.iconFills)) {
+    if (!literalCounts.has(kind)) iconOffenders.push(`${kind}: not an item-type literal`);
+  }
+  for (const [literal, count] of literalCounts) {
+    if (count !== 1) iconOffenders.push(`${literal}: ${count} members assign it`);
+    else if (!Object.hasOwn(tables.iconFills, literal)) iconOffenders.push(`${literal}: no icon fill`);
+  }
+  if (iconOffenders.length > 0) {
+    failures.push({
+      check: "icon-fill-table: every item type is a literal the game's item-type enum assigns exactly once",
+      table: 'iconFills',
+      saw: capped(iconOffenders),
+      detail: `${iconOffenders.length} item-type literals do not have exactly one icon fill`,
+    });
+  }
+
   return failures;
 }
 

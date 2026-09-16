@@ -136,6 +136,8 @@ void test('the source names the shapes in prose instead, so the next reader know
     'scale-cap',
     'mutation-over-set',
     'placement-function',
+    'icon-fill-table',
+    'item-type-enum',
   ]) {
     assert.ok(predicates.includes(shape), `predicates.ts does not name the ${shape} predicate`);
   }

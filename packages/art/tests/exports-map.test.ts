@@ -46,6 +46,8 @@ const REQUIRED_RUNTIME_EXPORTS: Record<string, readonly string[]> = {
     'resolveSprite',
     'cropComposition',
     'plantPicture',
+    'ICON_FILL',
+    'iconArt',
   ],
   './bundle': [],
   './source': ['contentRevision', 'gameVersion', 'atlasPacks', 'atlasImage'],
