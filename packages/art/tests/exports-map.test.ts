@@ -26,11 +26,11 @@ const manifest = JSON.parse(readFileSync(resolve(packageRoot, 'package.json'), '
 /**
  * What each subpath must reach at runtime.
  *
- * Empty until the model lands. Every commit that publishes a name adds it here and to the module it
- * belongs to; the entries below are the four the package declares, in the order a reader meets them.
+ * Every commit that publishes a name adds it here and to the module it belongs to; the entries below are the
+ * four the package declares, in the order a reader meets them.
  */
 const REQUIRED_RUNTIME_EXPORTS: Record<string, readonly string[]> = {
-  '.': [],
+  '.': ['frameBox', 'REFERENCE_TILE_PX', 'boxOf', 'extentOf', 'placePart', 'fitPicture'],
   './bundle': [],
   './source': ['contentRevision'],
   './node': [],
