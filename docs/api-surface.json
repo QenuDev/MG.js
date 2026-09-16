@@ -81,6 +81,22 @@
         "PROVENANCE"
       ]
     },
+    "art/crop": {
+      "Function": [
+        "cropComposition"
+      ],
+      "Interface": [
+        "CropLayer",
+        "CropRecipe",
+        "CropTables",
+        "StatedPlantPart",
+        "StatedSpeciesRecord"
+      ],
+      "TypeAlias": [
+        "CropLayerKind",
+        "StatedMutationArt"
+      ]
+    },
     "art/model": {
       "Function": [
         "boxOf",

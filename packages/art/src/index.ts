@@ -24,6 +24,16 @@
  */
 
 export type {
+  CropLayer,
+  CropLayerKind,
+  CropRecipe,
+  CropTables,
+  StatedMutationArt,
+  StatedPlantPart,
+  StatedSpeciesRecord,
+} from './crop.js';
+export { cropComposition } from './crop.js';
+export type {
   ArtBox,
   AtlasFrame,
   FrameBox,

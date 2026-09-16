@@ -1,0 +1,426 @@
+{
+  "note": "The atlas frames the crop composition was drawn with, as the game served them. Written by capture-crop-composition.mjs; the tests read this file and never the network.",
+  "sources": {
+    "origin": "https://magicgarden.gg",
+    "artVersion": "1192",
+    "manifest": "https://magicgarden.gg/version/1192/assets/manifest.json"
+  },
+  "frames": {
+    "sprite/mutation/Ambercharged": {
+      "frame": {
+        "x": 2698,
+        "y": 8,
+        "w": 388,
+        "h": 458
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 20,
+        "w": 388,
+        "h": 458
+      },
+      "sourceSize": {
+        "w": 389,
+        "h": 488
+      },
+      "anchor": {
+        "x": 0.501285,
+        "y": 0.795082
+      },
+      "sourcePixelRatio": 2,
+      "visualBaselineY": 0.9139344262295082
+    },
+    "sprite/mutation/Amberlit": {
+      "frame": {
+        "x": 2195,
+        "y": 2875,
+        "w": 381,
+        "h": 312
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 36,
+        "y": 4,
+        "w": 381,
+        "h": 312
+      },
+      "sourceSize": {
+        "w": 468,
+        "h": 329
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.82006
+      },
+      "sourcePixelRatio": 2,
+      "visualBaselineY": 0.8632218844984803
+    },
+    "sprite/mutation/Chilled": {
+      "frame": {
+        "x": 8,
+        "y": 8,
+        "w": 306,
+        "h": 235
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 306,
+        "h": 235
+      },
+      "sourceSize": {
+        "w": 306,
+        "h": 235
+      },
+      "anchor": {
+        "x": 0.501961,
+        "y": 0.543147
+      },
+      "sourcePixelRatio": 2,
+      "visualBaselineY": 0.8936170212765957
+    },
+    "sprite/mutation/Dawncharged": {
+      "frame": {
+        "x": 2966,
+        "y": 2414,
+        "w": 398,
+        "h": 413
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 1,
+        "y": 40,
+        "w": 398,
+        "h": 413
+      },
+      "sourceSize": {
+        "w": 401,
+        "h": 466
+      },
+      "anchor": {
+        "x": 0.518703,
+        "y": 0.796137
+      },
+      "sourcePixelRatio": 2,
+      "visualBaselineY": 0.9034334763948498
+    },
+    "sprite/mutation/Dawnlit": {
+      "frame": {
+        "x": 2042,
+        "y": 3242,
+        "w": 380,
+        "h": 309
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 50,
+        "y": 7,
+        "w": 380,
+        "h": 309
+      },
+      "sourceSize": {
+        "w": 468,
+        "h": 329
+      },
+      "anchor": {
+        "x": 0.50641,
+        "y": 0.808511
+      },
+      "sourcePixelRatio": 2,
+      "visualBaselineY": 0.8632218844984803
+    },
+    "sprite/mutation/Frozen": {
+      "frame": {
+        "x": 631,
+        "y": 642,
+        "w": 287,
+        "h": 226
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 5,
+        "w": 287,
+        "h": 226
+      },
+      "sourceSize": {
+        "w": 290,
+        "h": 232
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.474138
+      },
+      "sourcePixelRatio": 2,
+      "visualBaselineY": 0.8922413793103449
+    },
+    "sprite/mutation/Puddle": {
+      "frame": {
+        "x": 3110,
+        "y": 436,
+        "w": 451,
+        "h": 304
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 5,
+        "y": 7,
+        "w": 451,
+        "h": 304
+      },
+      "sourceSize": {
+        "w": 464,
+        "h": 314
+      },
+      "anchor": {
+        "x": 0.49061,
+        "y": 0.506944
+      },
+      "sourcePixelRatio": 2,
+      "visualBaselineY": 0.8885350318471338
+    },
+    "sprite/mutation/Thundercharged": {
+      "frame": {
+        "x": 1301,
+        "y": 3525,
+        "w": 306,
+        "h": 550
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 28,
+        "y": 7,
+        "w": 306,
+        "h": 550
+      },
+      "sourceSize": {
+        "w": 363,
+        "h": 565
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.489796
+      },
+      "sourcePixelRatio": 2,
+      "visualBaselineY": 0.9292035398230089
+    },
+    "sprite/mutation/ThunderchargedGround": {
+      "frame": {
+        "x": 2224,
+        "y": 3682,
+        "w": 315,
+        "h": 307
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 12,
+        "y": 5,
+        "w": 315,
+        "h": 307
+      },
+      "sourceSize": {
+        "w": 343,
+        "h": 312
+      },
+      "anchor": {
+        "x": 0.498542,
+        "y": 0.625
+      },
+      "sourcePixelRatio": 2,
+      "visualBaselineY": 0.8974358974358975
+    },
+    "sprite/mutation/Thunderstruck": {
+      "frame": {
+        "x": 703,
+        "y": 3527,
+        "w": 354,
+        "h": 555
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 5,
+        "y": 4,
+        "w": 354,
+        "h": 555
+      },
+      "sourceSize": {
+        "w": 363,
+        "h": 565
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.512472
+      },
+      "sourcePixelRatio": 2,
+      "visualBaselineY": 0.9327433628318584
+    },
+    "sprite/mutation/ThunderstruckGround": {
+      "frame": {
+        "x": 2446,
+        "y": 3423,
+        "w": 315,
+        "h": 235
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 12,
+        "y": 0,
+        "w": 315,
+        "h": 235
+      },
+      "sourceSize": {
+        "w": 344,
+        "h": 235
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "sourcePixelRatio": 2,
+      "visualBaselineY": 0.8638297872340426
+    },
+    "sprite/mutation/Wet": {
+      "frame": {
+        "x": 338,
+        "y": 8,
+        "w": 287,
+        "h": 220
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 8,
+        "y": 4,
+        "w": 287,
+        "h": 220
+      },
+      "sourceSize": {
+        "w": 310,
+        "h": 226
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.486726
+      },
+      "sourcePixelRatio": 2,
+      "visualBaselineY": 0.8982300884955752
+    },
+    "sprite/plant/BabyCarrot": {
+      "frame": {
+        "x": 2375,
+        "y": 8,
+        "w": 191,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 191,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 191,
+        "h": 238
+      },
+      "anchor": {
+        "x": 0.424084,
+        "y": 0.756303
+      },
+      "sourcePixelRatio": 2,
+      "visualBaselineY": 0.9747899159663865
+    },
+    "sprite/plant/Bamboo": {
+      "frame": {
+        "x": 8,
+        "y": 8,
+        "w": 251,
+        "h": 1280
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 22,
+        "y": 0,
+        "w": 251,
+        "h": 1280
+      },
+      "sourceSize": {
+        "w": 281,
+        "h": 1280
+      },
+      "anchor": {
+        "x": 0.519573,
+        "y": 0.964063
+      },
+      "sourcePixelRatio": 2,
+      "visualBaselineY": 0.98125
+    },
+    "sprite/plant/Carrot": {
+      "frame": {
+        "x": 2446,
+        "y": 3211,
+        "w": 377,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 5,
+        "y": 4,
+        "w": 377,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 386,
+        "h": 192
+      },
+      "anchor": {
+        "x": 0.298251,
+        "y": 0.990885
+      },
+      "sourcePixelRatio": 2,
+      "visualBaselineY": 0.9947916666666666
+    },
+    "sprite/plant/CloverThreeLeaf": {
+      "frame": {
+        "x": 3965,
+        "y": 387,
+        "w": 113,
+        "h": 169
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 113,
+        "h": 169
+      },
+      "sourceSize": {
+        "w": 116,
+        "h": 169
+      },
+      "anchor": {
+        "x": 0.491379,
+        "y": 0.934911
+      },
+      "sourcePixelRatio": 2,
+      "visualBaselineY": 1
+    }
+  }
+}

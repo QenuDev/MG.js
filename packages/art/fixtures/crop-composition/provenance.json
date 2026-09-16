@@ -1,0 +1,36 @@
+{
+  "note": "Written by capture-crop-composition.mjs. The composition is the viewer's own composeCrop output; the three layer images are the pixels it drew, fetched through the same route.",
+  "capturedFrom": {
+    "origin": "https://magicgarden.gg",
+    "community": "https://mg-api.ariedam.fr",
+    "viewer": "http://127.0.0.1:45501",
+    "artVersion": "1192"
+  },
+  "case": {
+    "species": "Clover",
+    "mutations": ["Frozen", "Ambershine"],
+    "variant": "plant"
+  },
+  "pictures": {
+    "composed": {
+      "query": "kind=plant&id=Clover&variant=plant&mutations=Frozen,Ambershine",
+      "bytes": 19581,
+      "sha256": "889d3ca698eb00d6d8aa5371795d86fb253793fbdcd44af36ef7699637cb4555"
+    },
+    "art": {
+      "query": "kind=plant&id=Clover&variant=plant",
+      "bytes": 7720,
+      "sha256": "bec80c043089c5561872f91eead4eda9f3a592642ff7b7099986689f340cd87c"
+    },
+    "frozen": {
+      "query": "kind=mutation&id=Frozen",
+      "bytes": 29289,
+      "sha256": "c22724990c7bf772eac408d5140dad27a4aae149a81538211e832782d68cd572"
+    },
+    "amberlit": {
+      "query": "kind=mutation&id=Amberlit",
+      "bytes": 122146,
+      "sha256": "ae68d537cf8333e99523747e13e273c174dbd1e9edf29377904e53e13af350ae"
+    }
+  }
+}
