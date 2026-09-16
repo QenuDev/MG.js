@@ -1,6 +1,19 @@
 /** Live-fetching domain catalogues. */
 
 export type {
+  CommunityApiContract,
+  CommunityApiContractErrorReason,
+  CommunityApiSourceOptions,
+  VerifyContractOptions,
+} from './community-api-source.js';
+export {
+  CommunityApiContractError,
+  CommunityApiSource,
+  DEFAULT_COMMUNITY_API_URL,
+  SUPPORTED_API_CONTRACT,
+  verifyContract,
+} from './community-api-source.js';
+export type {
   AbilityDef,
   CatalogKind,
   DecorDef,
