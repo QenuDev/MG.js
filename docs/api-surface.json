@@ -24,6 +24,19 @@
         "REFERENCE_TILE_PX"
       ]
     },
+    "art/node": {
+      "Function": [
+        "decodePng",
+        "drawOver",
+        "encodePng",
+        "pngSize",
+        "scaled",
+        "washArt"
+      ],
+      "Interface": [
+        "PngImage"
+      ]
+    },
     "bootstrapped/attach": {
       "Class": [
         "AttachedTransport"
