@@ -234,7 +234,9 @@ function cropToKtx2(atlas, header, blocks, rect, note) {
 function parseArgs(argv) {
   const args = { atlas: null };
   for (let i = 0; i < argv.length; i += 1) {
-    if (argv[i] === '--atlas') args.atlas = argv[(i += 1)];
+    if (argv[i] !== '--atlas') continue;
+    i += 1;
+    args.atlas = argv[i];
   }
   return args;
 }
@@ -276,8 +278,10 @@ console.log(`atlas ${imageUrl}\n  ${atlas.length} bytes sha256 ${atlasDigest}`);
 
 const header = readKtx2Header(atlas);
 const blocks = readLevel0Blocks(atlas, header);
-console.log(`  ${header.width}x${header.height} vkFormat ${header.vkFormat}, ${header.levelCount} levels, ` +
-  `supercompression ${header.supercompressionScheme}, level 0 ${blocks.length} bytes`);
+console.log(
+  `  ${header.width}x${header.height} vkFormat ${header.vkFormat}, ${header.levelCount} levels, ` +
+    `supercompression ${header.supercompressionScheme}, level 0 ${blocks.length} bytes`,
+);
 
 mkdirSync(HERE, { recursive: true });
 writeFileSync(resolve(HERE, 'sprites-2x-0.pack.json'), packBytes);
@@ -302,7 +306,9 @@ for (const { key, slug } of CAPTURED) {
   const oracle = decodePngRgba(oraclePng);
   const stated = frame.sourceSize ?? { w: frame.frame.w, h: frame.frame.h };
   if (oracle.width !== stated.w || oracle.height !== stated.h) {
-    throw new Error(`${name}: oracle is ${oracle.width}x${oracle.height}, the atlas frame says ${stated.w}x${stated.h}`);
+    throw new Error(
+      `${name}: oracle is ${oracle.width}x${oracle.height}, the atlas frame says ${stated.w}x${stated.h}`,
+    );
   }
   const oracleRgbaGz = gzipSync(oracle.pixels, { level: 9 });
   writeFileSync(resolve(HERE, `${slug}.oracle.rgba.gz`), oracleRgbaGz);
@@ -369,11 +375,19 @@ const provenance = {
   },
   transcoder: {
     files: [
-      { file: 'basis_transcoder.js', bytes: readFileSync(resolve(REPO, 'packages/art/assets/basis_transcoder.js')).length, sha256: sha256(readFileSync(resolve(REPO, 'packages/art/assets/basis_transcoder.js'))) },
-      { file: 'basis_transcoder.wasm', bytes: readFileSync(resolve(REPO, 'packages/art/assets/basis_transcoder.wasm')).length, sha256: sha256(readFileSync(resolve(REPO, 'packages/art/assets/basis_transcoder.wasm'))) },
+      {
+        file: 'basis_transcoder.js',
+        bytes: readFileSync(resolve(REPO, 'packages/art/assets/basis_transcoder.js')).length,
+        sha256: sha256(readFileSync(resolve(REPO, 'packages/art/assets/basis_transcoder.js'))),
+      },
+      {
+        file: 'basis_transcoder.wasm',
+        bytes: readFileSync(resolve(REPO, 'packages/art/assets/basis_transcoder.wasm')).length,
+        sha256: sha256(readFileSync(resolve(REPO, 'packages/art/assets/basis_transcoder.wasm'))),
+      },
     ],
     source: 'Magic-garden-API/src/assets/wasm/ at commit e69bddb, "Added ktx2 format for sprite"',
-    licence: 'assets/basis_transcoder.LICENSE (Apache-2.0, plus the Zstandard decoder\'s BSD-3-Clause)',
+    licence: "assets/basis_transcoder.LICENSE (Apache-2.0, plus the Zstandard decoder's BSD-3-Clause)",
   },
   frames,
 };

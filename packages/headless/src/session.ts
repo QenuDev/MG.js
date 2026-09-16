@@ -161,7 +161,7 @@ export function buildProbeCookie(token: string): string {
   const problem = validateCookieHeaderValue(token);
   if (problem !== null) {
     throw new MgConfigError(
-      `probeSession: \`${problem.field}\` ${problem.detail} The rejected value is not ` + 'echoed here.',
+      `probeSession: \`${problem.field}\` ${problem.detail} The rejected value is not echoed here.`,
       // Explicit, not defaulted: the probe applies the same token rule as the cookie provider, and
       // `'config_invalid_token'` is the stable code both have always reported.
       'config_invalid_token',

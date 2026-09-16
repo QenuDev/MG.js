@@ -188,7 +188,7 @@ export function validateCookieHeaderValue(
 /** Turn a validation failure into the config error the connect path reports. */
 function cookieConfigError(problem: CookieHeaderValidationError): MgConfigError {
   return new MgConfigError(
-    `CookieAuthProvider: \`${problem.field}\` ${problem.detail} The rejected value is not ` + 'echoed here.',
+    `CookieAuthProvider: \`${problem.field}\` ${problem.detail} The rejected value is not echoed here.`,
     // Explicit, not defaulted: the shared `MgConfigError` defaults to `'config_invalid'`, and this
     // narrower code is a stable string a caller may already branch on.
     'config_invalid_token',

@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!docs"]
+    "includes": ["**", "!docs", "!packages/art/assets/basis_transcoder.js", "!packages/art/fixtures/*.json"]
   },
   "formatter": {
     "enabled": true,

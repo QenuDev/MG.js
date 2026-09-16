@@ -105,7 +105,9 @@ export function readKtx2Header(bytes: Uint8Array): Ktx2Header {
 
   const levelCount = u32(40);
   if (80 + levelCount * 24 > bytes.byteLength) {
-    throw new Error(`KTX2 header declares ${levelCount} levels, which does not fit in ${bytes.byteLength} bytes`);
+    throw new Error(
+      `KTX2 header declares ${levelCount} levels, which does not fit in ${bytes.byteLength} bytes`,
+    );
   }
 
   const levels: Ktx2Level[] = [];
@@ -157,7 +159,8 @@ export async function decodeKtx2(bytes: Uint8Array): Promise<DecodedAtlas> {
           `${file.getWidth()}x${file.getHeight()}`,
       );
     }
-    if (!file.startTranscoding()) throw new Error('the transcoder could not start transcoding this KTX2 file');
+    if (!file.startTranscoding())
+      throw new Error('the transcoder could not start transcoding this KTX2 file');
 
     const format = transcoder.transcoder_texture_format[RGBA32].value;
     const rgba = new Uint8Array(file.getImageTranscodedSizeInBytes(0, 0, 0, format));
@@ -229,7 +232,12 @@ export function frameBytes(frame: AtlasFrame, atlas: DecodedAtlas): Uint8Array {
   // sprite's height.
   const storedWidth = rotated ? rect.h : rect.w;
   const storedHeight = rotated ? rect.w : rect.h;
-  if (rect.x < 0 || rect.y < 0 || rect.x + storedWidth > atlas.width || rect.y + storedHeight > atlas.height) {
+  if (
+    rect.x < 0 ||
+    rect.y < 0 ||
+    rect.x + storedWidth > atlas.width ||
+    rect.y + storedHeight > atlas.height
+  ) {
     throw new Error(
       `frame rect ${rect.w}x${rect.h} at ${rect.x},${rect.y}${rotated ? ' (rotated)' : ''} lies outside the ` +
         `${atlas.width}x${atlas.height} atlas`,
