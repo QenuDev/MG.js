@@ -40,6 +40,8 @@ const REQUIRED_RUNTIME_EXPORTS: Record<string, readonly string[]> = {
     'mutationArt',
     'mutationStack',
     'mutationOverlayArt',
+    'mutationAnchor',
+    'mutationPlacement',
   ],
   './bundle': [],
   './source': ['contentRevision', 'gameVersion', 'atlasPacks', 'atlasImage'],

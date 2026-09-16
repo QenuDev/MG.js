@@ -6,59 +6,19 @@
  * it; it can be proven right by running both on the same real atlas frames, and that proof keeps working after
  * Phase F deletes the port from the consumer, because the port's arithmetic survives here as the oracle.
  *
- * The bindings come from the roles the extractor resolved, not from names: an external the function indexes with
- * its own species parameter is the plant table, an external whose member it reads as a harvest type is the
- * enum, and anything else it reads is a host global. If a build renames either table, the roles still resolve
- * and this test still runs -- and if a build changes what the function does with them, this test fails.
+ * The compiling and the raw frame's unit are `placement-function.ts`'s, and `mutation-placement.test.ts` runs
+ * the port the package publishes against the same function. This file is the comparison to the *consumer's own
+ * copy*, which is what says the tables and the package agree with the code being replaced.
  */
 
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import type { ArtTables } from '../../src/bundle/tables.ts';
 import { type PortedArt, portedMutationAnchor, type RawFrame } from './consumer-oracle.ts';
-import { type LoadedFixture, loadFixture } from './load-fixture.ts';
+import { loadFixture } from './load-fixture.ts';
+import { compilePlacement, rawFrame } from './placement-function.ts';
 
 const fixture = loadFixture();
 const { tables } = fixture;
-
-/** Compile the game's own placement function with the bindings its roles call for. */
-function compilePlacement(
-  tables_: ArtTables,
-  fixture_: LoadedFixture,
-): (
-  frame: RawFrame,
-  species: string,
-  part: string,
-) => { offset: { x: number; y: number }; scaleFactor: number } {
-  const placement = tables_.placement;
-  const plants: Record<string, { plant: { harvestType: string } }> = {};
-  for (const [species, record] of Object.entries(tables_.plants)) {
-    const harvest = record.plant?.harvestType;
-    plants[species] = {
-      plant: { harvestType: harvest == null ? '' : (tables_.harvestTypes[harvest] ?? harvest) },
-    };
-  }
-  const bindingFor = (external: (typeof placement.externals)[number]): unknown => {
-    if (external.role === 'plants') return plants;
-    if (external.role === 'harvestTypes') return tables_.harvestTypes;
-    if (external.role === 'host') return (globalThis as Record<string, unknown>)[external.name];
-    throw new Error(`the extractor could not resolve ${external.name}, so the function cannot be run`);
-  };
-  const names = placement.externals.map((external) => external.name);
-  const values = placement.externals.map((external) => bindingFor(external));
-  const preamble = [...Object.values(placement.declarations), placement.source].join('\n');
-  assert.ok(placement.name !== null, 'the extracted function is anonymous, so it cannot be returned by name');
-  const factory = new Function(...names, `${preamble}\nreturn ${placement.name};`) as (
-    ...args: unknown[]
-  ) => (
-    frame: RawFrame,
-    species: string,
-    part: string,
-  ) => { offset: { x: number; y: number }; scaleFactor: number };
-  // The fixture's own bindings are what a consumer would pass; nothing here is a value written into the test.
-  void fixture_;
-  return factory(...values);
-}
 
 /**
  * A species whose art the fixture atlas actually carries.
@@ -88,12 +48,7 @@ function samples(): readonly Sample[] {
       species,
       sprite,
       part: 'plant',
-      frame: {
-        width: frame.sourceSize.w,
-        height: frame.sourceSize.h,
-        defaultAnchor: { x: frame.anchor.x, y: frame.anchor.y },
-        sourcePixelRatio: ratio,
-      },
+      frame: rawFrame(frame, ratio),
       art: {
         width: frame.sourceSize.w / ratio,
         height: frame.sourceSize.h / ratio,
@@ -116,7 +71,7 @@ void test('the fixture carries real frames for both a plant part and a crop part
 });
 
 void test("the extracted placement function agrees with the consumer's port on every sampled frame", () => {
-  const game = compilePlacement(tables, fixture);
+  const game = compilePlacement(tables);
   let checked = 0;
   let worstOffset = 0;
   let worstScale = 0;
@@ -155,7 +110,7 @@ void test('the per-species overrides are doing real work in that comparison', ()
   // Snowdrop states a scale of 0.5 for its plant, Leek a scale of 0.7, and Carrot splits its x between the
   // crop and the plant. If the overrides were being dropped, these would still agree -- so the test asserts the
   // overrides change the answer, which is what makes the agreement above meaningful rather than vacuous.
-  const game = compilePlacement(tables, fixture);
+  const game = compilePlacement(tables);
   const snowdrop = samples().find((sample) => sample.species === 'Snowdrop');
   assert.ok(snowdrop !== undefined, 'the Snowdrop plant frame is not among the sampled frames');
   const withOverrides = game(snowdrop.frame, 'Snowdrop', snowdrop.part);

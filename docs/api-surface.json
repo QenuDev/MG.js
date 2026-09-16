@@ -141,6 +141,26 @@
         "PngImage"
       ]
     },
+    "art/placement": {
+      "Function": [
+        "mutationAnchor",
+        "mutationPlacement"
+      ],
+      "Interface": [
+        "DecalArtwork",
+        "DisplayFlags",
+        "MutationAnchor",
+        "MutationArtwork",
+        "MutationPlacement",
+        "PlacementTables",
+        "PlantPart",
+        "ScaleCaps",
+        "SpeciesRecord"
+      ],
+      "TypeAlias": [
+        "StatedAnchor"
+      ]
+    },
     "art/source": {
       "Function": [
         "atlasImage",
