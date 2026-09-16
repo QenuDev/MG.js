@@ -5,22 +5,22 @@ and the evidence of one extraction. `npm run art:sync` writes it; `tests/bundle/
 when the committed document drifts from the record, so this page cannot describe a table the
 package no longer reads.
 
-Read from the game's own chunks for game version **1176** (art version **1176**).
+Read from the game's own chunks for game version **1192** (art version **1192**).
 
 | Table | Predicate | Read from | Consumers |
 |---|---|---|---|
-| `spriteNames` | `sprite-name-table` | `quinoaPredictionAtoms-ptrrFeF6.js` #E [820113,843858) | spriteName(record, part), resolveSprite(frames, path) |
-| `mutationRecords` | `mutation-record-table` | `quinoaPredictionAtoms-ptrrFeF6.js` #U [937743,938793) | mutationArt(mutation), mutationStack(mutation) |
-| `mutationArt` | `mutation-art-table` | `LayoutMotionController-CwhDlPns.js` #jo [41073,42469) | mutationArt(mutation), mutationStack(mutation), mutationOverlayArt(mutation) |
-| `displayFlags` | `display-flag-table` | `LayoutMotionController-CwhDlPns.js` #mo [34078,37799) | mutationAnchor(species, artName, art, harvestType), plantPicture(...) |
-| `anchors` | `anchor-table` | `LayoutMotionController-CwhDlPns.js` #Uo [44646,45114) | mutationAnchor(species, artName, art, harvestType) |
-| `plants` | `plant-table` | `quinoaPredictionAtoms-ptrrFeF6.js` #V [901975,936353) | spriteName(record, part), mutationAnchor(species, artName, art, harvestType) |
-| `harvestTypes` | `harvest-type-enum` | `quinoaPredictionAtoms-ptrrFeF6.js` [901635,901743) | mutationAnchor(species, artName, art, harvestType) |
-| `iconFills` | `icon-fill-table` | `LayoutMotionController-CwhDlPns.js` #$c [98983,99775) | iconArt(entry), ICON_FILL |
-| `itemTypes` | `item-type-enum` | `quinoaPredictionAtoms-ptrrFeF6.js` #O [844166,844295) | iconArt(entry), ICON_FILL |
-| `scale` | `scale-cap` | `LayoutMotionController-CwhDlPns.js` #Wo [45118,45121) | mutationAnchor(species, artName, art, harvestType), iconArt(entry) |
-| `overMutations` | `mutation-over-set` | `LayoutMotionController-CwhDlPns.js` #Ko [45490,45552) | mutationStack(mutation), plantPicture(...) |
-| `placement` | `placement-function` | `LayoutMotionController-CwhDlPns.js` #Go [45122,45483) | mutationAnchor(species, artName, art, harvestType), mutationPlacement(mutation, icon, art) |
+| `spriteNames` | `sprite-name-table` | `BakedRoundedRect-lGFgQzh1.js` #Nn [42891,66636) | spriteName(record, part), resolveSprite(frames, path) |
+| `mutationRecords` | `mutation-record-table` | `worldDepthSortKey-BXUHHrP0.js` #H [614141,615191) | mutationArt(mutation), mutationStack(mutation) |
+| `mutationArt` | `mutation-art-table` | `resources-D_3Zwcn-.js` #xn [15162,16354) | mutationArt(mutation), mutationStack(mutation), mutationOverlayArt(mutation) |
+| `displayFlags` | `display-flag-table` | `resources-D_3Zwcn-.js` #I [11166,14887) | mutationAnchor(species, artName, art, harvestType), plantPicture(...) |
+| `anchors` | `anchor-table` | `resources-D_3Zwcn-.js` #Tn [16701,17169) | mutationAnchor(species, artName, art, harvestType) |
+| `plants` | `plant-table` | `worldDepthSortKey-BXUHHrP0.js` #I [50900,85278) | spriteName(record, part), mutationAnchor(species, artName, art, harvestType) |
+| `harvestTypes` | `harvest-type-enum` | `worldDepthSortKey-BXUHHrP0.js` [50560,50668) | mutationAnchor(species, artName, art, harvestType) |
+| `iconFills` | `icon-fill-table` | `resources-D_3Zwcn-.js` #Fi [72760,73551) | iconArt(entry), ICON_FILL |
+| `itemTypes` | `item-type-enum` | `worldDepthSortKey-BXUHHrP0.js` #E [3894,4023) | iconArt(entry), ICON_FILL |
+| `scale` | `scale-cap` | `resources-D_3Zwcn-.js` #En [17173,17176) | mutationAnchor(species, artName, art, harvestType), iconArt(entry) |
+| `overMutations` | `mutation-over-set` | `resources-D_3Zwcn-.js` #On [17547,17609) | mutationStack(mutation), plantPicture(...) |
+| `placement` | `placement-function` | `resources-D_3Zwcn-.js` #Dn [17177,17540) | mutationAnchor(species, artName, art, harvestType), mutationPlacement(mutation, icon, art) |
 
 ## `spriteNames`
 
@@ -28,7 +28,7 @@ Read from the game's own chunks for game version **1176** (art version **1176**)
 - **Invariant**: every leaf is a sprite path, the table is at least two categories wide, and the leaves are counted by the syntax they were written in, because a reader that projects only quoted strings reports an empty table rather than a wrong one
 - **Confirmed by**: sprite-name-table: every path is a frame the atlas has
 - **Consumers**: spriteName(record, part), resolveSprite(frames, path)
-- **Read from**: `quinoaPredictionAtoms-ptrrFeF6.js` declaration `E`, bytes [820113,843858)
+- **Read from**: `BakedRoundedRect-lGFgQzh1.js` declaration `Nn`, bytes [42891,66636)
 - **Measured**: leaves 583, spritePaths 583, categories 13, templateLiterals 583, quotedStrings 0, leavesThatAreNotSpritePaths 0
   - backtick literals, not quoted strings: a reader that only projected quoted strings reads this as an empty table
   - sibling matches inside this literal: 3
@@ -39,18 +39,18 @@ Read from the game's own chunks for game version **1176** (art version **1176**)
 - **Invariant**: every value states its group, every sprite reference resolves through the sprite-name table, and at least three keys are drawable, because a table of mutations that can all be drawn nowhere is a different table
 - **Confirmed by**: mutation-art-table: every key is a mutation the records state
 - **Consumers**: mutationArt(mutation), mutationStack(mutation)
-- **Read from**: `quinoaPredictionAtoms-ptrrFeF6.js` declaration `U`, bytes [937743,938793)
+- **Read from**: `worldDepthSortKey-BXUHHrP0.js` declaration `H`, bytes [614141,615191)
 - **Measured**: keys 11, valuesStatingAName 11, valuesStatingAGroup 11, valuesWithASprite 9, spriteReferencesResolved 9, spriteReferencesUnresolved 0, distinctGroups 3
 
 ## `mutationArt`
 
-- **Looks for**: an object literal with at least eight keys whose values carry art fields (sprite, icon, overlay, filters, ground), at least one of them a filter
+- **Looks for**: an object literal with at least eight keys whose values carry art fields (sprite, icon, overlay, ground) and state a crop wash, which the game spells `filters` through build 1176 and `colorOverlay` from 1192, at least one of them a wash
 - **Invariant**: every key is a mutation record this bundle states, every colour-bearing filter states both its colour and its alpha, every sprite reference resolves through the sprite-name table, and the keys that construct no colour filter at all are counted as materials rather than dropped
 - **Confirmed by**: mutation-art-table: every sprite it names is in the name table, and every mutation is a wash or a material
 - **Consumers**: mutationArt(mutation), mutationStack(mutation), mutationOverlayArt(mutation)
-- **Read from**: `LayoutMotionController-CwhDlPns.js` declaration `jo`, bytes [41073,42469)
-- **Measured**: keys 11, valuesCarryingAFilter 11, valuesWithATint 9, valuesThatAreMaterials 2, keysThatAreMutationRecords 11, recordFieldReferences 9, referencesUnresolved 0
-  - art fields seen: filters, iconSprite, overlayFromBottom, overlaySprite, tallPlantFilters, tallPlantGroundSprite
+- **Read from**: `resources-D_3Zwcn-.js` declaration `xn`, bytes [15162,16354)
+- **Measured**: keys 11, valuesCarryingAFilter 9, valuesWithATint 9, valuesThatAreMaterials 2, keysThatAreMutationRecords 11, recordFieldReferences 9, referencesUnresolved 0, coloursOutsideThePackedRange 0
+  - art fields seen: colorOverlay, iconSprite, overlayFromBottom, overlaySprite, tallPlantGroundSprite
 
 ## `displayFlags`
 
@@ -58,8 +58,8 @@ Read from the game's own chunks for game version **1176** (art version **1176**)
 - **Invariant**: every key resolves through the sprite-name table to a sprite path, at least one key states a true flag, and the default record is identified by how many keys point at it rather than by a name
 - **Confirmed by**: display-flag-table: every key is a sprite path the name table states, and the tall set is not empty
 - **Consumers**: mutationAnchor(species, artName, art, harvestType), plantPicture(...)
-- **Read from**: `LayoutMotionController-CwhDlPns.js` declaration `mo`, bytes [34078,37799)
-- **Read with**: `J`
+- **Read from**: `resources-D_3Zwcn-.js` declaration `I`, bytes [11166,14887)
+- **Read with**: `F`
 - **Measured**: keys 109, keysWithInlineFlags 34, keysPointingAtTheDefault 75, flagsStated 218, keysResolvedThroughTheNameTable 109, keysUnresolved 0, isTallPlantTrue 15, isNarrowDisplayTrue 30, defaultReferences 75
   - the default record is the declaration 75 keys point at
 
@@ -69,7 +69,7 @@ Read from the game's own chunks for game version **1176** (art version **1176**)
 - **Invariant**: every key is a species the plant table states -- a table of fractions keyed by centreXFraction matches this shape and is refused -- and every value is a number shape, not an expression
 - **Confirmed by**: anchor-table: every key is a species in the plant table
 - **Consumers**: mutationAnchor(species, artName, art, harvestType)
-- **Read from**: `LayoutMotionController-CwhDlPns.js` declaration `Uo`, bytes [44646,45114)
+- **Read from**: `resources-D_3Zwcn-.js` declaration `Tn`, bytes [16701,17169)
 - **Measured**: keys 22, numericValues 0, recordValues 22, valuesWithPerPartNumbers 3, keysThatAreSpecies 22, keysThatAreNotSpecies 0
 
 ## `plants`
@@ -78,7 +78,7 @@ Read from the game's own chunks for game version **1176** (art version **1176**)
 - **Invariant**: every species states a plant block, every sprite reference in every part resolves through the sprite-name table, and the harvest types the table names are counted so a build that renames the enum is visible
 - **Confirmed by**: plant-table: every sprite it names is in the name table
 - **Consumers**: spriteName(record, part), mutationAnchor(species, artName, art, harvestType)
-- **Read from**: `quinoaPredictionAtoms-ptrrFeF6.js` declaration `V`, bytes [901975,936353)
+- **Read from**: `worldDepthSortKey-BXUHHrP0.js` declaration `I`, bytes [50900,85278)
 - **Measured**: species 69, parts 207, spriteReferencesResolved 207, spriteReferencesUnresolved 0, distinctHarvestTypes 2
   - harvest types named: Multiple, Single
 
@@ -88,8 +88,8 @@ Read from the game's own chunks for game version **1176** (art version **1176**)
 - **Invariant**: every member the plant table names is assigned exactly one string literal, so the placement function can be run with the game's own enum rather than with strings this package guessed
 - **Confirmed by**: harvest-type-enum: every harvest type a plant states is a member
 - **Consumers**: mutationAnchor(species, artName, art, harvestType)
-- **Read from**: `quinoaPredictionAtoms-ptrrFeF6.js`, bytes [901635,901743)
-- **Read with**: `B`, `Pa`
+- **Read from**: `worldDepthSortKey-BXUHHrP0.js`, bytes [50560,50668)
+- **Read with**: `F`, `Rn`
 - **Measured**: membersRequestedByThePlantTable 2, membersAssignedInThisChunk 2, membersWithConflictingLiterals 0
 
 ## `iconFills`
@@ -98,8 +98,8 @@ Read from the game's own chunks for game version **1176** (art version **1176**)
 - **Invariant**: exactly the game's seven item types, each accounted for once: six routed by the switch, two of them stating a share in (0, 1] and four reaching the builder with no `sizeRatio`, and the pet routed beside the switch through the portrait bake, which states no share of its own
 - **Confirmed by**: icon-fill-table: every item type is a literal the game's item-type enum assigns exactly once
 - **Consumers**: iconArt(entry), ICON_FILL
-- **Read from**: `LayoutMotionController-CwhDlPns.js` declaration `$c`, bytes [98983,99775)
-- **Read with**: `Qc`, `Uc`, `Vc`, `Wc`, `Xc`, `Yc`, `al`, `cl`, `co`, `dl`, `el`, `il`, `ll`, `nl`, `po`, `rl`, `sl`, `tl`, `ul`, `vs`, `zo`
+- **Read from**: `resources-D_3Zwcn-.js` declaration `Fi`, bytes [72760,73551)
+- **Read with**: `Bi`, `Di`, `Ei`, `Gi`, `Ii`, `Ki`, `Li`, `Mi`, `Pi`, `Ri`, `Ui`, `Vi`, `Wi`, `Zn`, `bi`, `hn`, `ji`, `q`, `vn`, `wi`, `zi`
 - **Measured**: itemTypes 7, statedShares 2, defaultShares 4, bakeFrames 1, fitFunctions 1, builderFunctions 1, canvasLiteralCalls 1, routerFunctions 1, bakeRoutes 1
   - Plant: 0.6 (stated)
   - Produce: 0.4 (stated)
@@ -115,7 +115,7 @@ Read from the game's own chunks for game version **1176** (art version **1176**)
 - **Invariant**: every item kind the icon-fill table names is a member of exactly one such enum, assigned one literal, so the table's keys are strings the game states rather than names this package made up
 - **Confirmed by**: icon-fill-table: every item type is a literal the game's item-type enum assigns exactly once
 - **Consumers**: iconArt(entry), ICON_FILL
-- **Read from**: `quinoaPredictionAtoms-ptrrFeF6.js` declaration `O`, bytes [844166,844295)
+- **Read from**: `worldDepthSortKey-BXUHHrP0.js` declaration `E`, bytes [3894,4023)
 - **Measured**: membersRequestedByTheIconTable 7, membersAssignedInThisChunk 7, membersWithConflictingLiterals 0
 
 ## `scale`
@@ -124,10 +124,10 @@ Read from the game's own chunks for game version **1176** (art version **1176**)
 - **Invariant**: the formula occurs exactly once in the chunk that declares the constant, the constant is a fraction, the divisor is the reference tile, and the tall-decal multiplier is found exactly once and is greater than one
 - **Confirmed by**: scale-cap: the cap is a fraction and the divisor is a tile size
 - **Consumers**: mutationAnchor(species, artName, art, harvestType), iconArt(entry)
-- **Read from**: `LayoutMotionController-CwhDlPns.js` declaration `Wo`, bytes [45118,45121)
-- **Read with**: `Jo`, `qo`
+- **Read from**: `resources-D_3Zwcn-.js` declaration `En`, bytes [17173,17176)
+- **Read with**: `An`, `kn`
 - **Measured**: capFormulaOccurrences 1, capConstantDeclared 1, tallDecalCandidates 1
-  - formula as written: Math.min(Wo,h/256)
+  - formula as written: Math.min(En,m/256)
   - cap constant: 0.75
   - tall-decal multiplier: 2
 
@@ -137,8 +137,8 @@ Read from the game's own chunks for game version **1176** (art version **1176**)
 - **Invariant**: every member is a key of the mutation art table and the set is used beside that table, so a set of anything else is refused
 - **Confirmed by**: mutation-over-set: every member is a mutation the art table states
 - **Consumers**: mutationStack(mutation), plantPicture(...)
-- **Read from**: `LayoutMotionController-CwhDlPns.js` declaration `Ko`, bytes [45490,45552)
-- **Read with**: `Jo`
+- **Read from**: `resources-D_3Zwcn-.js` declaration `On`, bytes [17547,17609)
+- **Read with**: `An`
 - **Measured**: members 4, membersThatAreMutationArtKeys 4, setUsedBesideTheMutationArtTable 1
   - members: Dawnlit, Ambershine, Dawncharged, Ambercharged
 
@@ -148,8 +148,8 @@ Read from the game's own chunks for game version **1176** (art version **1176**)
 - **Invariant**: exactly one function divides by the tile and closes over the anchors and the cap; every other name it reads is a host global or a table this extractor found, with the role read from how the function uses the name; and it returns an offset and a scale factor, which is the game's own name for what a placement is
 - **Confirmed by**: no validation can confirm it, and by `tests/bundle/placement.test.ts`
 - **Consumers**: mutationAnchor(species, artName, art, harvestType), mutationPlacement(mutation, icon, art)
-- **Read from**: `LayoutMotionController-CwhDlPns.js` declaration `Go`, bytes [45122,45483)
-- **Read with**: `Ho`, `Uo`, `Wo`
-- **Measured**: closesOverTheAnchorsAndTheCap 1, chunkLocalDeclarationsInTheClosure 3, externals 3, unresolvedExternals 0, returnsAnOffsetAndAScaleFactor 1, characters 923
-  - free names: H, Ho, Math, U, Uo, Wo
-  - externals: H=harvestTypes, Math=host, U=plants
+- **Read from**: `resources-D_3Zwcn-.js` declaration `Dn`, bytes [17177,17540)
+- **Read with**: `En`, `Tn`, `wn`
+- **Measured**: closesOverTheAnchorsAndTheCap 1, chunkLocalDeclarationsInTheClosure 3, externals 3, unresolvedExternals 0, returnsAnOffsetAndAScaleFactor 1, characters 925
+  - free names: D, En, Math, Tn, k, wn
+  - externals: D=harvestTypes, Math=host, k=plants

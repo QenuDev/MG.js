@@ -10,7 +10,7 @@
  * frame keys captured beside it, and nothing here opens a socket.
  */
 
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { extractArtTables } from '../../src/bundle/extract.ts';
@@ -28,6 +28,43 @@ const here = dirname(fileURLToPath(import.meta.url));
 
 /** The captured build every bundle test reads. */
 export const FIXTURE_DIR = resolve(here, '../../fixtures/bundle-1176');
+
+/**
+ * The versions `packages/art/data/` ships, in name order.
+ *
+ * A version is what a caller names and what the package publishes, so this is the list the tests have to be
+ * written against rather than one hardcoded build: the second version is the whole point of the loader, and a
+ * test that assumed a single file would be a test that stops meaning anything the next time the game moves.
+ */
+export function shippedVersions(): readonly string[] {
+  return readdirSync(resolve(here, '../../data'))
+    .filter((name) => name.endsWith('.json'))
+    .map((name) => name.slice(0, -'.json'.length))
+    .sort();
+}
+
+/**
+ * The newest shipped version, which is the one `art:sync` writes and `--check` regenerates.
+ *
+ * `--check` picks the newest committed data file (`committedData` in the sync tool), so the generated
+ * `docs/art-provenance.md` describes exactly this version's extraction.
+ */
+export function newestShippedVersion(): string {
+  const versions = shippedVersions();
+  const newest = versions.at(-1);
+  if (newest === undefined) throw new Error('packages/art/data ships no tables at all');
+  return newest;
+}
+
+/** One shipped version's committed fixture, cut from that build by `art:sync`. */
+export function shippedFixtureDirectory(version: string): string {
+  return resolve(here, `../../fixtures/bundle-${version}`);
+}
+
+/** One shipped version's committed data file, as bytes. */
+export function shippedDataText(version: string): string {
+  return readFileSync(resolve(here, `../../data/${version}.json`), 'utf8');
+}
 
 /** A frame as the game's atlas manifest states it, trimmed to what a placement reads. */
 export interface FixtureFrame {

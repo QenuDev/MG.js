@@ -7,8 +7,10 @@
  * directions, checks that the *extraction* credits each table to the predicate the record names, and asserts the
  * committed `docs/art-provenance.md` byte for byte against the renderer.
  *
- * The stamp it renders with is the fixture's: game version 1176 and the evidence the fixture reproduces. The
- * data file `art:sync` writes carries the same extraction, which the sync's `--check` compares byte for byte.
+ * The stamp it renders with is the newest shipped fixture's: `art:sync` writes `docs/art-provenance.md` for the
+ * version it just read, and `--check` regenerates it for the newest committed data file, so that is the
+ * extraction the committed document has to be. The data file `art:sync` writes carries the same extraction,
+ * which the sync's `--check` compares byte for byte.
  */
 
 import assert from 'node:assert/strict';
@@ -24,13 +26,13 @@ import {
   type TableProvenance,
 } from '../../src/bundle/provenance.ts';
 import { MODEL_TABLES, type TableId } from '../../src/bundle/tables.ts';
-import { loadFixture } from './load-fixture.ts';
+import { loadFixture, newestShippedVersion, shippedFixtureDirectory } from './load-fixture.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const packageRoot = resolve(here, '../..');
 const docPath = resolve(packageRoot, '../../docs/art-provenance.md');
 
-const fixture = loadFixture();
+const fixture = loadFixture(shippedFixtureDirectory(newestShippedVersion()));
 
 void test('every table the model consumes has a provenance entry, and every entry names a real predicate', () => {
   const entries = provenanceFor();
@@ -104,7 +106,11 @@ void test("the committed document is the record's own output, stamped with the v
     evidence: fixture.evidence,
   });
   assert.equal(committed, rendered, 'docs/art-provenance.md has drifted from PROVENANCE: regenerate it');
-  assert.match(committed, /game version \*\*1176\*\*/);
+  assert.match(
+    committed,
+    new RegExp(`game version \\*\\*${fixture.manifest.sources.gameVersion}\\*\\*`),
+    'the document is stamped with the version whose extraction it describes',
+  );
   for (const table of MODEL_TABLES) {
     assert.ok(committed.includes(`## \`${table}\``), `the document has no section for ${table}`);
   }

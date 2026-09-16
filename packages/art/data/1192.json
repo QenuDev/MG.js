@@ -1,8 +1,8 @@
 {
-  "artVersion": "1176",
+  "artVersion": "1192",
   "evidence": {
     "anchors": {
-      "chunk": "LayoutMotionController-CwhDlPns.js",
+      "chunk": "resources-D_3Zwcn-.js",
       "coverage": {
         "counts": {
           "keys": 22,
@@ -14,16 +14,16 @@
         },
         "notes": []
       },
-      "declaration": "Uo",
-      "end": 45114,
+      "declaration": "Tn",
+      "end": 17169,
       "invariant": "every key is a species the plant table states -- a table of fractions keyed by centreXFraction matches this shape and is refused -- and every value is a number shape, not an expression",
       "looksFor": "an object literal with at least eight keys whose values are numbers, or objects of numbers under the names x, y, scale, plant and crop",
       "predicate": "anchor-table",
-      "start": 44646,
+      "start": 16701,
       "support": []
     },
     "displayFlags": {
-      "chunk": "LayoutMotionController-CwhDlPns.js",
+      "chunk": "resources-D_3Zwcn-.js",
       "coverage": {
         "counts": {
           "defaultReferences": 75,
@@ -38,16 +38,16 @@
         },
         "notes": ["the default record is the declaration 75 keys point at"]
       },
-      "declaration": "mo",
-      "end": 37799,
+      "declaration": "I",
+      "end": 14887,
       "invariant": "every key resolves through the sprite-name table to a sprite path, at least one key states a true flag, and the default record is identified by how many keys point at it rather than by a name",
       "looksFor": "an object literal with at least eight keys whose values are boolean display flags (`is*` names), directly or through a chunk-local declaration that holds the all-false default",
       "predicate": "display-flag-table",
-      "start": 34078,
-      "support": ["J"]
+      "start": 11166,
+      "support": ["F"]
     },
     "harvestTypes": {
-      "chunk": "quinoaPredictionAtoms-ptrrFeF6.js",
+      "chunk": "worldDepthSortKey-BXUHHrP0.js",
       "coverage": {
         "counts": {
           "membersAssignedInThisChunk": 2,
@@ -57,15 +57,15 @@
         "notes": []
       },
       "declaration": null,
-      "end": 901743,
+      "end": 50668,
       "invariant": "every member the plant table names is assigned exactly one string literal, so the placement function can be run with the game's own enum rather than with strings this package guessed",
       "looksFor": "the string-enum idiom the plant table names: `e.Single = 'Single'`-shaped assignments, read chunk-wide because the enum is built by a function that returns the object it fills",
       "predicate": "harvest-type-enum",
-      "start": 901635,
-      "support": ["B", "Pa"]
+      "start": 50560,
+      "support": ["F", "Rn"]
     },
     "iconFills": {
-      "chunk": "LayoutMotionController-CwhDlPns.js",
+      "chunk": "resources-D_3Zwcn-.js",
       "coverage": {
         "counts": {
           "bakeFrames": 1,
@@ -88,38 +88,38 @@
           "Pet: 1 (bake-frame)"
         ]
       },
-      "declaration": "$c",
-      "end": 99775,
+      "declaration": "Fi",
+      "end": 73551,
       "invariant": "exactly the game's seven item types, each accounted for once: six routed by the switch, two of them stating a share in (0, 1] and four reaching the builder with no `sizeRatio`, and the pet routed beside the switch through the portrait bake, which states no share of its own",
       "looksFor": "the fit function that scales a rendered item into the game's 256-pixel icon square through a `sizeRatio` option defaulting to 1, the icon builder that calls it with the literal 256 and generates a texture in a `(0, 0, 256, 256)` frame, and the inventory renderer's `switch (<entry>.itemType)` whose branches reach that builder",
       "predicate": "icon-fill-table",
-      "start": 98983,
+      "start": 72760,
       "support": [
-        "Qc",
-        "Uc",
-        "Vc",
-        "Wc",
-        "Xc",
-        "Yc",
-        "al",
-        "cl",
-        "co",
-        "dl",
-        "el",
-        "il",
-        "ll",
-        "nl",
-        "po",
-        "rl",
-        "sl",
-        "tl",
-        "ul",
-        "vs",
-        "zo"
+        "Bi",
+        "Di",
+        "Ei",
+        "Gi",
+        "Ii",
+        "Ki",
+        "Li",
+        "Mi",
+        "Pi",
+        "Ri",
+        "Ui",
+        "Vi",
+        "Wi",
+        "Zn",
+        "bi",
+        "hn",
+        "ji",
+        "q",
+        "vn",
+        "wi",
+        "zi"
       ]
     },
     "itemTypes": {
-      "chunk": "quinoaPredictionAtoms-ptrrFeF6.js",
+      "chunk": "worldDepthSortKey-BXUHHrP0.js",
       "coverage": {
         "counts": {
           "membersAssignedInThisChunk": 7,
@@ -128,16 +128,16 @@
         },
         "notes": []
       },
-      "declaration": "O",
-      "end": 844295,
+      "declaration": "E",
+      "end": 4023,
       "invariant": "every item kind the icon-fill table names is a member of exactly one such enum, assigned one literal, so the table's keys are strings the game states rather than names this package made up",
       "looksFor": "the game's own item-type string enum: the enum object whose members are exactly the item kinds the icon-fill table routes, each assigned a backtick literal",
       "predicate": "item-type-enum",
-      "start": 844166,
+      "start": 3894,
       "support": []
     },
     "mutationArt": {
-      "chunk": "LayoutMotionController-CwhDlPns.js",
+      "chunk": "resources-D_3Zwcn-.js",
       "coverage": {
         "counts": {
           "coloursOutsideThePackedRange": 0,
@@ -145,24 +145,24 @@
           "keysThatAreMutationRecords": 11,
           "recordFieldReferences": 9,
           "referencesUnresolved": 0,
-          "valuesCarryingAFilter": 11,
+          "valuesCarryingAFilter": 9,
           "valuesThatAreMaterials": 2,
           "valuesWithATint": 9
         },
         "notes": [
-          "art fields seen: filters, iconSprite, overlayFromBottom, overlaySprite, tallPlantFilters, tallPlantGroundSprite"
+          "art fields seen: colorOverlay, iconSprite, overlayFromBottom, overlaySprite, tallPlantGroundSprite"
         ]
       },
-      "declaration": "jo",
-      "end": 42469,
+      "declaration": "xn",
+      "end": 16354,
       "invariant": "every key is a mutation record this bundle states, every colour-bearing filter states both its colour and its alpha, every sprite reference resolves through the sprite-name table, and the keys that construct no colour filter at all are counted as materials rather than dropped",
       "looksFor": "an object literal with at least eight keys whose values carry art fields (sprite, icon, overlay, ground) and state a crop wash, which the game spells `filters` through build 1176 and `colorOverlay` from 1192, at least one of them a wash",
       "predicate": "mutation-art-table",
-      "start": 41073,
+      "start": 15162,
       "support": []
     },
     "mutationRecords": {
-      "chunk": "quinoaPredictionAtoms-ptrrFeF6.js",
+      "chunk": "worldDepthSortKey-BXUHHrP0.js",
       "coverage": {
         "counts": {
           "distinctGroups": 3,
@@ -174,16 +174,16 @@
           "valuesWithASprite": 9
         }
       },
-      "declaration": "U",
-      "end": 938793,
+      "declaration": "H",
+      "end": 615191,
       "invariant": "every value states its group, every sprite reference resolves through the sprite-name table, and at least three keys are drawable, because a table of mutations that can all be drawn nowhere is a different table",
       "looksFor": "an object literal with at least eight keys whose values each state a name, a group and (for everything that can be drawn on a crop) a sprite reference",
       "predicate": "mutation-record-table",
-      "start": 937743,
+      "start": 614141,
       "support": []
     },
     "overMutations": {
-      "chunk": "LayoutMotionController-CwhDlPns.js",
+      "chunk": "resources-D_3Zwcn-.js",
       "coverage": {
         "counts": {
           "members": 4,
@@ -192,37 +192,37 @@
         },
         "notes": ["members: Dawnlit, Ambershine, Dawncharged, Ambercharged"]
       },
-      "declaration": "Ko",
-      "end": 45552,
+      "declaration": "On",
+      "end": 17609,
       "invariant": "every member is a key of the mutation art table and the set is used beside that table, so a set of anything else is refused",
       "looksFor": "a declared `new Set([...])` of string literals, read inside a function that also reads the mutation art table, which is the set the game tests to give a mutation icon a z-index above the crop",
       "predicate": "mutation-over-set",
-      "start": 45490,
-      "support": ["Jo"]
+      "start": 17547,
+      "support": ["An"]
     },
     "placement": {
-      "chunk": "LayoutMotionController-CwhDlPns.js",
+      "chunk": "resources-D_3Zwcn-.js",
       "coverage": {
         "counts": {
-          "characters": 923,
+          "characters": 925,
           "chunkLocalDeclarationsInTheClosure": 3,
           "closesOverTheAnchorsAndTheCap": 1,
           "externals": 3,
           "returnsAnOffsetAndAScaleFactor": 1,
           "unresolvedExternals": 0
         },
-        "notes": ["free names: H, Ho, Math, U, Uo, Wo", "externals: H=harvestTypes, Math=host, U=plants"]
+        "notes": ["free names: D, En, Math, Tn, k, wn", "externals: D=harvestTypes, Math=host, k=plants"]
       },
-      "declaration": "Go",
-      "end": 45483,
+      "declaration": "Dn",
+      "end": 17540,
       "invariant": "exactly one function divides by the tile and closes over the anchors and the cap; every other name it reads is a host global or a table this extractor found, with the role read from how the function uses the name; and it returns an offset and a scale factor, which is the game's own name for what a placement is",
       "looksFor": "a function that divides by the reference tile and closes over the anchor table and the cap: every other function dividing by the tile is a candidate and this closure is what accepts one",
       "predicate": "placement-function",
-      "start": 45122,
-      "support": ["Ho", "Uo", "Wo"]
+      "start": 17177,
+      "support": ["En", "Tn", "wn"]
     },
     "plants": {
-      "chunk": "quinoaPredictionAtoms-ptrrFeF6.js",
+      "chunk": "worldDepthSortKey-BXUHHrP0.js",
       "coverage": {
         "counts": {
           "distinctHarvestTypes": 2,
@@ -233,34 +233,34 @@
         },
         "notes": ["harvest types named: Multiple, Single"]
       },
-      "declaration": "V",
-      "end": 936353,
+      "declaration": "I",
+      "end": 85278,
       "invariant": "every species states a plant block, every sprite reference in every part resolves through the sprite-name table, and the harvest types the table names are counted so a build that renames the enum is visible",
       "looksFor": "an object literal with at least five keys whose values state a plant block carrying a harvest type and a sprite reference",
       "predicate": "plant-table",
-      "start": 901975,
+      "start": 50900,
       "support": []
     },
     "scale": {
-      "chunk": "LayoutMotionController-CwhDlPns.js",
+      "chunk": "resources-D_3Zwcn-.js",
       "coverage": {
         "counts": {
           "capConstantDeclared": 1,
           "capFormulaOccurrences": 1,
           "tallDecalCandidates": 1
         },
-        "notes": ["formula as written: Math.min(Wo,h/256)", "cap constant: 0.75", "tall-decal multiplier: 2"]
+        "notes": ["formula as written: Math.min(En,m/256)", "cap constant: 0.75", "tall-decal multiplier: 2"]
       },
-      "declaration": "Wo",
-      "end": 45121,
+      "declaration": "En",
+      "end": 17176,
       "invariant": "the formula occurs exactly once in the chunk that declares the constant, the constant is a fraction, the divisor is the reference tile, and the tall-decal multiplier is found exactly once and is greater than one",
       "looksFor": "the formula Math.min(<a declared constant>, <something> / <tile>), with the constant a fractional literal, and the tall-decal multiplier as the consequent of a `? <constant> : 1` inside the code that reads the mutation art table",
       "predicate": "scale-cap",
-      "start": 45118,
-      "support": ["Jo", "qo"]
+      "start": 17173,
+      "support": ["An", "kn"]
     },
     "spriteNames": {
-      "chunk": "quinoaPredictionAtoms-ptrrFeF6.js",
+      "chunk": "BakedRoundedRect-lGFgQzh1.js",
       "coverage": {
         "counts": {
           "categories": 13,
@@ -275,16 +275,16 @@
           "sibling matches inside this literal: 3"
         ]
       },
-      "declaration": "E",
-      "end": 843858,
+      "declaration": "Nn",
+      "end": 66636,
       "invariant": "every leaf is a sprite path, the table is at least two categories wide, and the leaves are counted by the syntax they were written in, because a reader that projects only quoted strings reports an empty table rather than a wrong one",
       "looksFor": "an object literal with at least a hundred leaf strings of the form sprite/<category>/<Name>, taking the outermost match so a nested category is not mistaken for the table",
       "predicate": "sprite-name-table",
-      "start": 820113,
+      "start": 42891,
       "support": []
     }
   },
-  "gameVersion": "1176",
+  "gameVersion": "1192",
   "tables": {
     "anchors": {
       "Banana": {
@@ -1042,16 +1042,16 @@
     },
     "overMutations": ["Dawnlit", "Ambershine", "Dawncharged", "Ambercharged"],
     "placement": {
-      "characters": 923,
+      "characters": 925,
       "declarations": {
-        "Ho": "function Ho(e,t){if(e!==void 0)return typeof e==`number`?e:e[t]}",
-        "Uo": "const Uo = {Banana:{x:.6,y:.68},Beet:{y:.65},Carrot:{x:{crop:.5},y:{plant:.6,crop:.42}},Sunflower:{y:.5},Ube:{y:.5},Starweaver:{y:.5},Clover:{y:.3},FourLeafClover:{y:.3},FavaBean:{y:.25},BurrosTail:{y:.2},Rose:{y:.16},Saffron:{x:.52,y:.22},Cardoon:{y:.8},Daisy:{y:.21},PurpleDaisy:{y:.21},Pepper:{x:.6},Eggplant:{x:.57},Milkcap:{y:.3},Snowdrop:{x:.3,y:.23,scale:.5},SnowdropDouble:{x:.27,y:.21,scale:.5},Dawnbreaker:{y:{plant:.25,crop:.13}},Leek:{y:{plant:.55},scale:{plant:.7}}};",
-        "Wo": "const Wo = .75;"
+        "En": "const En = .75;",
+        "Tn": "const Tn = {Banana:{x:.6,y:.68},Beet:{y:.65},Carrot:{x:{crop:.5},y:{plant:.6,crop:.42}},Sunflower:{y:.5},Ube:{y:.5},Starweaver:{y:.5},Clover:{y:.3},FourLeafClover:{y:.3},FavaBean:{y:.25},BurrosTail:{y:.2},Rose:{y:.16},Saffron:{x:.52,y:.22},Cardoon:{y:.8},Daisy:{y:.21},PurpleDaisy:{y:.21},Pepper:{x:.6},Eggplant:{x:.57},Milkcap:{y:.3},Snowdrop:{x:.3,y:.23,scale:.5},SnowdropDouble:{x:.27,y:.21,scale:.5},Dawnbreaker:{y:{plant:.25,crop:.13}},Leek:{y:{plant:.55},scale:{plant:.7}}};",
+        "wn": "function wn(e,t){if(e!==void 0)return typeof e==`number`?e:e[t]}"
       },
       "externals": [
         {
-          "from": "./quinoaPredictionAtoms-ptrrFeF6.js",
-          "name": "H",
+          "from": "./worldDepthSortKey-BXUHHrP0.js",
+          "name": "D",
           "role": "harvestTypes"
         },
         {
@@ -1060,13 +1060,13 @@
           "role": "host"
         },
         {
-          "from": "./quinoaPredictionAtoms-ptrrFeF6.js",
-          "name": "U",
+          "from": "./worldDepthSortKey-BXUHHrP0.js",
+          "name": "k",
           "role": "plants"
         }
       ],
-      "name": "Go",
-      "source": "function Go(e,t,n){let r=U[t].plant.harvestType,i=e.width,a=e.height,o=e.defaultAnchor?.x??0,s=e.defaultAnchor?.y??0,c=Uo[t],l=o,u=Ho(c?.x,n);u!==void 0&&(l=u);let d=a>i*1.5,f=r===H.Single&&d?s:.4,p=Ho(c?.y,n);p!==void 0&&(f=p);let m={x:(l-o)*i,y:(f-s)*a},h=Math.min(i,a)/e.sourcePixelRatio,g=Ho(c?.scale,n)??1;return{offset:m,scaleFactor:Math.min(Wo,h/256)*g}}"
+      "name": "Dn",
+      "source": "function Dn(e,t,n){let r=k[t].plant.harvestType,i=e.width,a=e.height,o=e.defaultAnchor?.x??0,s=e.defaultAnchor?.y??0,c=Tn[t],l=o,u=wn(c?.x,n);u!==void 0&&(l=u);let d=a>i*1.5,f=r===D.Single&&d?s:.4,p=wn(c?.y,n);p!==void 0&&(f=p);let ee={x:(l-o)*i,y:(f-s)*a},m=Math.min(i,a)/e.sourcePixelRatio,h=wn(c?.scale,n)??1;return{offset:ee,scaleFactor:Math.min(En,m/256)*h}}"
     },
     "plants": {
       "Aloe": {

@@ -3,10 +3,12 @@
  *
  * The predicates are shape-driven, and the temptation a year from now is to "fix" a broken build by writing
  * `if (chunk.file === 'LayoutMotionController-....js')` or by matching a symbol that happens to be stable. This
- * test makes that impossible: it takes the declaration names the extractor actually had to read out of the
- * captured build -- from the fixture manifest, and from the roles of the extracted placement function -- and
- * greps the package's own `src/` for every one of them as a whole word. A shipped predicate may not name a
- * minified symbol, and the names change with every build, so naming one is not a shortcut but a lie.
+ * test makes that impossible: it takes the declaration names the extractor actually had to read out of every
+ * capture the package ships -- from each fixture manifest, and from the roles of each extracted placement
+ * function -- and greps the package's own `src/` for every one of them as a whole word. A shipped predicate may
+ * not name a minified symbol, and the names change with every build, so naming one is not a shortcut but a lie.
+ * The list is every shipped version's rather than the first one's, because a guard that covers only the build it
+ * was written against stops covering the newest the moment a second version is published.
  *
  * The fixtures and the manifest *do* record the names -- that is the provenance a reviewer needs -- and the
  * model cites them too: `mutation.ts` says the over-set is the game's `Ko` and that `Wet`'s wash is
@@ -22,7 +24,8 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { loadFixture } from './load-fixture.ts';
+import type { FixtureManifest } from '../../src/bundle/tools/fixtures.ts';
+import { loadFixture, shippedDataText, shippedFixtureDirectory, shippedVersions } from './load-fixture.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const packageRoot = resolve(here, '../..');
@@ -54,17 +57,27 @@ function isCommentLine(line: string): boolean {
 
 const fixture = loadFixture();
 
-/** Every minified declaration name the extraction had to read, wherever it recorded it. */
+/** Every minified declaration name the extractions had to read, wherever they recorded it. */
 function minifiedNames(): readonly string[] {
   const names = new Set<string>();
   // The declaration names, and the names of the bindings the extractor had to resolve out of another chunk.
   // Imported locals as a whole are deliberately not included: a minified import list is a wall of one-letter
   // names that are ordinary English words, so grepping for all of them would test the prose, not the code.
-  for (const file of fixture.manifest.files) {
-    for (const cut of file.cuts) names.add(cut.declaration);
-  }
-  for (const external of fixture.tables.placement.externals) {
-    if (external.role !== 'host') names.add(external.name);
+  for (const version of shippedVersions()) {
+    const manifest = JSON.parse(
+      readFileSync(join(shippedFixtureDirectory(version), 'fixture.json'), 'utf8'),
+    ) as FixtureManifest;
+    for (const file of manifest.files) {
+      for (const cut of file.cuts) names.add(cut.declaration);
+    }
+    const data = JSON.parse(shippedDataText(version)) as {
+      readonly tables: {
+        readonly placement: { readonly externals: readonly { name: string; role: string }[] };
+      };
+    };
+    for (const external of data.tables.placement.externals) {
+      if (external.role !== 'host') names.add(external.name);
+    }
   }
   return [...names].sort();
 }

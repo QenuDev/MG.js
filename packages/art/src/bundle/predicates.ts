@@ -96,6 +96,21 @@ const ANCHOR_KEYS = new Set(['x', 'y', 'scale', 'plant', 'crop']);
 const ART_FIELDS = /sprite|icon|overlay|filters|ground/i;
 
 /**
+ * The fields a mutation's entry states its crop wash in, by the game's own property name.
+ *
+ * Two spellings exist in the captures this package reads. Through build 1176 the wash is a `filters`
+ * construction; 1192 states the same wash as a `colorOverlay` object. Both names are the game's own and are read
+ * by its own code (`e.colorOverlay` in the mutation-icon placement), so naming them describes the shape the
+ * table has rather than guessing at a minified symbol -- which is the distinction this extractor is built on. A
+ * predicate that knew only `filters` stops matching the moment the field is renamed, and that is exactly what
+ * `art:sync` reported against 1192.
+ */
+const COLOUR_OVERLAY_FIELDS: readonly string[] = ['filters', 'colorOverlay'];
+
+/** The largest colour a packed `colorOverlay.color` may state: the game's own `[0, 0xFFFFFF]` bound. */
+const MAX_PACKED_COLOUR = 0xff_ffff;
+
+/**
  * The globals a chunk may read without declaring. These are ECMAScript's, not the game's: naming them is not
  * naming a minified symbol, and the placement function's closure is short enough that anything else in it is a
  * table the extractor failed to resolve -- which is a failure, not a wildcard.
@@ -172,11 +187,22 @@ function chainOf(value: ShapeValue): readonly string[] | null {
  * and nowhere else, so this reads the literals rather than any table of colours -- the UI colour a mutation is
  * drawn with is a different value from the wash its crop is filtered through, and the API's published colours
  * are the former.
+ *
+ * The colour inside those arguments is written two ways across the captures this package reads: a CSS string
+ * through 1176 (`rgb(50, 180, 200)`), and a packed `0xRRGGBB` integer from 1192. The packed form is decoded
+ * here rather than carried through, because `MutationTint.color` is the value a consumer draws with and the CSS
+ * string is the spelling both builds agree on: the nine colours 1192 states decode, under the rule below,
+ * byte-for-byte to the nine strings 1176 states.
  */
-function filterFacts(value: ShapeValue): { color: string | null; alpha: number | null } {
+function filterFacts(value: ShapeValue): {
+  color: string | null;
+  alpha: number | null;
+  unreadableColour: boolean;
+} {
   const queue: ShapeValue[] = [value];
   let color: string | null = null;
   let alpha: number | null = null;
+  let unreadableColour = false;
   let seen = 0;
   while (queue.length > 0 && seen < 64) {
     seen += 1;
@@ -186,16 +212,47 @@ function filterFacts(value: ShapeValue): { color: string | null; alpha: number |
       for (const member of node.object.members) {
         if (member.key === 'alpha' && alpha === null && member.value.kind === 'number')
           alpha = member.value.value;
-        if (color === null) {
+        if (color === null && member.key === 'color') {
           const string = asString(member.value);
           if (string !== null && COLOUR.test(string.text)) color = string.text;
+          else {
+            color = packedColour(member.value);
+            // A number that is not a colour is counted rather than dropped: refusing it as a material is how a
+            // wash this extractor cannot read would pass as one the game never stated.
+            if (color === null && member.value.kind === 'number') unreadableColour = true;
+          }
         }
         queue.push(member.value);
       }
     } else if (node.kind === 'call') queue.push(...node.args);
     else if (node.kind === 'array') queue.push(...node.items);
   }
-  return { color, alpha };
+  return { color, alpha, unreadableColour };
+}
+
+/**
+ * A packed `0xRRGGBB` colour, written as the `rgb(...)` spelling the build before it used.
+ *
+ * The encoding is the game's own rather than a reading of the numbers: the code that consumes the table refuses
+ * a colour that is not an integer in `[0, 0xFFFFFF]` ("Material color overlays require an RGB color and finite
+ * alpha") and unpacks it as `(c & 255) << 16 | c & 65280 | c >>> 16 & 255`, so the red channel is the top byte,
+ * green the middle one and blue the low byte. A number outside that range is not a colour; it is refused here
+ * and counted by the caller, so the predicate reports it instead of quietly reading the entry as a material.
+ */
+function packedColour(value: ShapeValue): string | null {
+  if (value.kind !== 'number') return null;
+  const packed = value.value;
+  if (!Number.isInteger(packed) || packed < 0 || packed > MAX_PACKED_COLOUR) return null;
+  return `rgb(${(packed >>> 16) & 255}, ${(packed >>> 8) & 255}, ${packed & 255})`;
+}
+
+/** The wash a mutation's entry states, under whichever spelling this build uses for it. */
+function colourOverlayOf(object: ShapeObjectLiteral): ShapeValue | null {
+  for (const field of COLOUR_OVERLAY_FIELDS) {
+    const found = memberValue(object, field);
+    if (found !== null) return found;
+  }
+  return null;
 }
 
 /** True when every member of a shape value is a number, or an object of numbers. */
@@ -449,7 +506,9 @@ const mutationArtTable: TablePredicate<ArtTables['mutationArt']> = {
   id: 'mutationArt',
   predicate: 'mutation-art-table',
   looksFor:
-    'an object literal with at least eight keys whose values carry art fields (sprite, icon, overlay, filters, ground), at least one of them a filter',
+    'an object literal with at least eight keys whose values carry art fields (sprite, icon, overlay, ground) ' +
+    'and state a crop wash, which the game spells `filters` through build 1176 and `colorOverlay` from 1192, ' +
+    'at least one of them a wash',
   invariant:
     'every key is a mutation record this bundle states, every colour-bearing filter states both its colour and its alpha, every sprite reference resolves through the sprite-name table, and the keys that construct no colour filter at all are counted as materials rather than dropped',
   candidates(context) {
@@ -459,25 +518,28 @@ const mutationArtTable: TablePredicate<ArtTables['mutationArt']> = {
       for (const object of chunk.objects) {
         if (object.members.length < MIN_KEYS) continue;
         const fieldNames = new Set<string>();
-        let filters = 0;
+        let washes = 0;
         for (const member of object.members) {
           for (const inner of asObject(member.value)?.members ?? []) {
             fieldNames.add(inner.key);
-            if (inner.key === 'filters') filters += 1;
+            if (COLOUR_OVERLAY_FIELDS.includes(inner.key)) washes += 1;
           }
         }
         const artFields = [...fieldNames].filter((field) => ART_FIELDS.test(field));
-        if (filters === 0 || artFields.length < 2) continue;
+        if (washes === 0 || artFields.length < 2) continue;
         const art: Record<string, ArtTables['mutationArt'][string]> = {};
         let tinted = 0;
         let materials = 0;
         let unresolvedRefs = 0;
         let iconRefs = 0;
         let recordKeys = 0;
+        let unreadableColours = 0;
         for (const [order, member] of object.members.entries()) {
           const value = asObject(member.value);
-          const facts = memberValue(value ?? EMPTY_OBJECT, 'filters');
-          const wash = facts === null ? { color: null, alpha: null } : filterFacts(facts);
+          const facts = colourOverlayOf(value ?? EMPTY_OBJECT);
+          const wash =
+            facts === null ? { color: null, alpha: null, unreadableColour: false } : filterFacts(facts);
+          if (wash.unreadableColour) unreadableColours += 1;
           const material = wash.color === null;
           if (material) materials += 1;
           else tinted += 1;
@@ -525,12 +587,13 @@ const mutationArtTable: TablePredicate<ArtTables['mutationArt']> = {
           coverage: {
             counts: {
               keys: object.members.length,
-              valuesCarryingAFilter: filters,
+              valuesCarryingAFilter: washes,
               valuesWithATint: tinted,
               valuesThatAreMaterials: materials,
               keysThatAreMutationRecords: recordKeys,
               recordFieldReferences: iconRefs,
               referencesUnresolved: unresolvedRefs,
+              coloursOutsideThePackedRange: unreadableColours,
             },
             notes: [`art fields seen: ${artFields.sort().join(', ')}`],
           },
@@ -557,6 +620,12 @@ const mutationArtTable: TablePredicate<ArtTables['mutationArt']> = {
     const unresolved = candidate.coverage.counts['referencesUnresolved'] ?? 0;
     if (unresolved > 0)
       problems.push(`${unresolved} sprite references do not resolve through the name table`);
+    const unreadable = candidate.coverage.counts['coloursOutsideThePackedRange'] ?? 0;
+    if (unreadable > 0) {
+      problems.push(
+        `${unreadable} colour overlays state a colour that is not a packed 0xRRGGBB integer, so the wash is not one this extractor can read`,
+      );
+    }
     return problems;
   },
 };
@@ -619,7 +688,7 @@ const displayFlagTable: TablePredicate<ArtTables['displayFlags']> = {
         let narrow = 0;
         for (const member of object.members) {
           const value = asObject(member.value);
-          // An entry that points at the default declaration gets the default's own values; an inline entry
+          // Each entry that points at the default declaration gets the default's own values; an inline entry
           // gets its own, and a flag it does not state falls back to the default's.
           const record = value ?? (member.value.kind === 'reference' ? defaultRecord : null);
           const read = (flag: string): boolean => {
@@ -1266,9 +1335,16 @@ function functionIndex(chunk: ParsedChunk): ReadonlyMap<string, ShapeFunction> {
   return index;
 }
 
-/** The names a body calls, whether or not the chunk declares them. */
+/**
+ * The names a body calls as a bare name, whether or not the chunk declares them.
+ *
+ * A *member* call is not one of them. `a.destroy()` names a method of `a`, not the chunk-local declaration
+ * `destroy`, and the two are unrelated even when they share a spelling -- following one into the other is how a
+ * class method ends up in a table's evidence, where the fixture writer has no declaration to cut for it. Since
+ * every caller here is asking which declarations a body reaches, a name reached through a dot is not an answer.
+ */
 function calledNames(text: string): readonly string[] {
-  return [...text.matchAll(/([A-Za-z_$][\w$]*)\s*\(/g)].map((match) => match[1] ?? '');
+  return [...text.matchAll(/(?<![.\w$])([A-Za-z_$][\w$]*)\s*\(/g)].map((match) => match[1] ?? '');
 }
 
 /**

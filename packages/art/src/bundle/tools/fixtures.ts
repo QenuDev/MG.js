@@ -259,7 +259,7 @@ export function restoreImports(
  *
  * The two ends are mapped separately, because a predicate may report a span that crosses declarations -- the
  * harvest-type enum's assignments live in more than one, and the range it reports runs from the first to the
- * last. An end that is not inside any cut is left alone: that happens for a predicate that reads a chunk
+ * last. Every end that is not inside any cut is left alone: that happens for a predicate that reads a chunk
  * globally, and changing it silently would be worse than leaving a fixture-relative number visible.
  */
 export function remapEvidence(

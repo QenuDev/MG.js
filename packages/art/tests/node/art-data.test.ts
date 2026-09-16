@@ -50,19 +50,26 @@ void test('the versions the package ships are the table files beside it', () => 
   }
 });
 
-void test('readArtData answers the same tables as reading the committed file', () => {
-  const version = artDataVersions()[0] as string;
-  const read = readArtData(version);
-  const byHand = parseArtData(readFileSync(new URL(`data/${version}.json`, HERE), 'utf8'));
+void test('readArtData answers the same tables as reading the committed file, for every version it ships', () => {
+  // Every version, not the first one: the caller names a version precisely so that more than one can be
+  // shipped, and a loader checked against a single file is a loader checked against the case it was written
+  // for. The two version names also have to be answered from their own files rather than from each other.
+  const read: string[] = [];
+  for (const version of artDataVersions()) {
+    const data = readArtData(version);
+    const byHand = parseArtData(readFileSync(new URL(`data/${version}.json`, HERE), 'utf8'));
 
-  assert.deepEqual(read, byHand, 'the loader reads the file and applies the same contract check');
-  assert.equal(read.gameVersion, byHand.gameVersion, 'with the game version stamped inside it');
-  assert.equal(read.artVersion, byHand.artVersion, 'and the art version it was read at');
-  // A table no other entry can hand a caller without the file: the mutation art, which is what a wash needs.
-  assert.ok(
-    Object.keys(read.tables.mutationArt).includes('Frozen'),
-    'the tables a consumer reads are the game’s mutation art',
-  );
+    assert.deepEqual(data, byHand, `the loader reads ${version} and applies the same contract check`);
+    assert.equal(data.gameVersion, byHand.gameVersion, 'with the game version stamped inside it');
+    assert.equal(data.artVersion, byHand.artVersion, 'and the art version it was read at');
+    // A table no other entry can hand a caller without the file: the mutation art, which is what a wash needs.
+    assert.ok(
+      Object.keys(data.tables.mutationArt).includes('Frozen'),
+      `the tables a consumer reads for ${version} are the game's mutation art`,
+    );
+    read.push(data.gameVersion);
+  }
+  assert.equal(new Set(read).size, read.length, 'two shipped versions answered with the same game version');
 });
 
 void test('a version the package does not ship is refused, not resolved as a path', () => {

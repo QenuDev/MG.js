@@ -48,7 +48,7 @@ export interface ShapeArray {
   readonly items: readonly ShapeValue[];
 }
 
-/** An object literal, whether or not it is assigned to a name. */
+/** Every object literal, whether or not it is assigned to a name. */
 export interface ShapeObject {
   readonly kind: 'object';
   readonly object: ShapeObjectLiteral;

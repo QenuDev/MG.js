@@ -44,7 +44,7 @@ function canonical(value: unknown): unknown {
 /** Biome's `lineWidth`, which is the width this file has to be formatted to for `npm run lint` to pass. */
 const LINE_WIDTH = 110;
 
-/** An array rendered on one line, or `null` when it cannot be: an object element always breaks the line. */
+/** Every array rendered on one line, or `null` when it cannot be: an object element always breaks the line. */
 function inlineArray(value: readonly unknown[]): string | null {
   if (value.length === 0) return '[]';
   const parts: string[] = [];

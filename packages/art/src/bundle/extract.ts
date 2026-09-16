@@ -6,7 +6,7 @@
  * anchors are validated against the species it states, and the scale cap before the placement function because
  * the formula is what identifies the function.
  *
- * An extraction never picks between two candidates that both hold. Two tables that match the same shape is
+ * No extraction picks between two candidates that both hold. Two tables that match the same shape is
  * exactly the situation in which a guess looks like a result, so it is an error carrying both, and the message
  * says which predicate, what it looked for, and what it saw.
  */
