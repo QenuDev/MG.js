@@ -16,11 +16,14 @@ endpoint nowhere — so it cannot live in the package whose rule is that the ser
 | `@mg.js/art` | nothing | The model. Values in, values out. Because it imports nothing, the built file can be served to a browser as one module with no bundler. |
 | `@mg.js/art/bundle` | nothing | The extractor: predicates over a parsed game chunk, plus the validator. An AST in, the game's tables out. The parser is the caller's, so this entry needs none. |
 | `@mg.js/art/source` | `@mg.js/common/catalog` | The network: the game's version, its atlas packs and their frames, the atlas image, the caches and the content revision. |
-| `@mg.js/art/node` | `node:zlib`, `node:fs` | The pixels — KTX2 to RGBA, frame cropping, the PNG codec — and the shipped tables: `artDataVersions()` and `readArtData(version)` read `data/<version>.json` the way the sync wrote it, validated by the same parser a fetched document goes through. |
+| `@mg.js/art/node` | `node:` modules (`zlib`, `fs`, and `module`/`path`/`url` through the transcoder) | The pixels — KTX2 to RGBA, frame cropping, the PNG codec — and the shipped tables: `artDataVersions()` and `readArtData(version)` read `data/<version>.json` the way the sync wrote it, validated by the same parser a fetched document goes through. |
 
-Four tests hold that table up: the two pure entries import nothing, `bootstrapped` never reaches `art`
-(it has a bundle-size budget), the exports map resolves to the names it promises, and the extractor's
-predicates are pure — same AST in, same tables out, no clock, no disk, no socket.
+Three tests hold that table up: the two pure entries import nothing, `bootstrapped` never reaches `art`
+(it has a bundle-size budget), and the exports map resolves to the names it promises. The extractor's
+predicates are pure too, but that one is structural rather than tested: `predicates.ts` imports only its
+own shape module and types, so the same AST gives the same tables with no clock, no disk and no socket.
+An earlier draft of this paragraph listed it among the tests, which overstated what the suite checks —
+the property is real, the test for it was not.
 
 ## What each entry publishes
 
