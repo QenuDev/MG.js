@@ -19,7 +19,8 @@
  * holds what a mutation draws with -- its wash, its icon, the band it stacks in and the art it lays on a tall
  * plant -- with the mutation record as an argument rather than as a table written down here; `placement.ts`
  * holds where a mutation lands on a species' own art and how large it is drawn, with the game's own tables as
- * an argument for the same reason.
+ * an argument for the same reason; `sprite.ts` holds which sprite the game draws a thing from, and turns that
+ * name into the frame the atlas states for it.
  */
 
 export type {
@@ -62,3 +63,5 @@ export type {
   StatedAnchor,
 } from './placement.js';
 export { mutationAnchor, mutationPlacement } from './placement.js';
+export type { SpriteFrames, SpriteNameMap } from './sprite.js';
+export { resolveSprite, spriteName } from './sprite.js';

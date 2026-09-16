@@ -175,6 +175,16 @@
         "RevisionInput"
       ]
     },
+    "art/sprite": {
+      "Function": [
+        "resolveSprite",
+        "spriteName"
+      ],
+      "TypeAlias": [
+        "SpriteFrames",
+        "SpriteNameMap"
+      ]
+    },
     "bootstrapped/attach": {
       "Class": [
         "AttachedTransport"
