@@ -1,0 +1,1660 @@
+{
+  "note": "Each fixture file holds one declaration per line, cut from the named chunk. A variable is written back as `const <name> = <initializer>;` for a variable, and its own text for a function. The range in `cuts` is the initializer both times: inside the wrapper it is byte-identical to the source range, and `fixtureStart`/`fixtureEnd` are where that same initializer sits in the fixture file, which is how evidence read from a fixture is translated back to the game chunk. Every fixture file opens with a `biome-ignore-all` line, and the offsets in `cuts` are measured after it.",
+  "sources": {
+    "gameVersion": "1176",
+    "artVersion": "1176",
+    "origin": "https://magicgarden.gg",
+    "atlasManifest": "version/1176/assets/manifest.json",
+    "atlasPacks": [
+      "atlases/sprites-2x-0.json",
+      "atlases/sprites-2x-1.json",
+      "atlases/sprites-2x-2.json",
+      "atlases/sprites-2x-3.json"
+    ]
+  },
+  "files": [
+    {
+      "fixture": "chunks/LayoutMotionController-CwhDlPns.js",
+      "chunk": "LayoutMotionController-CwhDlPns.js",
+      "fileUrl": "https://magicgarden.gg/version/1176/assets/LayoutMotionController-CwhDlPns.js",
+      "cuts": [
+        {
+          "declaration": "J",
+          "sourceStart": 34039,
+          "sourceEnd": 34074,
+          "fixtureStart": 187,
+          "fixtureEnd": 222
+        },
+        {
+          "declaration": "mo",
+          "sourceStart": 34078,
+          "sourceEnd": 37799,
+          "fixtureStart": 235,
+          "fixtureEnd": 3956
+        },
+        {
+          "declaration": "jo",
+          "sourceStart": 41073,
+          "sourceEnd": 42469,
+          "fixtureStart": 3969,
+          "fixtureEnd": 5365
+        },
+        {
+          "declaration": "Ho",
+          "sourceStart": 44575,
+          "sourceEnd": 44639,
+          "fixtureStart": 5367,
+          "fixtureEnd": 5431
+        },
+        {
+          "declaration": "Uo",
+          "sourceStart": 44646,
+          "sourceEnd": 45114,
+          "fixtureStart": 5443,
+          "fixtureEnd": 5911
+        },
+        {
+          "declaration": "Wo",
+          "sourceStart": 45118,
+          "sourceEnd": 45121,
+          "fixtureStart": 5924,
+          "fixtureEnd": 5927
+        },
+        {
+          "declaration": "Go",
+          "sourceStart": 45122,
+          "sourceEnd": 45483,
+          "fixtureStart": 5929,
+          "fixtureEnd": 6290
+        },
+        {
+          "declaration": "Ko",
+          "sourceStart": 45490,
+          "sourceEnd": 45552,
+          "fixtureStart": 6302,
+          "fixtureEnd": 6364
+        },
+        {
+          "declaration": "qo",
+          "sourceStart": 45556,
+          "sourceEnd": 45557,
+          "fixtureStart": 6377,
+          "fixtureEnd": 6378
+        },
+        {
+          "declaration": "Jo",
+          "sourceStart": 45558,
+          "sourceEnd": 46212,
+          "fixtureStart": 6380,
+          "fixtureEnd": 7034
+        }
+      ],
+      "imports": [
+        {
+          "local": "e",
+          "imported": "a",
+          "from": "./rolldown-runtime-CNC7AqOf.js"
+        },
+        {
+          "local": "t",
+          "imported": "o",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "n",
+          "imported": "Cr",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "r",
+          "imported": "Ei",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "i",
+          "imported": "Hn",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "a",
+          "imported": "I",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "o",
+          "imported": "Mi",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "s",
+          "imported": "U",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "c",
+          "imported": "V",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "l",
+          "imported": "Vn",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "u",
+          "imported": "Y",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "d",
+          "imported": "bi",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "f",
+          "imported": "j",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "p",
+          "imported": "n",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "m",
+          "imported": "q",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "h",
+          "imported": "wr",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "g",
+          "imported": "n",
+          "from": "./vanilla-BZYo6kU_.js"
+        },
+        {
+          "local": "_",
+          "imported": "t",
+          "from": "./vanilla-BZYo6kU_.js"
+        },
+        {
+          "local": "v",
+          "imported": "i",
+          "from": "./localization-C1E0bdbV.js"
+        },
+        {
+          "local": "y",
+          "imported": "r",
+          "from": "./localization-C1E0bdbV.js"
+        },
+        {
+          "local": "b",
+          "imported": "Ft",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "x",
+          "imported": "G",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "S",
+          "imported": "Gt",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "C",
+          "imported": "J",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "w",
+          "imported": "Pt",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "T",
+          "imported": "Q",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "E",
+          "imported": "Ut",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "D",
+          "imported": "Wt",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "ee",
+          "imported": "Z",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "O",
+          "imported": "a",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "k",
+          "imported": "bt",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "A",
+          "imported": "c",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "te",
+          "imported": "d",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "j",
+          "imported": "dt",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "ne",
+          "imported": "it",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "M",
+          "imported": "l",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "re",
+          "imported": "nt",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "N",
+          "imported": "vt",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "P",
+          "imported": "y",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "ie",
+          "imported": "zt",
+          "from": "./BitmapFont-PCpkFQ5E.js"
+        },
+        {
+          "local": "ae",
+          "imported": "D",
+          "from": "./lib-CP2SVpIf.js"
+        },
+        {
+          "local": "oe",
+          "imported": "a",
+          "from": "./lib-CP2SVpIf.js"
+        },
+        {
+          "local": "se",
+          "imported": "d",
+          "from": "./lib-CP2SVpIf.js"
+        },
+        {
+          "local": "F",
+          "imported": "f",
+          "from": "./lib-CP2SVpIf.js"
+        },
+        {
+          "local": "ce",
+          "imported": "l",
+          "from": "./lib-CP2SVpIf.js"
+        },
+        {
+          "local": "le",
+          "imported": "p",
+          "from": "./lib-CP2SVpIf.js"
+        },
+        {
+          "local": "I",
+          "imported": "s",
+          "from": "./lib-CP2SVpIf.js"
+        },
+        {
+          "local": "ue",
+          "imported": "t",
+          "from": "./lib-CP2SVpIf.js"
+        },
+        {
+          "local": "de",
+          "imported": "u",
+          "from": "./lib-CP2SVpIf.js"
+        },
+        {
+          "local": "fe",
+          "imported": "v",
+          "from": "./lib-CP2SVpIf.js"
+        },
+        {
+          "local": "pe",
+          "imported": "B",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "me",
+          "imported": "C",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "he",
+          "imported": "G",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "ge",
+          "imported": "H",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "_e",
+          "imported": "J",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "ve",
+          "imported": "K",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "ye",
+          "imported": "L",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "be",
+          "imported": "Q",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "xe",
+          "imported": "U",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "Se",
+          "imported": "V",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "Ce",
+          "imported": "W",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "we",
+          "imported": "X",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "Te",
+          "imported": "Y",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "Ee",
+          "imported": "Z",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "De",
+          "imported": "_",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "Oe",
+          "imported": "c",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "ke",
+          "imported": "d",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "Ae",
+          "imported": "f",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "je",
+          "imported": "g",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "Me",
+          "imported": "h",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "Ne",
+          "imported": "l",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "Pe",
+          "imported": "m",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "Fe",
+          "imported": "q",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "L",
+          "imported": "u",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "Ie",
+          "imported": "v",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "Le",
+          "imported": "x",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "Re",
+          "imported": "y",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "ze",
+          "imported": "z",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        },
+        {
+          "local": "Be",
+          "imported": "$r",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Ve",
+          "imported": "$t",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "He",
+          "imported": "An",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Ue",
+          "imported": "Bn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "We",
+          "imported": "Br",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Ge",
+          "imported": "Cn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Ke",
+          "imported": "Ct",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "qe",
+          "imported": "D",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Je",
+          "imported": "E",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Ye",
+          "imported": "Ea",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Xe",
+          "imported": "En",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Ze",
+          "imported": "Er",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Qe",
+          "imported": "Et",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "$e",
+          "imported": "Fn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "et",
+          "imported": "Gr",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "tt",
+          "imported": "H",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "nt",
+          "imported": "J",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "R",
+          "imported": "Jt",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "rt",
+          "imported": "Kr",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "it",
+          "imported": "Li",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "at",
+          "imported": "Ln",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "ot",
+          "imported": "Na",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "st",
+          "imported": "O",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "z",
+          "imported": "Oa",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "ct",
+          "imported": "On",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "lt",
+          "imported": "Or",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "ut",
+          "imported": "Pn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "dt",
+          "imported": "Pr",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "ft",
+          "imported": "Qn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "pt",
+          "imported": "Rn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "mt",
+          "imported": "St",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "ht",
+          "imported": "T",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "gt",
+          "imported": "Ut",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "_t",
+          "imported": "Vi",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "vt",
+          "imported": "Vn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "yt",
+          "imported": "Vr",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "bt",
+          "imported": "W",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "xt",
+          "imported": "Xr",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "St",
+          "imported": "Xt",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Ct",
+          "imported": "Y",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "wt",
+          "imported": "Yt",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Tt",
+          "imported": "Zi",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Et",
+          "imported": "Zn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Dt",
+          "imported": "an",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Ot",
+          "imported": "b",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "kt",
+          "imported": "bn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "At",
+          "imported": "cn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "jt",
+          "imported": "cr",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Mt",
+          "imported": "d",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Nt",
+          "imported": "di",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Pt",
+          "imported": "dn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Ft",
+          "imported": "ei",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "It",
+          "imported": "er",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Lt",
+          "imported": "et",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Rt",
+          "imported": "fi",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "zt",
+          "imported": "fn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Bt",
+          "imported": "hi",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Vt",
+          "imported": "hn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Ht",
+          "imported": "hr",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Ut",
+          "imported": "ht",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Wt",
+          "imported": "ii",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Gt",
+          "imported": "ir",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Kt",
+          "imported": "jr",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "qt",
+          "imported": "k",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Jt",
+          "imported": "kn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Yt",
+          "imported": "l",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "B",
+          "imported": "li",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Xt",
+          "imported": "mi",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Zt",
+          "imported": "mr",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "Qt",
+          "imported": "ni",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "$t",
+          "imported": "oa",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "V",
+          "imported": "oi",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "H",
+          "imported": "on",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "en",
+          "imported": "pi",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "tn",
+          "imported": "pn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "nn",
+          "imported": "pt",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "rn",
+          "imported": "qi",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "an",
+          "imported": "qr",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "on",
+          "imported": "qt",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "sn",
+          "imported": "ri",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "U",
+          "imported": "rn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "cn",
+          "imported": "rr",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "ln",
+          "imported": "si",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "un",
+          "imported": "sn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "dn",
+          "imported": "ta",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "fn",
+          "imported": "tn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "pn",
+          "imported": "tr",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "mn",
+          "imported": "u",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "hn",
+          "imported": "ur",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "gn",
+          "imported": "y",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "_n",
+          "imported": "yn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "vn",
+          "imported": "zn",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "yn",
+          "imported": "zr",
+          "from": "./quinoaPredictionAtoms-ptrrFeF6.js"
+        },
+        {
+          "local": "bn",
+          "imported": "n",
+          "from": "./store-DKhOI3nu.js"
+        },
+        {
+          "local": "xn",
+          "imported": "u",
+          "from": "./store-DKhOI3nu.js"
+        },
+        {
+          "local": "Sn",
+          "imported": "B",
+          "from": "./sendQuinoaMessage-x5CkMS1w.js"
+        },
+        {
+          "local": "Cn",
+          "imported": "R",
+          "from": "./sendQuinoaMessage-x5CkMS1w.js"
+        },
+        {
+          "local": "wn",
+          "imported": "c",
+          "from": "./sendQuinoaMessage-x5CkMS1w.js"
+        },
+        {
+          "local": "Tn",
+          "imported": "l",
+          "from": "./sendQuinoaMessage-x5CkMS1w.js"
+        },
+        {
+          "local": "En",
+          "imported": "w",
+          "from": "./sendQuinoaMessage-x5CkMS1w.js"
+        },
+        {
+          "local": "Dn",
+          "imported": "z",
+          "from": "./sendQuinoaMessage-x5CkMS1w.js"
+        },
+        {
+          "local": "On",
+          "imported": "a",
+          "from": "./getCosmeticSrc-CZT-vgSt.js"
+        },
+        {
+          "local": "kn",
+          "imported": "n",
+          "from": "./getCosmeticSrc-CZT-vgSt.js"
+        },
+        {
+          "local": "An",
+          "imported": "r",
+          "from": "./getCosmeticSrc-CZT-vgSt.js"
+        },
+        {
+          "local": "jn",
+          "imported": "u",
+          "from": "./getCosmeticSrc-CZT-vgSt.js"
+        },
+        {
+          "local": "Mn",
+          "imported": "l",
+          "from": "./avatarRiveConstants-DKzx72Zl.js"
+        },
+        {
+          "local": "Nn",
+          "imported": "n",
+          "from": "./avatarRiveConstants-DKzx72Zl.js"
+        },
+        {
+          "local": "Pn",
+          "imported": "$a",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Fn",
+          "imported": "At",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "In",
+          "imported": "Bt",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "W",
+          "imported": "Cn",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Ln",
+          "imported": "Co",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Rn",
+          "imported": "E",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "zn",
+          "imported": "En",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Bn",
+          "imported": "Et",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Vn",
+          "imported": "Fo",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Hn",
+          "imported": "Ft",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Un",
+          "imported": "Ga",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Wn",
+          "imported": "Go",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Gn",
+          "imported": "Gr",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Kn",
+          "imported": "Ho",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "qn",
+          "imported": "Hr",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Jn",
+          "imported": "Io",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Yn",
+          "imported": "Ir",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Xn",
+          "imported": "Jo",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Zn",
+          "imported": "Kr",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Qn",
+          "imported": "Kt",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "$n",
+          "imported": "Lo",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "er",
+          "imported": "Lt",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "tr",
+          "imported": "Mo",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "nr",
+          "imported": "Nt",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "rr",
+          "imported": "Oo",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "ir",
+          "imported": "Ot",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "ar",
+          "imported": "Pn",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "or",
+          "imported": "Po",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "sr",
+          "imported": "Sn",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "cr",
+          "imported": "So",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "lr",
+          "imported": "Tn",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "ur",
+          "imported": "Ua",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "dr",
+          "imported": "Uo",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "fr",
+          "imported": "Ut",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "pr",
+          "imported": "Vi",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "mr",
+          "imported": "Vo",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "hr",
+          "imported": "Wo",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "gr",
+          "imported": "Wt",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "_r",
+          "imported": "Xo",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "vr",
+          "imported": "Xt",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "yr",
+          "imported": "_n",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "br",
+          "imported": "ao",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "xr",
+          "imported": "bn",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Sr",
+          "imported": "bo",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Cr",
+          "imported": "es",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "wr",
+          "imported": "i",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Tr",
+          "imported": "jo",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Er",
+          "imported": "kn",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Dr",
+          "imported": "ko",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Or",
+          "imported": "os",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "kr",
+          "imported": "pn",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Ar",
+          "imported": "qo",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "jr",
+          "imported": "ss",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Mr",
+          "imported": "t",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Nr",
+          "imported": "vi",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Pr",
+          "imported": "vo",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "G",
+          "imported": "wn",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Fr",
+          "imported": "wo",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Ir",
+          "imported": "xi",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Lr",
+          "imported": "xn",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Rr",
+          "imported": "xo",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "zr",
+          "imported": "yi",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Br",
+          "imported": "yn",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Vr",
+          "imported": "yo",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "K",
+          "imported": "zt",
+          "from": "./systemHeaderVisibility-Btw7taZf.js"
+        },
+        {
+          "local": "Hr",
+          "imported": "a",
+          "from": "./pixiRendererLifetime-L7wxZrPO.js"
+        },
+        {
+          "local": "Ur",
+          "imported": "r",
+          "from": "./pixiRendererLifetime-L7wxZrPO.js"
+        },
+        {
+          "local": "Wr",
+          "imported": "t",
+          "from": "./pixiRendererLifetime-L7wxZrPO.js"
+        },
+        {
+          "local": "Gr",
+          "imported": "n",
+          "from": "./AsyncEpoch-CNO0Zv7_.js"
+        },
+        {
+          "local": "Kr",
+          "imported": "a",
+          "from": "./worldAssets-Dd7uOlcY.js"
+        },
+        {
+          "local": "qr",
+          "imported": "i",
+          "from": "./worldAssets-Dd7uOlcY.js"
+        },
+        {
+          "local": "Jr",
+          "imported": "n",
+          "from": "./worldAssets-Dd7uOlcY.js"
+        },
+        {
+          "local": "Yr",
+          "imported": "o",
+          "from": "./worldAssets-Dd7uOlcY.js"
+        }
+      ]
+    },
+    {
+      "fixture": "chunks/quinoaPredictionAtoms-ptrrFeF6.js",
+      "chunk": "quinoaPredictionAtoms-ptrrFeF6.js",
+      "fileUrl": "https://magicgarden.gg/version/1176/assets/quinoaPredictionAtoms-ptrrFeF6.js",
+      "cuts": [
+        {
+          "declaration": "E",
+          "sourceStart": 820113,
+          "sourceEnd": 843858,
+          "fixtureStart": 187,
+          "fixtureEnd": 23932
+        },
+        {
+          "declaration": "B",
+          "sourceStart": 901616,
+          "sourceEnd": 901681,
+          "fixtureStart": 23944,
+          "fixtureEnd": 24009
+        },
+        {
+          "declaration": "Pa",
+          "sourceStart": 901685,
+          "sourceEnd": 901766,
+          "fixtureStart": 24022,
+          "fixtureEnd": 24103
+        },
+        {
+          "declaration": "V",
+          "sourceStart": 901975,
+          "sourceEnd": 936353,
+          "fixtureStart": 24115,
+          "fixtureEnd": 58493
+        },
+        {
+          "declaration": "U",
+          "sourceStart": 937743,
+          "sourceEnd": 938793,
+          "fixtureStart": 58505,
+          "fixtureEnd": 59555
+        }
+      ],
+      "imports": [
+        {
+          "local": "e",
+          "imported": "a",
+          "from": "./rolldown-runtime-CNC7AqOf.js"
+        },
+        {
+          "local": "t",
+          "imported": "B",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "n",
+          "imported": "J",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "r",
+          "imported": "Q",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "i",
+          "imported": "T",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "a",
+          "imported": "U",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "o",
+          "imported": "X",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "s",
+          "imported": "Y",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "c",
+          "imported": "Z",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "l",
+          "imported": "at",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "u",
+          "imported": "ct",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "d",
+          "imported": "ft",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "f",
+          "imported": "ht",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "p",
+          "imported": "it",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "m",
+          "imported": "nt",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "h",
+          "imported": "ot",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "g",
+          "imported": "pt",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "_",
+          "imported": "rt",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "v",
+          "imported": "st",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "y",
+          "imported": "tt",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "b",
+          "imported": "ut",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "x",
+          "imported": "vt",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "S",
+          "imported": "z",
+          "from": "./environment-DLSncPxC.js"
+        },
+        {
+          "local": "ee",
+          "imported": "Ai",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "te",
+          "imported": "D",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "ne",
+          "imported": "F",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "re",
+          "imported": "G",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "ie",
+          "imported": "Ii",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "ae",
+          "imported": "Mi",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "oe",
+          "imported": "V",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "se",
+          "imported": "Y",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "ce",
+          "imported": "ea",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "le",
+          "imported": "fi",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "ue",
+          "imported": "j",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "de",
+          "imported": "q",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "fe",
+          "imported": "r",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "pe",
+          "imported": "ra",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "me",
+          "imported": "z",
+          "from": "./dist-BImg9e3T.js"
+        },
+        {
+          "local": "he",
+          "imported": "n",
+          "from": "./vanilla-BZYo6kU_.js"
+        },
+        {
+          "local": "C",
+          "imported": "t",
+          "from": "./vanilla-BZYo6kU_.js"
+        },
+        {
+          "local": "ge",
+          "imported": "c",
+          "from": "./resumeRecoveryEvents-B5wN2pLe.js"
+        },
+        {
+          "local": "_e",
+          "imported": "i",
+          "from": "./lib-Bkwr-vWa.js"
+        },
+        {
+          "local": "w",
+          "imported": "n",
+          "from": "./lib-Bkwr-vWa.js"
+        },
+        {
+          "local": "ve",
+          "imported": "r",
+          "from": "./lib-Bkwr-vWa.js"
+        },
+        {
+          "local": "ye",
+          "imported": "v",
+          "from": "./lib-CP2SVpIf.js"
+        },
+        {
+          "local": "be",
+          "imported": "n",
+          "from": "./quinoaAssetResolver-CUazR2Ji.js"
+        }
+      ]
+    }
+  ]
+}
