@@ -14,8 +14,26 @@
  *   - `@mg.js/art/node`    the pixels: KTX2 to RGBA through the vendored Basis transcoder, frame cropping
  *                          and the PNG codec. Imports `node:zlib` and `node:fs`.
  *
- * Nothing is exported yet: the model lands one commit at a time, each with the consumer test it has to
- * keep passing.
+ * The model lands one commit at a time, each with the consumer test it has to keep passing. `model.ts` holds
+ * the first of it: a frame's drawn size and anchor, and the box arithmetic a picture's parts are placed with.
  */
 
-export {};
+export type {
+  ArtBox,
+  AtlasFrame,
+  FrameBox,
+  PartExtent,
+  PartPlacement,
+  PictureFit,
+  PictureSpace,
+  PlacedPart,
+} from './model.js';
+export {
+  boxOf,
+  extentOf,
+  fitPicture,
+  frameBox,
+  PLACEMENT_ANCHOR_Y,
+  placePart,
+  REFERENCE_TILE_PX,
+} from './model.js';
