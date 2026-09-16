@@ -1,0 +1,104 @@
+{
+  "note": "Written by fixtures/build-fixtures.mjs from the live game and the live community API. Nothing in the tests touches the network; these files are what they read.",
+  "capturedFrom": {
+    "origin": "https://magicgarden.gg",
+    "community": "https://mg-api.ariedam.fr",
+    "gameVersion": "1192",
+    "manifest": "https://magicgarden.gg/version/1192/assets/manifest.json"
+  },
+  "pack": {
+    "alias": "atlases/sprites-0.json",
+    "resolution": 2,
+    "url": "https://magicgarden.gg/version/1192/assets/atlases/sprites-2x-0.json",
+    "file": "sprites-2x-0.pack.json",
+    "bytes": 33719,
+    "sha256": "333266fa2518bb19cf2fe16418b7271aa938552b2329439bcd7c023a551f94af",
+    "frames": 127
+  },
+  "atlas": {
+    "url": "https://magicgarden.gg/runtime-assets/sprites-2x-0.f8d9eded5f10abf24410.ktx2",
+    "bytes": 4856876,
+    "sha256": "f8d9eded5f10abf244100ac69eed9c7ff62fca4690f8130408f2ff7b05034d82",
+    "vkFormat": 0,
+    "typeSize": 1,
+    "width": 4044,
+    "height": 4088,
+    "layerCount": 0,
+    "faceCount": 1,
+    "levelCount": 12,
+    "supercompressionScheme": 2,
+    "level0": {
+      "byteOffset": 1902759,
+      "byteLength": 2954117,
+      "uncompressed": 16531872
+    },
+    "uastcBlockBytes": 16,
+    "uastcBlockEdge": 4
+  },
+  "transcoder": {
+    "files": [
+      {
+        "file": "basis_transcoder.js",
+        "bytes": 57529,
+        "sha256": "8478b5b6d6b74e7d3082b89f6417321d8d1dc0307f2b30d4484bb11b441696a1"
+      },
+      {
+        "file": "basis_transcoder.wasm",
+        "bytes": 527333,
+        "sha256": "6cf17dc889352c42e9acf8897107978d127005fe3386c36a0e3845e27967630a"
+      }
+    ],
+    "source": "Magic-garden-API/src/assets/wasm/ at commit e69bddb, \"Added ktx2 format for sprite\"",
+    "licence": "assets/basis_transcoder.LICENSE (Apache-2.0, plus the Zstandard decoder's BSD-3-Clause)"
+  },
+  "frames": {
+    "sprite/animation/NotifyFlag-0": {
+      "slug": "notifyflag-0",
+      "crop": {
+        "x": 1360,
+        "y": 2968,
+        "w": 188,
+        "h": 88
+      },
+      "blockColumns": 47,
+      "blockRows": 22,
+      "cropKtx2Bytes": 7540,
+      "cropKtx2Sha256": "3036ccdf9b0dd45254eb3039a16b78fa681cb0d6b4feae4d23c62ef38e7b4423",
+      "rawUastcBytes": 16544,
+      "zstdBytes": 7300,
+      "oracle": {
+        "url": "https://mg-api.ariedam.fr/assets/sprites/animations/NotifyFlag-0.png?v=1192",
+        "pngBytes": 12283,
+        "pngSha256": "a7b4aab2a59b6d9627080edd47aebb0a77d8e48e099a4f42107be2529fb4b92c",
+        "rgbaBytes": 131072,
+        "file": "notifyflag-0.oracle.rgba.gz",
+        "gzipBytes": 11997,
+        "sha256": "bcafd1cd3e10ae8e31dc681f3601d82a93fdf9c76267be76b811de70d3ebb5b8"
+      }
+    },
+    "sprite/ui/Thumbtack": {
+      "slug": "thumbtack",
+      "crop": {
+        "x": 996,
+        "y": 2296,
+        "w": 32,
+        "h": 56
+      },
+      "blockColumns": 8,
+      "blockRows": 14,
+      "cropKtx2Bytes": 1410,
+      "cropKtx2Sha256": "1327384dfb18ef115df0ee667fa20327b6720fc2bd7b77c100880088812523c6",
+      "rawUastcBytes": 1792,
+      "zstdBytes": 1178,
+      "oracle": {
+        "url": "https://mg-api.ariedam.fr/assets/sprites/ui/Thumbtack.png?v=1192",
+        "pngBytes": 1622,
+        "pngSha256": "fef5184a61e659afec27bce46056819240757995724cb02f287ca7383f49ee54",
+        "rgbaBytes": 6600,
+        "file": "thumbtack.oracle.rgba.gz",
+        "gzipBytes": 1539,
+        "sha256": "9a2e6204860ebcc9654d1e7528e05afe5fe01ede56b618a4566763d075772785"
+      }
+    }
+  }
+}

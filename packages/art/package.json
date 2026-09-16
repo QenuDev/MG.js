@@ -26,6 +26,7 @@
   "files": [
     "dist",
     "src",
+    "assets",
     "!dist/.tsbuildinfo"
   ],
   "publishConfig": {

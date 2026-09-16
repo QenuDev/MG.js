@@ -11,7 +11,19 @@
  *
  * `node:zlib` and `node:fs` are the whole reason this is a separate entry rather than part of the model.
  *
- * Nothing is exported yet -- the codec lands with the tests it moves from the viewer.
+ * The codec has landed. The PNG half is not here yet: it comes with the commit that moves it out of the
+ * viewer, with the viewer's tests as the proof the move was faithful.
  */
 
-export {};
+export {
+  type AtlasFrame,
+  type DecodedAtlas,
+  decodeKtx2,
+  decodeKtx2File,
+  type FrameRect,
+  frameBytes,
+  frameSize,
+  type Ktx2Header,
+  type Ktx2Level,
+  readKtx2Header,
+} from './ktx2.js';
