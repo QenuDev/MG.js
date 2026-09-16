@@ -47,20 +47,143 @@ if (built.length < entries.length) {
 }
 
 /**
+ * Which characters of a built file are code, and which sit inside a string, template or comment.
+ *
+ * Not a parser, but not a regex either, and it has to be one of the two. Two earlier versions of this file
+ * were wrong, and both are worth knowing about:
+ *
+ *   * A bare regex over the whole file reported that `dist/bundle/data.js` imported
+ *     `", JSON.stringify(gameVersion));\n }` — because an error message in that file ends with the words
+ *     "read from" and a quote follows.
+ *   * Blanking the literals before matching was worse. `import 'node:fs'` *is* a literal, so blanking it
+ *     removed the specifier the gate exists to find: appending that line to `dist/index.js` left the suite
+ *     green, which is a gate that has stopped gating.
+ *
+ * So the mask guards the *keyword*, not the specifier. A match counts when the `import` or `from` that
+ * introduces it begins in code; the specifier itself is a literal and always will be.
+ *
+ * A template's `${...}` is code and is marked as such, because a specifier inside an interpolation is a real
+ * specifier and a gate that ignored it would be the same failure a third time.
+ */
+function codeMask(source: string): boolean[] {
+  const mask = new Array<boolean>(source.length).fill(true);
+  type Frame = { kind: 'code'; braces: number } | { kind: 'quote'; quote: string } | { kind: 'template' };
+  const frames: Frame[] = [{ kind: 'code', braces: -1 }];
+
+  const literal = (from: number, to: number): void => {
+    for (let index = from; index < to && index < mask.length; index += 1) mask[index] = false;
+  };
+
+  let index = 0;
+  while (index < source.length) {
+    const frame = frames[frames.length - 1];
+    if (frame === undefined) break;
+    const char = source[index] ?? '';
+
+    if (frame.kind === 'quote') {
+      if (char === '\\') {
+        literal(index, index + 2);
+        index += 2;
+        continue;
+      }
+      if (char === frame.quote) {
+        frames.pop();
+        literal(index, index + 1);
+        index += 1;
+        continue;
+      }
+      literal(index, index + 1);
+      index += 1;
+      continue;
+    }
+
+    if (frame.kind === 'template') {
+      if (char === '\\') {
+        literal(index, index + 2);
+        index += 2;
+        continue;
+      }
+      if (char === '`') {
+        frames.pop();
+        literal(index, index + 1);
+        index += 1;
+        continue;
+      }
+      if (char === '$' && source[index + 1] === '{') {
+        literal(index, index + 2);
+        frames.push({ kind: 'code', braces: 0 });
+        index += 2;
+        continue;
+      }
+      literal(index, index + 1);
+      index += 1;
+      continue;
+    }
+
+    // Code: the three ways a literal starts, the brace that ends an interpolation, and nothing else.
+    if (char === '/' && source[index + 1] === '/') {
+      const end = source.indexOf('\n', index);
+      const stop = end === -1 ? source.length : end;
+      literal(index, stop);
+      index = stop;
+      continue;
+    }
+    if (char === '/' && source[index + 1] === '*') {
+      const end = source.indexOf('*/', index + 2);
+      const stop = end === -1 ? source.length : end + 2;
+      literal(index, stop);
+      index = stop;
+      continue;
+    }
+    if (char === '"' || char === "'") {
+      frames.push({ kind: 'quote', quote: char });
+      literal(index, index + 1);
+      index += 1;
+      continue;
+    }
+    if (char === '`') {
+      frames.push({ kind: 'template' });
+      literal(index, index + 1);
+      index += 1;
+      continue;
+    }
+    if (frame.braces >= 0) {
+      if (char === '{') frame.braces += 1;
+      else if (char === '}') {
+        if (frame.braces === 0) {
+          frames.pop();
+          literal(index, index + 1);
+          index += 1;
+          continue;
+        }
+        frame.braces -= 1;
+      }
+    }
+    index += 1;
+  }
+  return mask;
+}
+
+/**
  * Every specifier a built ES module can load, whichever of the three forms it uses.
  *
  * Deliberately not a parser. The build emits plain `import ... from '...'`, `export ... from '...'` and
  * `await import('...')`, with no comments to speak of and no computed specifiers, because that is what
- * TypeScript emits for the source this package is allowed to contain.
+ * TypeScript emits for the source this package is allowed to contain. The mask is what keeps a phrase in an
+ * error message from being read as one.
  */
 function specifiersOf(source: string): string[] {
+  const code = codeMask(source);
   const found: string[] = [];
   for (const pattern of [
     /\bfrom\s*['"]([^'"]+)['"]/g,
     /\bimport\s*['"]([^'"]+)['"]/g,
     /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
   ]) {
-    for (const match of source.matchAll(pattern)) found.push(match[1] ?? '');
+    for (const match of source.matchAll(pattern)) {
+      if (match.index === undefined || code[match.index] !== true) continue;
+      found.push(match[1] ?? '');
+    }
   }
   return found;
 }
