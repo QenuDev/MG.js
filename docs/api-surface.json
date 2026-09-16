@@ -177,6 +177,24 @@
         "StatedAnchor"
       ]
     },
+    "art/plant": {
+      "Function": [
+        "plantPicture"
+      ],
+      "Interface": [
+        "PlantArt",
+        "PlantArtwork",
+        "PlantCrop",
+        "PlantLayer",
+        "PlantOverlay",
+        "PlantRecipe",
+        "PlantScene",
+        "PotArt"
+      ],
+      "TypeAlias": [
+        "PlantLayerKind"
+      ]
+    },
     "art/source": {
       "Function": [
         "atlasImage",

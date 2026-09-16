@@ -73,5 +73,17 @@ export type {
   StatedAnchor,
 } from './placement.js';
 export { mutationAnchor, mutationPlacement } from './placement.js';
+export type {
+  PlantArt,
+  PlantArtwork,
+  PlantCrop,
+  PlantLayer,
+  PlantLayerKind,
+  PlantOverlay,
+  PlantRecipe,
+  PlantScene,
+  PotArt,
+} from './plant.js';
+export { plantPicture } from './plant.js';
 export type { SpriteFrames, SpriteNameMap } from './sprite.js';
 export { resolveSprite, spriteName } from './sprite.js';
