@@ -1,7 +1,7 @@
 /**
- * `@mg.js/art/node`: pixels.
+ * `@mg.js/art/node`: pixels, and the tables that ship with them.
  *
- * Three jobs, all of which need something the pure entry must not have:
+ * Four jobs, all of which need something the pure entry must not have:
  *
  *   - KTX2 to RGBA, through the Basis Universal transcoder that ships in `assets/`. The game publishes its
  *     atlas as KTX2 with Zstandard supercompression and UASTC payload, which is not a format Node reads.
@@ -10,10 +10,14 @@
  *   - the PNG codec, so a consumer can decode a sprite, composite layers and encode a result without
  *     reaching for a native image library. It moved here from the viewer's own `png.mjs`, with the tests
  *     that covered it.
+ *   - the tables in `data/<version>.json`: `readArtData` reads the file the package carries and
+ *     `artDataVersions` says which versions it carries. That file is the game's own numbers, and a consumer
+ *     that has the atlas but not the tables can draw nothing.
  *
  * `node:zlib` and `node:fs` are the whole reason this is a separate entry rather than part of the model.
  */
 
+export { artDataVersions, readArtData } from './data.js';
 export {
   type AtlasFrame,
   type DecodedAtlas,

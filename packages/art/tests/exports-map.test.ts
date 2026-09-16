@@ -61,6 +61,8 @@ const REQUIRED_RUNTIME_EXPORTS: Record<string, readonly string[]> = {
     'scaled',
     'pngSize',
     'washArt',
+    'artDataVersions',
+    'readArtData',
   ],
 };
 

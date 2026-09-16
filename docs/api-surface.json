@@ -136,6 +136,7 @@
     },
     "art/node": {
       "Function": [
+        "artDataVersions",
         "decodeKtx2",
         "decodeKtx2File",
         "decodePng",
@@ -144,6 +145,7 @@
         "frameBytes",
         "frameSize",
         "pngSize",
+        "readArtData",
         "readKtx2Header",
         "scaled",
         "washArt"
