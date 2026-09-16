@@ -203,7 +203,8 @@
         "gameVersion"
       ],
       "Interface": [
-        "ArtSourceOptions"
+        "ArtSourceOptions",
+        "AtlasPacks"
       ],
       "TypeAlias": [
         "RevisionInput"

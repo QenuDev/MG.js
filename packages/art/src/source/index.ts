@@ -17,7 +17,7 @@
  * from. The three fetchers each have their own offline fixture beside them, in `fixtures/atlas/`.
  */
 
-export { atlasImage, atlasPacks } from './atlas.js';
+export { type AtlasPacks, atlasImage, atlasPacks } from './atlas.js';
 export { gameVersion } from './game.js';
 export type { ArtSourceOptions } from './http.js';
 export type { RevisionInput } from './revision.js';

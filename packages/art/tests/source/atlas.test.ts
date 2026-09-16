@@ -291,6 +291,45 @@ void test('a pack that points off the game’s origin is refused, not fetched', 
   assert.equal(stub.saw(elsewhere), false, 'the refusal happens before the request is made');
 });
 
+void test('the pack URLs the walk resolved are reachable from the map it answers', async () => {
+  // `atlasImage` takes a pack URL and nothing else in the package publishes one: the first pack's name is
+  // relative to `/version/<v>/assets/` in the manifest and a sibling's is a bare filename inside its pack,
+  // so a caller that had only the frame map would have to write the path down. The walk is the only place
+  // both are resolved, so it is where the resolved URLs come from.
+  const stub = stubFetch(atlasRoutes({ [IMAGE]: () => binaryResponse(IMAGE_BYTES) }));
+
+  const frames = await atlasPacks(VERSION, { fetch: stub.fetch });
+
+  assert.deepEqual(
+    frames.packs,
+    [FIRST_PACK, ...RELATED.map((name) => `${ASSETS}atlases/${name}`)],
+    'the manifest’s own pack first, then the siblings in the order the first pack names them',
+  );
+
+  // The whole point: the URL the walk hands back is one `atlasImage` takes, without a host being written
+  // down and without a second walk.
+  const [firstPack] = frames.packs;
+  assert.equal(firstPack, FIRST_PACK, 'the first URL is the pack the manifest named');
+  const image = await atlasImage(firstPack, { fetch: stub.fetch });
+  assert.deepEqual([...image], [...IMAGE_BYTES], 'the first pack is the one whose image the frames are in');
+  assert.equal(stub.count(FIRST_PACK), 1, 'and reading it is not a second request for the pack');
+
+  // Still a map, and still only the frames: `packs` is an own property rather than an entry.
+  assert.equal(frames.size, 5);
+  assert.equal([...frames.keys()][0], 'sprite/animation/NotifyFlag-0');
+  assert.deepEqual(
+    [...frames].some(([key]) => key === 'packs'),
+    false,
+    'the packs are not a frame',
+  );
+});
+
+void test('a manifest that names no resolution-2 pack is still refused, and answers no packs', async () => {
+  // The TypeError is unchanged and comes before any walk: an empty version is not a version whose manifest
+  // can be read, so there is no map and no pack URL to hand anybody.
+  await assert.rejects(atlasPacks(''), /needs the art version/);
+});
+
 void test('a fetched answer is reused until the TTL passes, against an injected clock', async () => {
   const stub = stubFetch(atlasRoutes());
   let clock = 1_700_000_000_000;

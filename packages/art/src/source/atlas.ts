@@ -35,6 +35,30 @@ const SPRITE_ALIAS = 'atlases/sprites-0.json';
 const SPRITE_RESOLUTION = 2;
 
 /**
+ * The frame map `atlasPacks` answers, and the packs it was read from.
+ *
+ * The packs are here because `atlasImage` takes one and nothing else publishes it: the manifest names the
+ * first pack as a path relative to `/version/<v>/assets/`, the rest are bare filenames inside the packs
+ * themselves, and the walk that read them is the only thing that ever knew the resolved URLs. A caller that
+ * wants the game's own pixels -- the whole reason `/source` exists -- would otherwise have to write
+ * `atlases/sprites-2x-0.json` down and resolve it against an origin it does not own.
+ *
+ * Still a `ReadonlyMap`, so every caller that only wants frames is unchanged; `packs` is an own property and
+ * not an entry, so the map still answers exactly the frames it did before.
+ */
+export interface AtlasPacks extends ReadonlyMap<string, FrameBox> {
+  /**
+   * The URL of every pack the walk read, in the order it read them.
+   *
+   * `packs[0]` is the pack the manifest itself names -- the resolution-2 sprite atlas the walk starts at, and
+   * the one `atlasImage` is handed for the image those frames are drawn from. The rest are the siblings that
+   * pack's `meta.related_multi_packs` reaches, each with its own `meta.image`: a frame from one of those is a
+   * rect in *that* pack's image, which is why the URL is a list rather than one string.
+   */
+  readonly packs: readonly string[];
+}
+
+/**
  * Every frame of the sprite atlas, keyed as the game keys it, at resolution 2.
  *
  * The walk is a queue rather than a fixed list because the set is not in the manifest: pack 0 names packs
@@ -44,11 +68,12 @@ const SPRITE_RESOLUTION = 2;
  * The values are `frameBox(frame)` -- the drawn size, the divisor and the anchor -- rather than the pack's
  * raw frame records. Everything else a frame states (`rotated`, `trimmed`, `spriteSourceSize`, the rect
  * itself) belongs to the codec, which is the entry that has to read pixels.
+ *
+ * The resolved URL of each pack is kept as it is walked (`AtlasPacks.packs`), because `atlasImage` takes a
+ * pack URL and this walk is the only place the relative names in the manifest and in `related_multi_packs`
+ * are ever turned into one.
  */
-export async function atlasPacks(
-  artVersion: string,
-  options: ArtSourceOptions = {},
-): Promise<ReadonlyMap<string, FrameBox>> {
+export async function atlasPacks(artVersion: string, options: ArtSourceOptions = {}): Promise<AtlasPacks> {
   if (artVersion === '') {
     throw new TypeError('atlasPacks needs the art version whose manifest it should read');
   }
@@ -60,6 +85,7 @@ export async function atlasPacks(
   const first = firstPackPath(await json<unknown>(manifestUrl, options), manifestUrl);
 
   const frames = new Map<string, FrameBox>();
+  const packs: string[] = [];
   const walked = new Set<string>();
   const queue: string[] = [first];
 
@@ -68,7 +94,9 @@ export async function atlasPacks(
     if (path === undefined || walked.has(path)) continue;
     walked.add(path);
 
-    const pack = await json<unknown>(new URL(path, assets).href, options);
+    const url = new URL(path, assets).href;
+    packs.push(url);
+    const pack = await json<unknown>(url, options);
     for (const [key, frame] of Object.entries(record(record(pack)?.frames) ?? {})) {
       frames.set(key, frameBox(frame));
     }
@@ -84,7 +112,9 @@ export async function atlasPacks(
     }
   }
 
-  return frames;
+  // An own property rather than an entry: `for...of`, `frames.get` and `frames.size` see the frames and
+  // nothing else, so every caller that only wants them is unchanged.
+  return Object.assign(frames, { packs: Object.freeze(packs) });
 }
 
 /**
