@@ -13,7 +13,7 @@ endpoint nowhere — so it cannot live in the package whose rule is that the ser
 
 | Import | Imports at runtime | What it is for |
 |---|---|---|
-| `@mg.js/art` | nothing | The model. Values in, values out. Because it imports nothing, the built file can be served to a browser as one module with no bundler. |
+| `@mg.js/art` | nothing | The model. Values in, values out. It imports nothing from outside itself, so the built entry and the six modules it re-exports can be served to a browser exactly as TypeScript emitted them, with no bundler. (The graph, not one file: `dist/index.js` re-exports `./crop.js`, `./icon.js`, `./model.js`, `./mutation.js`, `./placement.js`, `./plant.js`, `./sprite.js`, and a browser resolves those natively. Copying the entry alone gets 404s.) |
 | `@mg.js/art/bundle` | nothing | The extractor: predicates over a parsed game chunk, plus the validator. An AST in, the game's tables out. The parser is the caller's, so this entry needs none. |
 | `@mg.js/art/source` | `@mg.js/common/catalog` | The network: the game's version, its atlas packs and their frames, the atlas image, the caches and the content revision. |
 | `@mg.js/art/node` | `node:` modules (`zlib`, `fs`, and `module`/`path`/`url` through the transcoder) | The pixels — KTX2 to RGBA, frame cropping, the PNG codec — and the shipped tables: `artDataVersions()` and `readArtData(version)` read `data/<version>.json` the way the sync wrote it, validated by the same parser a fetched document goes through. |
