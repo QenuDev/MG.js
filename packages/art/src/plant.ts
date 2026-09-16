@@ -79,12 +79,10 @@ export interface PlantArt {
 }
 
 /**
- * The pot every potted plant stands in.
+ * The pot every potted plant stands in, as the caller read it out of the atlas.
  *
- * Its own anchor is the game's, not the atlas frame's: the game's pot sprite is constructed with
- * `anchor:{x:.5, y:.2}` so that the pot's rim stands around the plant's foot rather than the pot being
- * centred on it, and the frame the atlas states says only where the pot's art is. A caller that states its
- * own anchor is drawn by it.
+ * The frame is the atlas's and says only where the pot's art is; the anchor is the game's and is
+ * `PLANTER_POT`'s unless the caller states its own, which is drawn by instead.
  */
 export interface PotArt extends PlantArtwork {
   readonly anchorX?: number;
@@ -171,9 +169,29 @@ export interface PlantRecipe {
   readonly layers: readonly PlantLayer[];
 }
 
-/** The pot's own anchor as the game states it, on the sprite its renderer constructs. */
-const POT_ANCHOR_X = 0.5;
-const POT_ANCHOR_Y = 0.2;
+/**
+ * The pot the game stands a potted plant in, and the anchor it places it by.
+ *
+ * The name is the game's own key into its item sprite table, and the anchor belongs to the sprite the game
+ * constructs rather than to the atlas frame: the frame says only where the pot's art is, and the game builds
+ * the pot with `anchor:{x:.5, y:.2}` so that its rim stands around the plant's foot instead of the pot being
+ * centred on it.
+ *
+ * Both are here rather than written down by each caller because a consumer that draws a potted plant needs
+ * exactly these two things and has the atlas to get the pot's size from. A caller that states its own anchor
+ * for the pot is drawn by it.
+ */
+export const PLANTER_POT: PotDrawing = { sprite: 'PlanterPot', anchorX: 0.5, anchorY: 0.2 };
+
+/** The pot's sprite name and the anchor the game places it by. */
+export interface PotDrawing {
+  /** The name the game's item table states the pot's sprite under. */
+  readonly sprite: string;
+  /** How far across its own frame the pot is placed, as the game constructs it. */
+  readonly anchorX: number;
+  /** And how far down, which is the one that matters: `.2` puts the plant's foot inside the rim. */
+  readonly anchorY: number;
+}
 
 /** A crop that states no scale of its own is drawn at its art's own size, not at nothing. */
 const UNIT_SCALE = 1;
@@ -269,12 +287,12 @@ export function plantPicture(
     layers.unshift({
       kind: 'pot',
       sprite: pot.sprite,
-      left: -(pot.anchorX ?? POT_ANCHOR_X) * pot.frame.width,
-      top: -(pot.anchorY ?? POT_ANCHOR_Y) * pot.frame.height,
+      left: -(pot.anchorX ?? PLANTER_POT.anchorX) * pot.frame.width,
+      top: -(pot.anchorY ?? PLANTER_POT.anchorY) * pot.frame.height,
       width: pot.frame.width,
       height: pot.frame.height,
-      anchorX: pot.anchorX ?? POT_ANCHOR_X,
-      anchorY: pot.anchorY ?? POT_ANCHOR_Y,
+      anchorX: pot.anchorX ?? PLANTER_POT.anchorX,
+      anchorY: pot.anchorY ?? PLANTER_POT.anchorY,
       turn: 0,
       composition: null,
     });

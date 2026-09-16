@@ -83,7 +83,8 @@ export type {
   PlantRecipe,
   PlantScene,
   PotArt,
+  PotDrawing,
 } from './plant.js';
-export { plantPicture } from './plant.js';
+export { PLANTER_POT, plantPicture } from './plant.js';
 export type { SpriteFrames, SpriteNameMap } from './sprite.js';
 export { resolveSprite, spriteName } from './sprite.js';
