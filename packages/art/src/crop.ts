@@ -309,12 +309,16 @@ export function cropComposition(
     const stated = tables.mutationArt[name];
     return stated !== undefined && mutationArt({ ...stated, name }).material;
   });
-  // The game washes the art with the group it washes last, and with every mutation of it: measured on a
-  // clover wearing `Frozen` and `Thunderstruck` (both Hydro) the picture is the two washes stacked -- 119 of
-  // 119 opaque pixels below the mutation pictures match that and 0 match either alone -- and on a Beet
-  // wearing `Ambershine` and `Thundercharged` it is the Lunar colour alone, 3235 of 3235, where the table's
-  // last row is the Hydro one. The answer is a list rather than one tint because a group can be more than one
-  // mutation, and its length is the "how many washes" a consumer needs.
+  // The game washes the art with the group it washes last, and with every mutation of it. Of the two cases
+  // measured against the mirror at the foot of the art, only the second is a set a garden can hold -- a plant
+  // wears at most one mutation per group, so nothing ever wears two Hydro mutations, and the first is measured
+  // only because a composer answers whatever it is asked. The reachable case is the one that carries the rule:
+  // a Beet wearing `Ambershine` and `Thundercharged` is washed by the Lunar colour alone, 3235 of 3235, where
+  // the table's last row is the Hydro one -- so the table-order rule this replaced drew the wrong picture for a
+  // set a garden really holds. The stacked case, for completeness: a clover wearing `Frozen` and
+  // `Thunderstruck` matches the two washes at 119 of 119 opaque pixels below the mutation pictures and 0 match
+  // either alone. The answer is a list rather than one tint because a group can be more than one mutation, and
+  // its length is the "how many washes" a consumer needs.
   const washes = washesOf(tables, mutations, material);
 
   const under: CropLayer[] = [];
