@@ -15,7 +15,9 @@
  *                          and the PNG codec. Imports `node:zlib` and `node:fs`.
  *
  * The model lands one commit at a time, each with the consumer test it has to keep passing. `model.ts` holds
- * the first of it: a frame's drawn size and anchor, and the box arithmetic a picture's parts are placed with.
+ * a frame's drawn size and anchor and the box arithmetic a picture's parts are placed with; `mutation.ts`
+ * holds what a mutation draws with -- its wash, its icon, the band it stacks in and the art it lays on a tall
+ * plant -- with the mutation record as an argument rather than as a table written down here.
  */
 
 export type {
@@ -37,3 +39,11 @@ export {
   placePart,
   REFERENCE_TILE_PX,
 } from './model.js';
+export type {
+  MutationArtRecord,
+  MutationDrawing,
+  MutationStack,
+  MutationTint,
+  OverlayArt,
+} from './mutation.js';
+export { mutationArt, mutationOverlayArt, mutationStack } from './mutation.js';

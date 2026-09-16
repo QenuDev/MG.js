@@ -24,6 +24,20 @@
         "REFERENCE_TILE_PX"
       ]
     },
+    "art/mutation": {
+      "Function": [
+        "mutationArt",
+        "mutationOverlayArt",
+        "mutationStack"
+      ],
+      "Interface": [
+        "MutationArtRecord",
+        "MutationDrawing",
+        "MutationStack",
+        "MutationTint",
+        "OverlayArt"
+      ]
+    },
     "art/node": {
       "Function": [
         "decodePng",

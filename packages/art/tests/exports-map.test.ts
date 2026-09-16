@@ -30,10 +30,20 @@ const manifest = JSON.parse(readFileSync(resolve(packageRoot, 'package.json'), '
  * four the package declares, in the order a reader meets them.
  */
 const REQUIRED_RUNTIME_EXPORTS: Record<string, readonly string[]> = {
-  '.': ['frameBox', 'REFERENCE_TILE_PX', 'boxOf', 'extentOf', 'placePart', 'fitPicture'],
+  '.': [
+    'frameBox',
+    'REFERENCE_TILE_PX',
+    'boxOf',
+    'extentOf',
+    'placePart',
+    'fitPicture',
+    'mutationArt',
+    'mutationStack',
+    'mutationOverlayArt',
+  ],
   './bundle': [],
   './source': [],
-  './node': [],
+  './node': ['decodePng', 'encodePng', 'drawOver', 'scaled', 'pngSize', 'washArt'],
 };
 
 const target = (subpath: string) => {
