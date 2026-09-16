@@ -53,6 +53,18 @@ export interface Provenance {
     uastcBlockBytes: number;
     uastcBlockEdge: number;
   };
+  /**
+   * The vendored transcoder's own record: both files with their byte counts and digests, the upstream commit
+   * they were taken from, and where the licence is.
+   *
+   * It has to be in this interface for `assets.test.ts` to read it, which is how the two halves stay in step:
+   * the test recomputes the digests and asserts they are the ones `provenance.json` records.
+   */
+  transcoder: {
+    files: { file: string; bytes: number; sha256: string }[];
+    source: string;
+    licence: string;
+  };
   frames: Record<string, FixtureFrame>;
 }
 
@@ -69,7 +81,8 @@ export const captured = Object.entries(provenance.frames);
 
 export function fixtureFrame(key: string): FixtureFrame {
   const entry = provenance.frames[key];
-  if (!entry) throw new Error(`no fixture for ${key}; captured: ${Object.keys(provenance.frames).join(', ')}`);
+  if (!entry)
+    throw new Error(`no fixture for ${key}; captured: ${Object.keys(provenance.frames).join(', ')}`);
   return entry;
 }
 
@@ -120,7 +133,8 @@ export function compare(ours: Uint8Array, oracle: Uint8Array): Comparison {
   let worst = 0;
   let total = 0;
   for (let i = 0; i < ours.byteLength; i += 1) {
-    const delta = Math.abs(ours[i] - oracle[i]);
+    // `noUncheckedIndexedAccess`: a typed array's index is `number | undefined` even inside its own bounds.
+    const delta = Math.abs((ours[i] ?? 0) - (oracle[i] ?? 0));
     if (delta !== 0) differing += 1;
     if (delta > worst) worst = delta;
     total += delta;

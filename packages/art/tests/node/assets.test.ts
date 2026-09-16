@@ -12,7 +12,7 @@
 
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { provenance } from './fixture-files.js';
@@ -23,7 +23,7 @@ void test('the vendored transcoder matches the digests recorded beside it', () =
   const recorded = new Map<string, string>();
   for (const line of readFileSync(`${ASSETS}basis_transcoder.sha256`, 'utf8').split('\n')) {
     const match = /^([0-9a-f]{64})\s+(.+)$/.exec(line.trim());
-    if (match) recorded.set(match[2], match[1]);
+    if (match?.[1] && match[2]) recorded.set(match[2], match[1]);
   }
   assert.deepEqual(
     [...recorded.keys()].sort(),

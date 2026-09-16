@@ -18,7 +18,6 @@ import {
   captured,
   compare,
   cropKtx2,
-  fixtureFrame,
   frameInCrop,
   frameOn,
   ORACLE_TOLERANCE,
@@ -42,11 +41,20 @@ void test('the header of each captured crop is read, and states the size it was 
     // The crop keeps the game's own format: same vkFormat, same block size, same supercompression.
     assert.equal(header.vkFormat, provenance.atlas.vkFormat, `${where}: vkFormat`);
     assert.equal(header.typeSize, provenance.atlas.typeSize, `${where}: typeSize`);
-    assert.equal(header.supercompressionScheme, provenance.atlas.supercompressionScheme, `${where}: supercompression`);
+    assert.equal(
+      header.supercompressionScheme,
+      provenance.atlas.supercompressionScheme,
+      `${where}: supercompression`,
+    );
     // The level index the header carries has to describe the bytes actually there.
     const level = header.levels[0];
+    assert.ok(level, `${where}: the header states a level 0`);
     assert.equal(level.byteOffset + level.byteLength, entry.cropKtx2Bytes, `${where}: level 0 ends the file`);
-    assert.equal(level.uncompressedByteLength, entry.rawUastcBytes, `${where}: level 0 inflates to the crop's blocks`);
+    assert.equal(
+      level.uncompressedByteLength,
+      entry.rawUastcBytes,
+      `${where}: level 0 inflates to the crop's blocks`,
+    );
   }
 });
 
@@ -80,7 +88,6 @@ void test('decoding a captured crop gives the dimensions its header states, twic
 });
 
 void test('a trimmed frame comes back at its source size, padded transparent, and matches the oracle', async () => {
-  const entry = fixtureFrame(TRIMMED);
   const frame = frameOn(TRIMMED);
   const source = frame.sourceSize;
   const sprite = frame.spriteSourceSize;
