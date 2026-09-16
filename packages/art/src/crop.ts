@@ -19,8 +19,10 @@
  *     the rest keep the mutation table's own order. The three numbers this file states are the consumer's
  *     raster bands for a flat canvas -- `-1`, `20 + order`, `30 + order` (`server.mjs:922-924`) -- and they
  *     are not published: the recipe is an ordered list, and the order is the whole answer.
- *   - the wash the art is drawn through, from `mutationArt`: `rgba(...)` for the mutation the crop wears, and
- *     `null` when it wears none or wears one the game hands to a shader.
+ *   - the washes the art is drawn through, from `mutationArt` and the mutation records: the game washes a
+ *     crop through every mutation of the group that washes last, and the group order is the mutation table's
+ *     own -- where each group first appears. `[]` when the crop wears nothing that washes, or wears a
+ *     mutation the game hands to a shader.
  *
  * Nothing here is a transcribed game value. The tables arrive as the caller's own record (`ArtTables`
  * satisfies `CropTables` as it stands), the atlas arrives as the frames the caller resolved with
@@ -81,6 +83,14 @@ export interface CropTables extends Omit<PlacementTables, 'plants'> {
   readonly plants: Readonly<Record<string, StatedSpeciesRecord>>;
   /** Mutation name -> the art the game states for it. The key is the name the over-set is stated in. */
   readonly mutationArt: Readonly<Record<string, StatedMutationArt>>;
+  /**
+   * Mutation name -> the record the game states it in, read for the group it is washed in.
+   *
+   * The group is the whole reason this is here: the game washes a crop through one *group*, not one mutation,
+   * so a wash cannot be chosen from `mutationArt` alone. The records are the extractor's own table
+   * (`bundle/tables.ts`'s `MutationRecord`), so the caller hands in the tables it already has.
+   */
+  readonly mutationRecords: Readonly<Record<string, { readonly group?: string | null }>>;
   /** The mutations the game draws above the crop rather than in the table's own order. */
   readonly overMutations: readonly string[];
 }
@@ -110,8 +120,14 @@ export interface CropLayer {
   readonly over: boolean;
   /** The mutation's own name, or `null` on the art layer. */
   readonly mutation: string | null;
-  /** The wash the art is drawn through, as `rgba(...)`, or `null`. Only the art layer carries one. */
-  readonly tint: string | null;
+  /**
+   * The washes the layer is drawn through, as `rgba(...)`, in the order the game mixes them.
+   *
+   * Only the art layer carries any. It is the game's *group*, not its top row: a crop wearing two mutations
+   * of one group is washed by both, in the mutation table's own order (measured -- see `tests/crop-wash.test.ts`).
+   * `[]` on a mutation's own picture, and on the art when nothing washes it or when it wears a material.
+   */
+  readonly washes: readonly string[];
   /** True when the crop wears a mutation the game hands to a shader, so no plain sprite makes this picture. */
   readonly material: boolean;
 }
@@ -167,6 +183,71 @@ function bandOf(placed: { decal: boolean }, stack: { over: boolean; order: numbe
 }
 
 /**
+ * The group a mutation is washed in: the record's own group, or the mutation itself when it states none.
+ *
+ * `mutationRecords` is the extractor's table, keyed by the mutation's name, and every mutation the shipped
+ * tables state carries a group. A mutation whose record is missing, or whose group is unstated, is answered
+ * as a group of its own rather than as a member of somebody else's: which group it belongs to is not stated,
+ * and joining it to one would be a guess.
+ */
+function washGroupOf(tables: CropTables, name: string): string {
+  const stated = tables.mutationRecords[name]?.group;
+  return typeof stated === 'string' && stated !== '' ? stated : name;
+}
+
+/**
+ * The groups the game washes colour in, in the order it washes them: where each first appears in the
+ * mutation table.
+ *
+ * Read rather than written down, and the read is the table's own order (`mutationArt`'s `order`), not the
+ * order the record's keys happen to be serialised in. For the committed tables that is `Growth` (`Rainbow`,
+ * order 0), `Hydro` (`Wet`, order 2) and `Lunar` (`Dawnlit`, order 6), which is why a Beet wearing
+ * `Ambershine` and `Thundercharged` keeps the Lunar wash although `Thundercharged` is the table's last row.
+ * The other reading -- a group's place from its own highest row -- is ruled out by that same case: it would
+ * put `Hydro` (row 10) after `Lunar` (row 9) and pick the wrong wash for all 3235 pixels.
+ */
+function washOrder(tables: CropTables): readonly string[] {
+  const byTableOrder = Object.entries(tables.mutationArt).sort(
+    ([, left], [, right]) => (left.order ?? 0) - (right.order ?? 0),
+  );
+  const groups: string[] = [];
+  for (const [name] of byTableOrder) {
+    const group = washGroupOf(tables, name);
+    if (!groups.includes(group)) groups.push(group);
+  }
+  return groups;
+}
+
+/**
+ * The washes a crop's own art is drawn through: every mutation of the group the game washes last.
+ *
+ * Read off the mutation tables rather than off the placements, as `material` is: the wash is the game's
+ * colour, and it does not stop being mixed because the caller's atlas happens to hold no frame for the
+ * mutation's picture. The order within the group is the table's (`order`), which is the order the game
+ * mixes them in; `name` breaks a tie, which the committed table has none of.
+ *
+ * `[]` when the crop wears nothing that washes it, or wears a material -- a filter the game hands to a
+ * shader, which is not a colour.
+ */
+function washesOf(tables: CropTables, mutations: readonly string[], material: boolean): readonly string[] {
+  if (material) return [];
+  const washing = mutations
+    .map((name) => {
+      const stated = tables.mutationArt[name];
+      if (stated === undefined) return null;
+      const drawing = mutationArt({ ...stated, name });
+      if (drawing.material || drawing.tint === null) return null;
+      return { name, tint: drawing.tint, order: stated.order ?? 0, group: washGroupOf(tables, name) };
+    })
+    .filter((one): one is { name: string; tint: string; order: number; group: string } => one !== null)
+    .sort((left, right) => left.order - right.order || (left.name < right.name ? -1 : 1));
+  if (washing.length === 0) return [];
+  const order = washOrder(tables);
+  const last = washing.reduce((top, one) => Math.max(top, order.indexOf(one.group)), -1);
+  return washing.filter((one) => order.indexOf(one.group) === last).map((one) => one.tint);
+}
+
+/**
  * The picture of one crop wearing some mutations: the box, and the layers in the order they are drawn.
  *
  * `species` is the plant table's key and `mutations` are the mutation names the crop carries; names the
@@ -202,7 +283,6 @@ export function cropComposition(
     {
       readonly placed: ReturnType<typeof mutationPlacement>;
       readonly stack: ReturnType<typeof mutationStack>;
-      readonly drawing: ReturnType<typeof mutationArt>;
     }
   >();
   for (const [name, stated] of Object.entries(tables.mutationArt)) {
@@ -214,7 +294,6 @@ export function cropComposition(
     placeable.set(name, {
       placed,
       stack: mutationStack(mutation, tables.overMutations),
-      drawing: mutationArt(mutation),
     });
   }
 
@@ -230,15 +309,13 @@ export function cropComposition(
     const stated = tables.mutationArt[name];
     return stated !== undefined && mutationArt({ ...stated, name }).material;
   });
-  const washes = worn.filter((pair) => !pair.one.drawing.material && pair.one.drawing.tint !== null);
-  // A crop carries at most one mutation of each group, and of the ones that wash it, the game's own table
-  // order is what the consumer reaches by group (Growth, Hydro, Lunar) -- measured: a frosted and amber-lit
-  // clover comes back as the amber wash alone (`server.mjs:645-652`, `server.test.mjs:228-248`), and the
-  // Lunar mutations are the table's last four. `null` when nothing washes it, which is not a black wash.
-  const highest = washes.reduce((top, pair) => Math.max(top, pair.one.stack.order), Number.NEGATIVE_INFINITY);
-  const tint = material
-    ? null
-    : (washes.find((pair) => pair.one.stack.order === highest)?.one.drawing.tint ?? null);
+  // The game washes the art with the group it washes last, and with every mutation of it: measured on a
+  // clover wearing `Frozen` and `Thunderstruck` (both Hydro) the picture is the two washes stacked -- 119 of
+  // 119 opaque pixels below the mutation pictures match that and 0 match either alone -- and on a Beet
+  // wearing `Ambershine` and `Thundercharged` it is the Lunar colour alone, 3235 of 3235, where the table's
+  // last row is the Hydro one. The answer is a list rather than one tint because a group can be more than one
+  // mutation, and its length is the "how many washes" a consumer needs.
+  const washes = washesOf(tables, mutations, material);
 
   const under: CropLayer[] = [];
   const above: CropLayer[] = [];
@@ -257,14 +334,14 @@ export function cropComposition(
       decal: one.placed.decal,
       over: one.stack.over,
       mutation: name,
-      tint: null,
+      washes: [],
       material: false,
     };
     (band < 0 ? under : above).push(layer);
   }
 
-  // The art is the origin of the box and wears the wash: the consumer draws every decal first, then the art
-  // washed once, then everything above it (`server.mjs:611-615`).
+  // The art is the origin of the box and wears the washes: the consumer draws every decal first, then the art
+  // washed in the game's own order, then everything above it (`server.mjs:611-615`).
   const artLayer: CropLayer = {
     kind: 'art',
     sprite: artPath,
@@ -275,7 +352,7 @@ export function cropComposition(
     decal: false,
     over: false,
     mutation: null,
-    tint,
+    washes,
     material,
   };
   return {

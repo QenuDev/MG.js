@@ -1,0 +1,46 @@
+{
+  "note": "Written by capture-crop-wash.mjs. Each composed picture is the mirror's own composition at /assets/sprites/composed; each art picture is the mirror's own sprite for the same art path. Both are the art's own size, which is what the pixel comparison needs.",
+  "capturedFrom": {
+    "origin": "https://magicgarden.gg",
+    "community": "https://mg-api.ariedam.fr",
+    "artVersion": "1192"
+  },
+  "cases": {
+    "clover-frozen-thunderstruck": {
+      "species": "Clover",
+      "mutations": ["Frozen", "Thunderstruck"],
+      "art": "sprite/plant/CloverThreeLeaf",
+      "size": [116, 169],
+      "artUrl": "https://mg-api.ariedam.fr/assets/sprites/plants/CloverThreeLeaf.png",
+      "composedUrl": "https://mg-api.ariedam.fr/assets/sprites/composed?key=sprite%2Fplant%2FCloverThreeLeaf&mutations=Frozen%2CThunderstruck",
+      "artBytes": 7720,
+      "composedBytes": 20043,
+      "artSha256": "bec80c043089c5561872f91eead4eda9f3a592642ff7b7099986689f340cd87c",
+      "composedSha256": "de9ec4602bc28e587e7ac9ba563d21ce9c3fc8d5d9d591cc74e01b7c9d776982"
+    },
+    "beet-ambershine-thundercharged": {
+      "species": "Beet",
+      "mutations": ["Ambershine", "Thundercharged"],
+      "art": "sprite/plant/BabyBeet",
+      "size": [188, 258],
+      "artUrl": "https://mg-api.ariedam.fr/assets/sprites/plants/BabyBeet.png",
+      "composedUrl": "https://mg-api.ariedam.fr/assets/sprites/composed?key=sprite%2Fplant%2FBabyBeet&mutations=Ambershine%2CThundercharged",
+      "artBytes": 18133,
+      "composedBytes": 55818,
+      "artSha256": "3f008ed4dd7ddeb1d24928c718a43daa5dfe43250880dbe7bdef2309aec038ca",
+      "composedSha256": "89e146745fc4a126f232b42490af8888f34652b4c18042aaca63ed6010b902b8"
+    },
+    "cacao-dawnlit-thundercharged": {
+      "species": "Cacao",
+      "mutations": ["Dawnlit", "Thundercharged"],
+      "art": "sprite/plant/Cacao",
+      "size": [126, 207],
+      "artUrl": "https://mg-api.ariedam.fr/assets/sprites/plants/Cacao.png",
+      "composedUrl": "https://mg-api.ariedam.fr/assets/sprites/composed?key=sprite%2Fplant%2FCacao&mutations=Dawnlit%2CThundercharged",
+      "artBytes": 10381,
+      "composedBytes": 29865,
+      "artSha256": "db97a09ecd184b63ea9d3eb8fa2f82287140ddbdbcc87abb9044b63620c3314e",
+      "composedSha256": "c62f3562b0d72b50bb22750f51f931be099a46f2e3ea95d5ed1c51cbfdb3f112"
+    }
+  }
+}

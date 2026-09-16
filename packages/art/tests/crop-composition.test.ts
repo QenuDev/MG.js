@@ -75,7 +75,7 @@ function rasterise(recipe: CropRecipe, pixels: Readonly<Record<string, PngImage>
     const image = pixels[layer.sprite];
     if (image === undefined) throw new Error(`the fixture holds no pixels for ${layer.sprite}`);
     if (layer.kind === 'art') {
-      const washed = washArt(image, layer.tint === null ? [] : [layer.tint]);
+      const washed = washArt(image, layer.washes);
       drawOver(canvas, washed, across(layer.left), down(layer.top));
       continue;
     }
@@ -227,7 +227,7 @@ void test('a material is not a picture and is not washed, so the recipe says so 
     );
     const art: CropLayer = required(recipe.layers[0], 'the art is the one layer');
     assert.equal(art.material, true, `${material} is a material rather than a colour`);
-    assert.equal(art.tint, null, 'so the art is not washed by a colour it does not carry');
+    assert.deepEqual(art.washes, [], 'so the art is not washed by a colour it does not carry');
   }
 });
 
@@ -279,7 +279,11 @@ void test('the wash on the art is the amber the viewer measured, alone', () => {
   const recipe = cloverWearingFrozenAndAmbershine();
   const art = required(recipe.layers[0], 'the art is the first layer of this picture');
   assert.equal(art.kind, 'art', 'the art is the layer the wash belongs to');
-  assert.equal(art.tint, 'rgba(190, 100, 40, 0.5)', 'the amber filter, at the opacity the game states');
+  assert.deepEqual(
+    art.washes,
+    ['rgba(190, 100, 40, 0.5)'],
+    'the amber filter, at the opacity the game states',
+  );
 
   // The consumer's own measurement, ported (`server.test.mjs:224-248`): a clover wearing a weather mutation
   // and a moonlight one is washed by the moonlight one alone, so the pixels below the mutation pictures are
