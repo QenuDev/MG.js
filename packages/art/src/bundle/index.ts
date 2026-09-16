@@ -35,6 +35,14 @@ export {
   type TablePredicate,
 } from './predicates.js';
 export {
+  PROVENANCE,
+  type ProvenanceStamp,
+  provenanceFor,
+  renderProvenanceDoc,
+  type StampedProvenance,
+  type TableProvenance,
+} from './provenance.js';
+export {
   asObject,
   asString,
   contains,
