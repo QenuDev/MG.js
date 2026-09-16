@@ -11,7 +11,8 @@
  *
  * `node:zlib` and `node:fs` are the whole reason this is a separate entry rather than part of the model.
  *
- * Nothing is exported yet -- the codec lands with the tests it moves from the viewer.
+ * The PNG codec is exported here, moved from the viewer's own `png.mjs` with the tests that covered it. The
+ * transcoder and the frame cropping land with the atlas work.
  */
 
-export {};
+export { decodePng, drawOver, encodePng, type PngImage, pngSize, scaled, washArt } from './png.js';
