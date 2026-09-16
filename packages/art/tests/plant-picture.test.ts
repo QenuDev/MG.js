@@ -30,6 +30,7 @@ import { parseArtData } from '../src/bundle/data.ts';
 import { type CropTables, cropComposition } from '../src/crop.ts';
 import { type FrameBox, frameBox } from '../src/model.ts';
 import {
+  PLANTER_POT,
   type PlantArt,
   type PlantCrop,
   type PlantLayer,
@@ -271,4 +272,55 @@ void test('a mutation does not change how large a crop is drawn, it hangs off th
     composition.box.top < 0,
     'the box reaches above the art, so a renderer draws the picture above the frame rather than pushing it down',
   );
+});
+
+/**
+ * The pot's name and the anchor it is placed by are the game's, and a consumer can read them instead of
+ * writing them down.
+ *
+ * Both used to be private here: `plantPicture` placed an anchor-less pot by an internal constant, and the
+ * name of the sprite was the consumer's to know. A consumer that draws a potted plant needs exactly these two
+ * things and has the atlas for the rest of it, so the value is published — and this test is what keeps the
+ * published one and the one the recipe actually uses from drifting apart, which would be worse than not
+ * publishing it at all: a page would draw a pot the recipe does not place.
+ *
+ * The name is checked against the game's own item table rather than against a second copy of itself, so it is
+ * a game value and not one of ours.
+ */
+void test('the pot’s published name and anchor are the ones the recipe places it by', () => {
+  const crops: PlantCrop[] = [{ species: 'Carrot', x: 0, y: 0, rotation: 0, scale: 1 }];
+  const potted = (extra: Partial<PotArt>): PlantRecipe =>
+    required(
+      plantPicture({ species: 'Carrot', crops, mature: true, weather: null }, ART, {
+        sprite: PLANTER_POT.sprite,
+        frame: frame(170, 164, 0.5, 0.5),
+        ...extra,
+      }),
+      'Carrot and the pot are in hand',
+    );
+
+  // A pot that states no anchor is placed by the published one, both in the rectangle that puts its art in the
+  // picture and in the anchor the layer reports: the two are the pair a renderer turns a frame with.
+  const stated = layerOf(potted({}), 'pot');
+  assert.deepEqual(
+    [stated.anchorX, stated.anchorY],
+    [PLANTER_POT.anchorX, PLANTER_POT.anchorY],
+    'the layer is drawn by the published anchor',
+  );
+  assert.deepEqual(
+    [stated.left, stated.top],
+    [-PLANTER_POT.anchorX * 170, -PLANTER_POT.anchorY * 164],
+    'and the rectangle is that anchor applied to the pot’s own frame',
+  );
+
+  // A caller that states its own anchor is drawn by it, which is the other half of the contract: publishing
+  // the game's value must not take the choice away from a caller that has a reason to differ.
+  const own = layerOf(potted({ anchorX: 0.25, anchorY: 0.75 }), 'pot');
+  assert.deepEqual([own.anchorX, own.anchorY], [0.25, 0.75], 'a stated anchor wins');
+
+  // The name is the game's: it is a key of the item sprite table the bundle states, which is the table the
+  // consumer resolves a sprite path through.
+  const data = parseArtData(readFileSync(resolve(here, '../data/1176.json'), 'utf8'));
+  const item = required(data.tables.spriteNames.Item, 'the item sprite table');
+  assert.ok(PLANTER_POT.sprite in item, `the game’s item table states ${PLANTER_POT.sprite}`);
 });

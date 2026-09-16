@@ -210,10 +210,14 @@
         "PlantOverlay",
         "PlantRecipe",
         "PlantScene",
-        "PotArt"
+        "PotArt",
+        "PotDrawing"
       ],
       "TypeAlias": [
         "PlantLayerKind"
+      ],
+      "Variable": [
+        "PLANTER_POT"
       ]
     },
     "art/source": {
