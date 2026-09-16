@@ -42,7 +42,7 @@ const REQUIRED_RUNTIME_EXPORTS: Record<string, readonly string[]> = {
     'mutationOverlayArt',
   ],
   './bundle': [],
-  './source': [],
+  './source': ['contentRevision', 'gameVersion', 'atlasPacks', 'atlasImage'],
   './node': [
     'readKtx2Header',
     'decodeKtx2',

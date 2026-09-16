@@ -1,0 +1,64 @@
+{
+  "frames": {
+    "sprite/animation/NotifyFlag-0": {
+      "frame": {
+        "x": 1361,
+        "y": 2970,
+        "w": 185,
+        "h": 83
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 28,
+        "w": 185,
+        "h": 83
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 128
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "visualBaselineY": 0.8046875
+    },
+    "sprite/mutation-overlay/ChilledTallPlant": {
+      "frame": {
+        "x": 884,
+        "y": 1293,
+        "w": 1024,
+        "h": 650
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1024,
+        "h": 650
+      },
+      "sourceSize": {
+        "w": 1024,
+        "h": 1024
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "sourcePixelRatio": 2,
+      "visualBaselineY": 0.603515625
+    }
+  },
+  "meta": {
+    "image": "../../../../runtime-assets/sprites-2x-0.f8d9eded5f10abf24410.ktx2",
+    "size": {
+      "w": 4044,
+      "h": 4088
+    },
+    "scale": 1,
+    "related_multi_packs": ["sprites-2x-1.json", "sprites-2x-2.json", "sprites-2x-3.json"]
+  }
+}
