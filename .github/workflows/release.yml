@@ -1,4 +1,4 @@
-# Release. Tag `v<version>` to publish all three packages to npm.
+# Release. Tag `v<version>` to publish all four packages to npm.
 #
 # Publishing is token-free: npm accepts a publish from this workflow because a trusted publisher is
 # configured for each package on npmjs.com, naming this exact filename. So there is no `NPM_TOKEN`
@@ -10,11 +10,14 @@
 #
 # That last line is the one that bites: a trusted publisher created recently allows only
 # `npm stage publish` by default, and a plain `npm publish` from this workflow is then rejected.
-# Configure all three packages (common, headless, bootstrapped) before tagging.
+# Configure all four packages (common, art, headless, bootstrapped) before tagging.
 #
 # The first release of each package cannot come from here. A trusted publisher is configured in a
 # package's settings page on npmjs.com, and there is no settings page until the package exists, so
-# 0.1.0 is published by hand. Every version after that is this workflow.
+# the first version is published by hand -- with a one-time password, because an account with 2FA
+# cannot publish from a terminal without one. Every version after that is this workflow, and
+# `@mg.js/art` is the package at that stage today: 0.1.4 was published by hand, and the trusted
+# publisher for it is the one thing left to configure on npmjs.com.
 #
 # Nothing here has anything to do with userscripts. This repository publishes packages; the script
 # that consumes them is built and released in `QenuDev/MG.js-bootstrapped-example`.
@@ -75,19 +78,19 @@ jobs:
         run: npm ci
 
       # The tag is a claim about what is being published, so it is checked rather than assumed. It
-      # also enforces the lockstep property D13 states: the three packages carry one version, and a
-      # tag that names a version only one of them has would publish a mismatched release.
-      - name: Assert the tag matches the three package versions
+      # also enforces the lockstep property D13 states: the four packages carry one version, and a
+      # tag that names a version only some of them have would publish a mismatched release.
+      - name: Assert the tag matches the four package versions
         run: |
           tag="${GITHUB_REF_NAME#v}"
-          for package in common headless bootstrapped; do
+          for package in common art headless bootstrapped; do
             version=$(node -p "require('./packages/$package/package.json').version")
             if [ "$version" != "$tag" ]; then
               echo "::error::tag $GITHUB_REF_NAME names $tag, but packages/$package is $version"
               exit 1
             fi
           done
-          echo "tag $GITHUB_REF_NAME matches all three packages at $tag"
+          echo "tag $GITHUB_REF_NAME matches all four packages at $tag"
 
       # The same command a developer runs and the same one `ci.yml` runs. There is no
       # second definition of the gate here: a workflow that re-lists the steps drifts from the
@@ -98,7 +101,9 @@ jobs:
 
       # Order is a correctness requirement, not tidiness: `headless` and `bootstrapped` depend on
       # `@mg.js/common@^0.1.0`, so publishing them first would hand out an install whose dependency
-      # cannot resolve yet.
+      # cannot resolve yet. `art` declares no runtime dependencies and nothing else here depends on
+      # it, so it may go in any order; it is published second only to keep the list alphabetical
+      # after `common`.
       #
       # A re-run is not idempotent, on purpose. Publishing a version that already exists fails
       # loudly (npm refuses to publish over a published version). If a run dies after `common` but
@@ -108,5 +113,6 @@ jobs:
       - name: Publish (dependency order)
         run: |
           npm publish -w @mg.js/common
+          npm publish -w @mg.js/art
           npm publish -w @mg.js/headless
           npm publish -w @mg.js/bootstrapped
