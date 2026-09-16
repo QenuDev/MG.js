@@ -14,7 +14,9 @@
  *     `artDataVersions` says which versions it carries. That file is the game's own numbers, and a consumer
  *     that has the atlas but not the tables can draw nothing.
  *
- * `node:zlib` and `node:fs` are the whole reason this is a separate entry rather than part of the model.
+ * `node:zlib` and `node:fs` are the reason this is a separate entry rather than part of the model — and
+ * they are not the whole list: the vendored Basis transcoder also reaches `node:module`, `node:path` and
+ * `node:url`. An earlier version of this comment named the two and read as an enumeration.
  */
 
 export { artDataVersions, readArtData } from './data.js';
