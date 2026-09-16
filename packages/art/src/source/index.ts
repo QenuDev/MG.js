@@ -9,7 +9,9 @@
  * value a test can move. The timeout, byte cap and redirect policy come from `fetchJson` in
  * `@mg.js/common/catalog` rather than being re-grown.
  *
- * Nothing is exported yet -- the sources land with their offline fixture tests.
+ * The fetchers themselves land with their offline fixture tests. What is here already is the revision, which
+ * needs neither a socket nor a clock: it is arithmetic over the inputs a picture was composed from.
  */
 
-export {};
+export type { RevisionInput } from './revision.js';
+export { contentRevision } from './revision.js';

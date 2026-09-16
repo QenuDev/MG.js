@@ -32,7 +32,7 @@ const manifest = JSON.parse(readFileSync(resolve(packageRoot, 'package.json'), '
 const REQUIRED_RUNTIME_EXPORTS: Record<string, readonly string[]> = {
   '.': [],
   './bundle': [],
-  './source': [],
+  './source': ['contentRevision'],
   './node': [],
 };
 
