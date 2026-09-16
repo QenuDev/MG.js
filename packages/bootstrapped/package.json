@@ -1,6 +1,6 @@
 {
   "name": "@mg.js/bootstrapped",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "type": "module",
   "description": "In-page / userscript Magic Garden client: attaches to the game's own Quinoa socket, renders through the game's Pixi stage, and coexists with other mods.",
   "main": "./dist/index.js",

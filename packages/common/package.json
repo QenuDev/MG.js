@@ -1,6 +1,6 @@
 {
   "name": "@mg.js/common",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "type": "module",
   "description": "Shared protocol core for magicgarden.js: wire contract, typed action surface, state engine, sequencer, transport seam, error taxonomy and domain catalogues.",
   "main": "./dist/index.js",
