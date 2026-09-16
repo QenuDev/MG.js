@@ -43,7 +43,11 @@ void test('the versions the package ships are the table files beside it', () => 
   const versions = artDataVersions();
 
   assert.ok(versions.length >= 1, 'the package ships at least one version of tables');
-  assert.deepEqual(versions, [...versions].sort(), 'in name order, so a caller can take the last');
+  // Name order is all this promises. It was previously justified here as "so a caller can take the last", which
+  // is only true while every version has the same number of digits: '990' sorts after '1192'. A caller that
+  // wants the newest has to compare the numbers — the viewer does exactly that, and this comment was inviting
+  // the bug it avoids.
+  assert.deepEqual(versions, [...versions].sort(), 'in name order');
   for (const version of versions) {
     const bytes = readFileSync(new URL(`data/${version}.json`, HERE));
     assert.ok(bytes.byteLength > 0, `${version}.json is not empty`);
