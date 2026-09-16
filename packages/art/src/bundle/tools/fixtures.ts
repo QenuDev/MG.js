@@ -196,7 +196,12 @@ export function writeFixtures(
     join(directory, 'atlas-frames.json'),
     `${JSON.stringify(
       {
-        note: 'The atlas frames the sprite-name table was validated against: every frame key the game published at this art version, plus a few complete frames as examples of the shape.',
+        // The counts are stated rather than promised: the caller decides how many complete frames to
+        // hand over, and this note said "a few ... as examples" while a sync-written file carried all 646.
+        note:
+          'The atlas frames the sprite-name table was validated against: ' +
+          `${atlas.frameKeys.length} frame keys the game published at this art version, and ` +
+          `${Object.keys(atlas.frames).length} complete frames as examples of the shape.`,
         sources,
         frameKeys: atlas.frameKeys,
         frames: atlas.frames,

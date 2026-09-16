@@ -9,8 +9,8 @@
  */
 
 import assert from 'node:assert/strict';
-import { readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { test } from 'node:test';
 import { spritePathsOf } from '../../src/bundle/validate.ts';
 import { FIXTURE_DIR, loadFixture } from './load-fixture.ts';
@@ -61,7 +61,34 @@ void test('the atlas fixture is exactly the frames the sprite-name table needs, 
   }
 });
 
-void test('the capture is small enough to review, and is not the bundle', () => {
+void test('every shipped capture is small enough to review, and none of them is the bundle', () => {
+  // Every version, not just the one these tests happen to load: 1176 was guarded by the check below while
+  // 1192 — twice its size — was not, so a capture could grow without anybody being asked to look at it.
+  const versions = readdirSync(resolve(FIXTURE_DIR, '..'))
+    .filter((name) => name.startsWith('bundle-'))
+    .sort();
+  assert.ok(versions.length >= 2, `both captured versions are shipped, got ${versions.join(', ')}`);
+
+  for (const version of versions) {
+    const directory = join(FIXTURE_DIR, '..', version);
+    const manifest = JSON.parse(readFileSync(join(directory, 'fixture.json'), 'utf8')) as {
+      files: readonly { fixture: string }[];
+    };
+    const fixtureBytes = ['fixture.json', 'atlas-frames.json', ...manifest.files.map((file) => file.fixture)]
+      .map((file) => statSync(join(directory, file)).size)
+      .reduce((total, size) => total + size, 0);
+
+    // The bound is a review trigger, not a size anyone promised. 1176 is ~148 KB because a hand capture kept
+    // 14 atlas frames as examples; 1192 is ~433 KB because the sync writes whatever its caller hands it and
+    // that caller passed all 646. The loader reads only `frameKeys`, so the extra frames are shape examples
+    // rather than payload the offline tests need — trimming them is safe if the room is ever wanted, and this
+    // number is what will ask the question.
+    assert.ok(
+      fixtureBytes < 600_000,
+      `the ${version} capture is ${fixtureBytes} bytes, which is a bundle, not a fixture`,
+    );
+  }
+
   const fixtureBytes = [
     'fixture.json',
     'atlas-frames.json',
@@ -75,4 +102,28 @@ void test('the capture is small enough to review, and is not the bundle', () => 
   );
   const note = readFileSync(join(FIXTURE_DIR, 'fixture.json'), 'utf8');
   assert.ok(note.includes('byte-identical'), 'the manifest does not explain what a cut is');
+});
+
+void test('each capture’s note describes the file it is in', () => {
+  // The note used to promise "a few complete frames as examples of the shape" while a sync-written capture
+  // carried all 646 of them: prose that describes a file the writer did not produce. The counts are what the
+  // note says now, and this is what keeps them true.
+  for (const version of readdirSync(resolve(FIXTURE_DIR, '..')).filter((name) =>
+    name.startsWith('bundle-'),
+  )) {
+    const directory = join(FIXTURE_DIR, '..', version);
+    const atlas = JSON.parse(readFileSync(join(directory, 'atlas-frames.json'), 'utf8')) as {
+      note: string;
+      frameKeys: readonly string[];
+      frames: Readonly<Record<string, unknown>>;
+    };
+    assert.ok(
+      atlas.note.includes(`${atlas.frameKeys.length} frame keys`),
+      `${version}: the note does not state how many frame keys it carries`,
+    );
+    assert.ok(
+      atlas.note.includes(`${Object.keys(atlas.frames).length} complete frames`),
+      `${version}: the note does not state how many complete frames it carries`,
+    );
+  }
 });

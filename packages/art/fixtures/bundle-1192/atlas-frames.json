@@ -1,5 +1,5 @@
 {
-  "note": "The atlas frames the sprite-name table was validated against: every frame key the game published at this art version, plus a few complete frames as examples of the shape.",
+  "note": "The atlas frames the sprite-name table was validated against: 646 frame keys the game published at this art version, and 646 complete frames as examples of the shape.",
   "sources": {
     "gameVersion": "1192",
     "artVersion": "1192",
