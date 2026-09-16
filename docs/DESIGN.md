@@ -35,7 +35,7 @@ the reference for reviewing future changes. It has four parts:
 
 ### Decisions already taken (they shape everything below)
 
-- **D1: Breaking changes are allowed.** All three packages are pre-1.0, private, and unpublished.
+- **D1: Breaking changes are allowed.** All four packages are pre-1.0, private, and unpublished.
   Prefer the right shape over back-compat aliases. No deprecation shims.
 - **D2: Adding tooling is allowed.** Biome (one devDependency, one config) rather than ESLint +
   Prettier. A formatter's first full-repo pass is expected and accepted.
@@ -46,7 +46,7 @@ the reference for reviewing future changes. It has four parts:
 
 ## 2. The system in one page
 
-`mg.js` is three packages over one protocol.
+`mg.js` is four packages over one protocol.
 
 - **`@mg.js/common`**: the platform-free core. It holds the Quinoa wire protocol, a JSON-Patch document store,
   the 72 typed game actions, and a catalogue of live shop/weather data. **Zero runtime dependencies.
@@ -58,8 +58,18 @@ the reference for reviewing future changes. It has four parts:
   `window.WebSocket`, wraps the game singleton `MagicCircle_RoomConnection`, bridges jotai atoms,
   exposes pixi render helpers, and runs a *coexistence* layer that shares one command sequence counter
   with the game's own code. It also builds to **one standalone Tampermonkey userscript**.
+- **`@mg.js/art`**: what the library knows about *drawing* a garden — which sprite a thing is drawn from, how
+  large and where it lands, what a mutation paints over it, in what order the layers stack, and the pixels when
+  a consumer needs a picture rather than a description. Four entries, split by what each may import: the model
+  and the `bundle` extractor import nothing, `source` imports `common/catalog`, and `node` is the only entry
+  allowed `node:zlib`. It is a package of its own rather than more of `common` because the game states its art
+  tables in its own bundle and publishes them as an endpoint nowhere: the rule below — a consumer could have
+  learned it by asking the server — has no answer for an art position, so the value cannot live in the package
+  that rule defines.
 
-The two platform packages never import each other. Both import `common`, and `common` imports nothing.
+The two platform packages never import each other. Both import `common`, and `common` imports nothing. `art` is
+the fourth, and its edges are narrower than that sentence's shape suggests: nothing imports it — the userscript
+must not, because it has a bundle-size budget — and only its `source` entry imports `common`.
 
 ---
 
@@ -94,6 +104,15 @@ The two platform packages never import each other. Both import `common`, and `co
         │            remote-json-source, static-source, weather) │
         │   transport (the seam)   emitter   errors   log     │
         └─────────────────────────────────────────────────────┘
+                                   ▲
+              only `source` imports │  (the one edge here that points up)
+        ┌──────────────────────────┴──────────────────────────┐
+        │                      @mg.js/art                     │
+        │ model (frame box, placement, crop and plant recipes)│
+        │   bundle (predicates over a parsed game chunk)      │
+        │   source (the version, the atlas packs, the image)  │
+        │   node (KTX2 → RGBA, frame crop, the PNG codec)     │
+        └─────────────────────────────────────────────────────┘
 ```
 
 **The dependency rule.** A layer may import from the layer below it and from its own layer's shared
@@ -106,8 +125,11 @@ primitives. It may not import upward, and it may not reach sideways into another
 | `common/actions` | `common/protocol`, `common/state`, `common/errors` | transport implementations |
 | `common/catalog` | `common/errors` | DOM globals (see §6 I9) |
 | `common/client` | every `common/*` layer | any platform package |
+| `art` (model, `bundle`) | nothing at runtime | `common`, another package, `node:*` |
+| `art/source` | `common/catalog` **through its exports map** | the platform packages |
+| `art/node` | `node:zlib`, `node:fs`, the vendored transcoder | `common` |
 | `headless/*` | `common` **through its exports map** | `bootstrapped`, or `packages/*/src` by path |
-| `bootstrapped/*` | `common` through its exports map | `headless`, or the game's internals by guess |
+| `bootstrapped/*` | `common` through its exports map | `headless`, `art`, or the game's internals by guess |
 
 Three rules fall out of this table and are worth stating on their own:
 
@@ -735,7 +757,7 @@ into the README's Bootstrapped section alongside the working `client.render.getC
 | D2 | Biome, not ESLint + Prettier | One devDependency, one config; the repo has zero lint config today |
 | D3 | Missing capabilities are in scope | The audit's `missing-capability` findings are work items |
 | D4 | Folder rule: ≥2 modules or a published subpath | Removes the four-way inconsistency; makes "where does this go" answerable |
-| D5 | Barrels everywhere, explicit re-exports, no `export *` in entries | One rule for all three packages; already caused a real name collision |
+| D5 | Barrels everywhere, explicit re-exports, no `export *` in entries | One rule for all four packages; already caused a real name collision |
 | D6 | One `MgClient` contract for all clients | Four divergent lifecycles is the audit's top architectural finding |
 | D7 | Errors: throw for programmer error, Result for the wire, events for lifecycle | Removes "which one is it this time?" |
 | D8 | Tests mirror source paths | Makes the 27 untested files visible as empty slots |
@@ -743,7 +765,7 @@ into the README's Bootstrapped section alongside the working `client.render.getC
 | D10 | Keep the `@mg.js/*` scope and the `common`/`headless`/`bootstrapped` names | 49 source references, README, and the exports map agree; renaming buys nothing |
 | D11 | Node ≥ 22 for `headless`, engines stated per package | `--test` with a quoted glob and `globalThis.WebSocket`; `common` stays runtime-agnostic |
 | D12 | Distribute the userscript as a GitHub release asset, now **moved**: the userscript is `bootstrapped-example`'s artifact, not this repository's | The current `@downloadURL` points at a 404 repo, so auto-update can never work |
-| D13 | Publish the three packages to the public npm registry under the `@mg.js` scope | The alternative was a git or release-tarball dependency, the approach `bootstrapped-example` used: it works, but it pins every consumer to a URL a human must edit per release and gives no range resolution. Local iteration needs `npm link` either way, so that is not a differentiator |
+| D13 | Publish the four packages to the public npm registry under the `@mg.js` scope | The alternative was a git or release-tarball dependency, the approach `bootstrapped-example` used: it works, but it pins every consumer to a URL a human must edit per release and gives no range resolution. Local iteration needs `npm link` either way, so that is not a differentiator |
 
 Each package carries `publishConfig.access: "public"`, because a scoped package is published *restricted* by
 default, and restricted publication needs a paid plan, the most common way a first scoped publish fails. Each
