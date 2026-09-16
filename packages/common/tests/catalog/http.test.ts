@@ -6,14 +6,18 @@
  * whole body and then comparing a string length (which both reads everything first and measures UTF-16
  * code units rather than bytes).
  *
- * `fetch` is called as a global from `src/catalog/http.ts` and is injected nowhere, so these tests stub
- * `globalThis.fetch` and hand back real `Response` objects. A plain `{ text() }`-shaped stub would have
- * no `body` and would quietly exercise a different path from production.
+ * `fetch` defaults to the global one and `FetchJsonOptions.fetch` injects another, so these tests cover
+ * both: the cap and redirect suites stub `globalThis.fetch`, and the `fetchJson injected fetch` suite below
+ * proves that the same call — headers, timeout, byte cap, redirect policy — reaches an injected stub
+ * instead. Either way the stub hands back real `Response` objects: a plain `{ text() }`-shaped stub has no
+ * `body` and would quietly exercise a different path from production.
  */
 
 import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
+import type { AddressInfo } from 'node:net';
 import { afterEach, describe, it } from 'node:test';
-import { fetchJson, HttpError } from '../../src/catalog/http.ts';
+import { DEFAULT_HEADERS, fetchJson, HttpError } from '../../src/catalog/http.ts';
 
 const originalFetch = globalThis.fetch;
 
@@ -244,5 +248,138 @@ describe('fetchJson redirect policy', () => {
 
     assert.equal(calls[0]?.redirect, 'follow');
     assert.deepEqual(value, { ok: true });
+  });
+});
+
+/**
+ * The injected-`fetch` seam, exercised through the same call the global one goes through.
+ *
+ * The point of these tests is not "an argument is forwarded": it is that injecting a `fetch` changes
+ * *only* which function is called. The headers, the timeout, the byte cap and the redirect policy are all
+ * still supplied by `fetchJson`, so a caller that stubs the seam is testing the production path rather
+ * than a parallel one — which is what makes an offline fixture a fair substitute for a host.
+ */
+describe('fetchJson injected fetch', () => {
+  it('calls the injected fetch and never the global one', async () => {
+    let globalCalled = false;
+    globalThis.fetch = (async () => {
+      globalCalled = true;
+      throw new Error('the global fetch must not be reached when one is injected');
+    }) as typeof fetch;
+
+    const requested: string[] = [];
+    const injected = (async (input: RequestInfo | URL) => {
+      requested.push(String(input));
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    }) as typeof fetch;
+
+    const value = await fetchJson<{ ok: boolean }>('https://injected.test/data/version', {
+      fetch: injected,
+    });
+
+    assert.deepEqual(value, { ok: true });
+    assert.deepEqual(requested, ['https://injected.test/data/version']);
+    assert.equal(globalCalled, false, 'the global was called as well as the injected fetch');
+  });
+
+  it('supplies the default headers, a caller override and a live signal to the injected fetch', async () => {
+    const calls: RequestInit[] = [];
+    const injected = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+      calls.push(init ?? {});
+      return new Response('{}', { status: 200 });
+    }) as typeof fetch;
+
+    await fetchJson('https://injected.test/data/plants', {
+      fetch: injected,
+      headers: { Accept: 'application/vnd.mg+json', 'X-Test': '1' },
+    });
+
+    const init = calls[0] ?? {};
+    const headers = (init.headers ?? {}) as Record<string, string>;
+    assert.equal(headers['User-Agent'], DEFAULT_HEADERS['User-Agent']);
+    assert.equal(headers.Accept, 'application/vnd.mg+json', 'the caller override must win');
+    assert.equal(headers['X-Test'], '1');
+    assert.ok(init.signal instanceof AbortSignal, 'the injected fetch must be given the timeout signal');
+    assert.equal(init.signal.aborted, false);
+  });
+
+  it('refuses a redirect at the injected fetch, and follows one when the caller asks', async () => {
+    const calls: RequestInit[] = [];
+    const injected = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+      calls.push(init ?? {});
+      return new Response('{}', { status: 200 });
+    }) as typeof fetch;
+
+    await fetchJson('https://injected.test/a', { fetch: injected });
+    await fetchJson('https://injected.test/b', { fetch: injected, redirectPolicy: 'follow' });
+
+    assert.equal(calls[0]?.redirect, 'error');
+    assert.equal(calls[1]?.redirect, 'follow');
+  });
+
+  it('applies the byte cap to a body the injected fetch returned', async () => {
+    const counters = { pulled: 0, cancelled: false };
+    const injected = (async () => new Response(byteStream(256, 64, counters))) as typeof fetch;
+
+    const error = await catchThrown(fetchJson('https://injected.test/x', { fetch: injected, maxBytes: 100 }));
+
+    assert.ok(error instanceof HttpError, 'the cap must still refuse an injected response');
+    assert.match(error.message, /exceeded 100 bytes/);
+    assert.equal(counters.cancelled, true, 'the reader must cancel the injected body, not drain it');
+  });
+
+  it('aborts the injected fetch when the timeout expires', async () => {
+    let signalAborted = false;
+    const injected = ((_input: RequestInfo | URL, init?: RequestInit) =>
+      new Promise<Response>((_resolve, reject) => {
+        const signal = init?.signal;
+        assert.ok(signal, 'the injected fetch must be given a signal, or nothing can time it out');
+        signal.addEventListener('abort', () => {
+          signalAborted = true;
+          const abortError = new Error('aborted');
+          abortError.name = 'AbortError';
+          reject(abortError);
+        });
+      })) as typeof fetch;
+
+    const error = await catchThrown(
+      fetchJson('https://injected.test/slow', { fetch: injected, timeoutMs: 5 }),
+    );
+
+    assert.ok(error instanceof HttpError, 'a timed-out injected fetch must surface as an HttpError');
+    assert.match(error.message, /timed out after 5ms/);
+    assert.equal(signalAborted, true, 'the timeout must reach the injected fetch as an abort');
+  });
+
+  it('carries a real request to a fixture host on an ephemeral port', async () => {
+    // The other half of the seam: the injected fetch is a real one here, wrapped, and the request is
+    // answered by a socket on 127.0.0.1 that this test opened. No DNS, no outside network, and the URL
+    // the wrapper saw is the URL the fixture host answered.
+    const received: string[] = [];
+    const server = createServer((request, response) => {
+      received.push(request.url ?? '');
+      response.writeHead(200, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ path: request.url }));
+    });
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address() as AddressInfo;
+
+    const injectedUrls: string[] = [];
+    const realFetch = globalThis.fetch;
+    const wrapper = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      injectedUrls.push(String(input));
+      return realFetch(input, init);
+    }) as typeof fetch;
+
+    const url = `http://127.0.0.1:${port}/data/version`;
+    try {
+      const value = await fetchJson<{ path: string }>(url, { fetch: wrapper });
+
+      assert.deepEqual(value, { path: '/data/version' });
+      assert.deepEqual(injectedUrls, [url], 'the injected wrapper is what made the request');
+      assert.deepEqual(received, ['/data/version'], 'the fixture host must have answered it');
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
   });
 });

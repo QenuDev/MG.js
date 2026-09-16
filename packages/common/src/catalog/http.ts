@@ -24,6 +24,17 @@ export interface FetchJsonOptions {
   headers?: Record<string, string>;
   signal?: AbortSignal;
   /**
+   * The `fetch` to call, instead of the global one.
+   *
+   * Defaults to `globalThis.fetch`. Supplying one is how a caller reaches this helper with a `fetch` the
+   * library cannot know about — a page's own wrapper, a runtime with a proxy dispatcher — and how a test
+   * stubs a request without patching a global. The seam is the whole of the injection: everything else
+   * about the call is still this function's, and still applies to whatever it is handed. The default
+   * headers, the timeout, the byte cap and the redirect policy below are arguments passed *to* this
+   * `fetch`, so an injected stub is exercised through the same path production uses rather than beside it.
+   */
+  fetch?: typeof fetch;
+  /**
    * Cap on the response size in bytes, to bound a hostile or broken endpoint.
    * Default `DEFAULT_MAX_RESPONSE_BYTES` (8 MiB).
    */
@@ -157,8 +168,11 @@ export async function fetchJson<T = unknown>(url: string, options: FetchJsonOpti
     else options.signal.addEventListener('abort', externalAbort, { once: true });
   }
 
+  // Read once, so the injected fetch is the one the timeout and the byte cap below are wired to.
+  const request = options.fetch ?? fetch;
+
   try {
-    const response = await fetch(url, {
+    const response = await request(url, {
       headers: { ...DEFAULT_HEADERS, ...options.headers },
       signal: controller.signal,
       redirect: options.redirectPolicy ?? 'error',
