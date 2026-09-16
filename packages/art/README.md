@@ -16,7 +16,7 @@ endpoint nowhere — so it cannot live in the package whose rule is that the ser
 | `@mg.js/art` | nothing | The model. Values in, values out. Because it imports nothing, the built file can be served to a browser as one module with no bundler. |
 | `@mg.js/art/bundle` | nothing | The extractor: predicates over a parsed game chunk, plus the validator. An AST in, the game's tables out. The parser is the caller's, so this entry needs none. |
 | `@mg.js/art/source` | `@mg.js/common/catalog` | The network: the game's version, its atlas packs and their frames, the atlas image, the caches and the content revision. |
-| `@mg.js/art/node` | `node:zlib`, `node:fs` | The pixels: KTX2 to RGBA, frame cropping, and the PNG codec. |
+| `@mg.js/art/node` | `node:zlib`, `node:fs` | The pixels — KTX2 to RGBA, frame cropping, the PNG codec — and the shipped tables: `artDataVersions()` and `readArtData(version)` read `data/<version>.json` the way the sync wrote it, validated by the same parser a fetched document goes through. |
 
 Four tests hold that table up: the two pure entries import nothing, `bootstrapped` never reaches `art`
 (it has a bundle-size budget), the exports map resolves to the names it promises, and the extractor's
