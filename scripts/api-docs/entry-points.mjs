@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const REPO = path.resolve(HERE, '../..');
-export const PACKAGES = ['common', 'headless', 'bootstrapped'];
+export const PACKAGES = ['common', 'art', 'headless', 'bootstrapped'];
 
 const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 

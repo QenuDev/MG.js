@@ -1,0 +1,49 @@
+{
+  "name": "@mg.js/art",
+  "version": "0.1.4",
+  "type": "module",
+  "description": "Everything magicgarden.js knows about drawing a garden: which sprite a thing is drawn from, how large and where it lands, what a mutation paints over it, in what order the layers stack, and the pixels when a consumer needs a picture rather than a description.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./bundle": {
+      "types": "./dist/bundle/index.d.ts",
+      "default": "./dist/bundle/index.js"
+    },
+    "./source": {
+      "types": "./dist/source/index.d.ts",
+      "default": "./dist/source/index.js"
+    },
+    "./node": {
+      "types": "./dist/node/index.d.ts",
+      "default": "./dist/node/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!dist/.tsbuildinfo"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "prepack": "npm run build",
+    "test": "node --import tsx --test \"tests/**/*.test.ts\""
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QenuDev/MG.js.git",
+    "directory": "packages/art"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "sideEffects": false
+}

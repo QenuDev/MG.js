@@ -2,6 +2,7 @@
   "files": [],
   "references": [
     { "path": "./packages/common" },
+    { "path": "./packages/art" },
     { "path": "./packages/headless" },
     { "path": "./packages/bootstrapped" }
   ]
