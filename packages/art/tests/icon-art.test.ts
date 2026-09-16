@@ -1,9 +1,10 @@
 /**
  * `ICON_FILL` and `iconArt`: what an inventory entry draws, and how much of its icon box it fills.
  *
- * The published table is the page's own table (`page.html:1203`) and it is asserted here against both the
- * literal the page holds and the extraction `data/1176.json` carries, because the point of moving it into the
- * package is that it stops being a number a page transcribed. `iconArt` then answers the two things a caller
+ * The published table is asserted against the extraction `data/1176.json` carries, and against the values the
+ * page used to hold in its own literal -- kept here as a fixed expectation precisely because the page no
+ * longer holds one: the export replaced a number a page transcribed, and a test that read the page for it
+ * would go on passing after someone put the copy back. `iconArt` then answers the two things a caller
  * with an entry has to know: which sprite the game draws it from, and -- for a potted plant, whose icon is an
  * assembled picture rather than one sprite -- that there is no single sprite to draw.
  *
@@ -34,7 +35,7 @@ const frames: Record<string, FrameBox> = {};
 for (const [path, frame] of Object.entries(fixture.atlas.frames)) frames[path] = frameBox(frame);
 
 void test('`ICON_FILL` is the page`s table, typed, and the extraction agrees with it value for value', () => {
-  // The page's own literal (`page.html:1203`), which the export replaces rather than reinterprets.
+  // The values the page used to transcribe (`page.html` before this export), not read from it: see the header.
   assert.deepEqual(ICON_FILL, { Seed: 1, Produce: 0.4, Plant: 0.6, Tool: 1, Egg: 1, Decor: 1, Pet: 1 });
 
   const extracted = Object.fromEntries(
