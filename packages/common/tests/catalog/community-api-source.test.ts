@@ -18,7 +18,7 @@
  */
 
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+import { type Dirent, readdirSync, readFileSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -345,7 +345,7 @@ describe('CommunityApiSource', () => {
 
 /** Every `.ts` file under `dir`, recursively. Missing directories are not an error. */
 function collectTypeScript(dir: string, into: string[]): void {
-  let entries;
+  let entries: Dirent[];
   try {
     entries = readdirSync(dir, { withFileTypes: true });
   } catch {
