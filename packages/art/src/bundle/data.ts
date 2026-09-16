@@ -41,14 +41,59 @@ function canonical(value: unknown): unknown {
   return value;
 }
 
+/** Biome's `lineWidth`, which is the width this file has to be formatted to for `npm run lint` to pass. */
+const LINE_WIDTH = 110;
+
+/** An array rendered on one line, or `null` when it cannot be: an object element always breaks the line. */
+function inlineArray(value: readonly unknown[]): string | null {
+  if (value.length === 0) return '[]';
+  const parts: string[] = [];
+  for (const item of value) {
+    if (item !== null && typeof item === 'object') return null;
+    parts.push(JSON.stringify(item));
+  }
+  return `[${parts.join(', ')}]`;
+}
+
+/**
+ * Render a value the way Biome's JSON formatter would.
+ *
+ * The formatter is part of the contract, not a nicety: `npm run lint` is part of `npm run verify`, and a data
+ * file Biome would reflow is a data file whose committed bytes are not the bytes anybody else's tool produces.
+ * Objects always expand, one key per line in sorted order; an array of scalars stays on one line while it fits,
+ * and otherwise expands. `column` is how much of the line is already used, so an array nested inside one is
+ * measured where it actually starts.
+ */
+function renderJson(value: unknown, indent: string, column: number): string {
+  if (Array.isArray(value)) {
+    const inline = inlineArray(value);
+    if (inline !== null && column + inline.length <= LINE_WIDTH) return inline;
+    if (value.length === 0) return '[]';
+    const inner = `${indent}  `;
+    return `[\n${value.map((item) => `${inner}${renderJson(item, inner, inner.length)}`).join(',\n')}\n${indent}]`;
+  }
+  if (value !== null && typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>);
+    if (entries.length === 0) return '{}';
+    const inner = `${indent}  `;
+    const lines = entries.map(([key, item]) => {
+      const label = `${JSON.stringify(key)}: `;
+      return `${inner}${label}${renderJson(item, inner, inner.length + label.length)}`;
+    });
+    return `{\n${lines.join(',\n')}\n${indent}}`;
+  }
+  return JSON.stringify(value) ?? 'null';
+}
+
 /**
  * The exact bytes of `data/<version>.json`.
  *
  * Two runs over the same inputs produce the same string, which is what `art:sync --check` compares and what the
- * determinism test asserts.
+ * determinism test asserts. Sorted keys, two-space indent, LF: the file is reviewed as a diff, and a diff full of
+ * reordering is not reviewable.
  */
 export function serializeArtData(data: ArtData): string {
-  return `${JSON.stringify(canonical(data), null, 2)}\n`;
+  return `${renderJson(canonical(data), '', 0)}\n`;
 }
 
 /** Parse a committed data file back into the record its consumer reads. */

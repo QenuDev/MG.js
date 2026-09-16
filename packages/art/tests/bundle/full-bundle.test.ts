@@ -18,14 +18,12 @@ import { projectChunk } from '../../src/bundle/tools/typescript-reader.ts';
 import { FIXTURE_DIR, loadFixture } from './load-fixture.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(here, '../../..');
+const repoRoot = resolve(here, '../../../..');
 
 /** Where this workspace keeps a captured bundle, and where the environment may point instead. */
 const CANDIDATES = [
   process.env['MG_ART_BUNDLE_DIR'],
-  resolve(repoRoot, '../../../../../../mgafk-pi/json/bundle-1176-0'),
   resolve(repoRoot, '../../mgafk-pi/json/bundle-1176-0'),
-  resolve(repoRoot, '../mgafk-pi/json/bundle-1176-0'),
 ].filter((candidate): candidate is string => candidate !== undefined);
 
 const bundle = CANDIDATES.find((candidate) => existsSync(candidate));

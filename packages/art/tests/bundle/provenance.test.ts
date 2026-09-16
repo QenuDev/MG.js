@@ -17,7 +17,12 @@ import { dirname, resolve } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { PREDICATES } from '../../src/bundle/predicates.ts';
-import { PROVENANCE, provenanceFor, renderProvenanceDoc } from '../../src/bundle/provenance.ts';
+import {
+  PROVENANCE,
+  provenanceFor,
+  renderProvenanceDoc,
+  type TableProvenance,
+} from '../../src/bundle/provenance.ts';
 import { MODEL_TABLES, type TableId } from '../../src/bundle/tables.ts';
 import { loadFixture } from './load-fixture.ts';
 
@@ -50,10 +55,11 @@ void test('every table the model consumes has a provenance entry, and every entr
 });
 
 void test('the record cannot be short: a missing table is refused rather than rendered as a gap', () => {
-  const partial = { ...PROVENANCE } as Record<TableId, (typeof PROVENANCE)[TableId]>;
-  delete partial.placement;
+  // Destructured rather than deleted: the record is typed as complete on purpose, so the only way to make a
+  // short one is to say which entry is being left out.
+  const { placement: _placement, ...partial } = PROVENANCE;
   assert.throws(
-    () => provenanceFor(partial, PREDICATES),
+    () => provenanceFor(partial as Record<TableId, TableProvenance>, PREDICATES),
     (error: unknown) => {
       assert.ok(error instanceof Error);
       assert.match(error.message, /the model consumes placement with no provenance entry/);
