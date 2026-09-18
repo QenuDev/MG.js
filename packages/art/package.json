@@ -1,6 +1,6 @@
 {
   "name": "@mg.js/art",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "type": "module",
   "description": "Everything magicgarden.js knows about drawing a garden: which sprite a thing is drawn from, how large and where it lands, what a mutation paints over it, in what order the layers stack, and the pixels when a consumer needs a picture rather than a description.",
   "main": "./dist/index.js",

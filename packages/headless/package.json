@@ -1,6 +1,6 @@
 {
   "name": "@mg.js/headless",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "type": "module",
   "description": "Standalone Magic Garden client: owns its own WebSocket, authenticates, handshakes, stays alive, reconnects, and exposes the full @mg.js/common action and state surface.",
   "main": "./dist/index.js",
