@@ -121,7 +121,7 @@ export type { HeadlessClientEvents, HeadlessCloseEvent, HeadlessReport } from '.
 export type { HeadlessClientOptions } from './client-options.js';
 export { appendAuthQuery } from './connect-url.js';
 
-import { writeHandshake } from './handshake.js';
+import { writeAdmission, writeHandshake } from './handshake.js';
 
 export { HANDSHAKE_ACTIONS, HANDSHAKE_GAME_NAME } from './handshake.js';
 
@@ -829,7 +829,10 @@ export class HeadlessClient extends Emitter<HeadlessClientEvents> {
           // Guarded: the open handler must never throw into the socket's EventTarget.
           try {
             this.openedAt = Date.now();
-            writeHandshake(transport, this.logger);
+            // Admission first: the server admits a socket by the `SocketOpened` frame and closes it with
+            // `AdmissionTimedOut` (4410) if it never arrives. The §1.6 vote frames go out on `ready`
+            // instead, because they are the game's business once the session exists.
+            writeAdmission(transport, this.logger);
             this.emit('open');
           } catch (error) {
             this.logger.error('handshake failed', error);
@@ -851,6 +854,14 @@ export class HeadlessClient extends Emitter<HeadlessClientEvents> {
           // only thing that resets the session budget. The attempt number it arrived on is what the
           // policy records, so the reset is anchored to the connection that actually started the session.
           this.policy.markEstablished(this.connectionAttemptValue);
+          // The session exists, so the vote frames that put a caller into the engine's own scope can go —
+          // this is where the game's own client writes them. A failure here is logged, not fatal: the room
+          // state a garden reader wants is already arriving.
+          try {
+            writeHandshake(transport, this.logger);
+          } catch (error) {
+            this.logger.error('handshake failed', error);
+          }
           this.emit('ready');
         }),
       );

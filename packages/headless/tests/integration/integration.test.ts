@@ -106,7 +106,7 @@ async function waitForWelcomeAfter(
 }
 
 describe('HeadlessClient: handshake, actions and state', () => {
-  it('runs the full documented handshake and applies a command patch', async () => {
+  it('admits itself with SocketOpened, then runs the §1.6 vote and applies a command patch', async () => {
     const server = await mock({ pingIntervalMs: 0, welcomeDelayMs: 30 });
     const client = makeClient(server);
 
@@ -117,11 +117,26 @@ describe('HeadlessClient: handshake, actions and state', () => {
     assert.equal(client.selfPlayerId, 'p_1');
     assert.equal(client.isReady, true);
 
-    // The two handshake frames were sent in the documented order, and both arrived before `Welcome`
-    // (`welcomeDelayMs` guarantees the server had not yet sent it).
+    // Admission is one **bare** frame, `{"type":"SocketOpened"}`, and it is the first thing the client
+    // writes — the 1206 build admits a socket by it and closes a silent one with `AdmissionTimedOut`
+    // (4410). It carries no `scopePath`, which is why it is not among `roomFrames`.
+    const first = server.requests.find((entry) => entry.frame?.type === 'SocketOpened');
+    assert.ok(first, 'the admission frame was written');
+    assert.deepEqual(first?.frame, { type: 'SocketOpened' });
+    assert.equal('scopePath' in (first?.frame ?? {}), false);
+    assert.equal(
+      server.requests.findIndex((entry) => entry.frame?.type === 'SocketOpened'),
+      0,
+      'and it is the first frame sent',
+    );
+
+    // The two §1.6 vote frames were sent in the documented order, and now **after** `Welcome`: the game's
+    // own client writes them from its UI once the session exists, not to get in. They are therefore a
+    // second round trip behind `ready`, so the test waits for them rather than assuming they have landed.
+    await until(() => server.roomFrames.length >= 2, 'the two vote frames arrived after Welcome');
     const handshake = server.roomFrames.map((entry) => entry.type);
     assert.deepEqual(handshake.slice(0, 2), ['VoteForGame', 'SetSelectedGame']);
-    assert.equal(server.roomFrames[0]?.beforeWelcome, true);
+    assert.equal(server.roomFrames[0]?.beforeWelcome, false);
 
     // The handshake frames are room-scoped, so they carry no `commandSequence` at all (§8.1) and cannot
     // be rejected as `invalid_sequence`.

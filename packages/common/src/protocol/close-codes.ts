@@ -29,7 +29,9 @@
  *     e[e.SessionExpired=4840]=`SessionExpired`,
  *     e[e.Banned=4900]=`Banned`
  *
- * Eighteen codes, several with names that change what a client should do. Three consequences matter:
+ * Twenty codes in the build served today (1206; the 1192 capture this file was first read from had
+ * eighteen, and the two it has gained are `AdmissionTimedOut = 4410` and `ConnectionAttemptObsolete =
+ * 4420`). Several names change what a client should do. Three consequences matter:
  *
  *   - **4200 `PlayerLeftVoluntarily`, 4500 `PlayerKicked` and 4900 `Banned` are terminal.** Reconnecting
  *     on a kick or a ban is actively harmful, because the server will repeat the action. The "reconnect by
@@ -64,6 +66,22 @@ export enum CloseCode {
   RoomTransitioning = 4320,
   /** The application-level keepalive went unanswered (~30s of silence). */
   HeartbeatExpired = 4400,
+  /**
+   * The socket opened but was never admitted.
+   *
+   * New in the 1206 build, and the reason is on the client: admission is the bare
+   * `{"type":"SocketOpened"}` frame, and a client that opens a socket and stays silent is closed with
+   * this once the server's admission window runs out (`@mg.js/headless` writes it on open).
+   */
+  AdmissionTimedOut = 4410,
+  /**
+   * This connection attempt was superseded by a newer attempt of the *same* client.
+   *
+   * New in the 1206 build, and one half of a pair with {@link AdmissionTimedOut}: the connect URL carries
+   * a `clientConnectionAttempt` that the game's own client increments per attempt, so the server can tell
+   * a stale attempt from the live one. A closed attempt is not this session's; the newer one is.
+   */
+  ConnectionAttemptObsolete = 4420,
   /** The player was kicked. Host-enforced, and terminal: reconnecting achieves nothing. */
   PlayerKicked = 4500,
   /** The client build does not match what the server expects. Refetch the version. */
@@ -186,6 +204,8 @@ export const CLOSE_CODE_LABELS: Readonly<Record<number, string>> = {
   4310: 'ServerDisposed',
   4320: 'RoomTransitioning',
   4400: 'HeartbeatExpired',
+  4410: 'AdmissionTimedOut',
+  4420: 'ConnectionAttemptObsolete',
   4500: 'PlayerKicked',
   4700: 'VersionMismatch',
   4710: 'VersionExpired',
@@ -201,6 +221,16 @@ export const CLOSE_CODE_LABELS: Readonly<Record<number, string>> = {
 
 /** Codes where a longer base delay is required, because an instant retry is superseded again. */
 const SUPERSEDED_CODES = new Set<number>([CloseCode.UserSessionSuperseded, CloseCode.ConnectionSuperseded]);
+
+/**
+ * Codes that mean *this attempt* is not the session any more, so it must not come back on its own.
+ *
+ * `ConnectionAttemptObsolete` is the server answering the `clientConnectionAttempt` in the connect URL:
+ * a newer attempt by this same client is the live one, and reconnecting the old one would fight it. That
+ * is `stop` rather than the superseded family's `reconnect-confirm`, because there is nothing for a person
+ * to confirm — the caller's own newer attempt is already the session.
+ */
+const OBSOLETE_ATTEMPT_CODES = new Set<number>([CloseCode.ConnectionAttemptObsolete]);
 
 /**
  * Codes for which retrying is pointless or harmful.
@@ -314,6 +344,37 @@ export function analyzeClose(
       reason:
         'The client build does not match. Re-fetch the current game version before reconnecting, or ' +
         'you will just get closed again.',
+    };
+  }
+
+  if (OBSOLETE_ATTEMPT_CODES.has(code)) {
+    return {
+      ...base,
+      disposition: 'stop',
+      shouldReconnect: false,
+      requiresVersionRefetch: false,
+      isSuperseded: false,
+      isBounded: false,
+      isTerminal: true,
+      reason:
+        'This connection attempt is obsolete: a newer attempt by this client is the live session, so ' +
+        'reconnecting this one would only fight it.',
+    };
+  }
+
+  if (code === CloseCode.AdmissionTimedOut) {
+    return {
+      ...base,
+      disposition: 'reconnect',
+      shouldReconnect: true,
+      requiresVersionRefetch: false,
+      isSuperseded: false,
+      isBounded: true,
+      isTerminal: false,
+      reason:
+        'The socket opened but the server never admitted it. A client admits itself with the bare ' +
+        '`{"type":"SocketOpened"}` frame on open; if that frame was sent and the server still timed out, ' +
+        'the room was slow or full. Bounded retries.',
     };
   }
 

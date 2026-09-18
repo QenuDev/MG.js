@@ -216,8 +216,12 @@ describe('hostile room and version values', () => {
 
 describe("analyzeClose: the game's own close-code enum", () => {
   it('names every code in the bundle enum', () => {
-    // Verified in magicgarden.gg/version/<v>/assets/store-*.js. The protocol field guide catalogues only
-    // ten codes and calls five of them undocumented; the client's own enum has eighteen, all named.
+    // Verified in magicgarden.gg/version/1206/assets/bootScreen-BN8P_Yml.js. The protocol field guide
+    // catalogues only ten codes and calls five of them undocumented; the client's own enum has twenty —
+    // the eighteen the 1192 capture had, and the two 1206 added: `AdmissionTimedOut` (the bare
+    // `{"type":"SocketOpened"}` frame the client writes on open, which a silent socket is closed with once
+    // the server's admission window runs out) and `ConnectionAttemptObsolete` (the `clientConnectionAttempt`
+    // in the connect URL, answered to a stale attempt).
     const expected: Record<number, string> = {
       4100: 'ReconnectInitiated',
       4200: 'PlayerLeftVoluntarily',
@@ -226,6 +230,8 @@ describe("analyzeClose: the game's own close-code enum", () => {
       4310: 'ServerDisposed',
       4320: 'RoomTransitioning',
       4400: 'HeartbeatExpired',
+      4410: 'AdmissionTimedOut',
+      4420: 'ConnectionAttemptObsolete',
       4500: 'PlayerKicked',
       4700: 'VersionMismatch',
       4710: 'VersionExpired',
@@ -238,7 +244,7 @@ describe("analyzeClose: the game's own close-code enum", () => {
       4840: 'SessionExpired',
       4900: 'Banned',
     };
-    assert.equal(Object.keys(CLOSE_CODE_LABELS).length, 18);
+    assert.equal(Object.keys(CLOSE_CODE_LABELS).length, 20);
     for (const [code, name] of Object.entries(expected)) {
       assert.equal(analyzeClose(Number(code)).label, name, `code ${code}`);
     }
