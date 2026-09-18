@@ -28,7 +28,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { ServerClock } from '../../src/state/clock.js';
-import { mutationName } from '../../src/state/entities.js';
+import { mutationName, type Tile } from '../../src/state/entities.js';
 import { asRecord, StateReader, StateRecord, StateWaitError } from '../../src/state/reader.js';
 import { ObservableStore } from '../../src/state/store.js';
 
@@ -420,11 +420,20 @@ void test('a boardwalk tile is kept even when its key collides with a ground til
     [7, 12],
     'the boardwalk keeps both of its tiles, including the colliding key',
   );
-  assert.equal(garden?.boardwalkTiles[1]?.record.string('decorId'), 'PetHutch');
+  assert.equal(garden?.boardwalkTiles[1]?.objectType, 'decor');
+  assert.equal(
+    garden?.boardwalkTiles[1]?.objectType === 'decor' ? garden.boardwalkTiles[1].decorId : null,
+    'PetHutch',
+    'a decoration tile states its decoration as a field of its own arm',
+  );
 
   // And the ground tile at the same key is the plant, not the hutch.
   assert.equal(garden?.tiles[0]?.objectType, 'plant');
-  assert.equal(garden?.tiles[0]?.record.string('species'), 'Clover');
+  assert.equal(
+    garden?.tiles[0]?.objectType === 'plant' ? garden.tiles[0].species : null,
+    'Clover',
+    'a plant tile states its species as a field, not only through the escape hatch',
+  );
 
   // Each tile says which ground it is on, because an index on its own is not an address: 12 names both of
   // these. It is the game's own name for the pair, and the map the tile is keyed in is where it says so —
@@ -454,14 +463,14 @@ void test('the ground a tile is on is the map, not what the tile holds', () => {
                   tileObjects: {
                     '4': { objectType: 'decor', decorId: 'MarblePedestal' },
                     '5': {
-                      objectType: 'Crystal',
+                      objectType: 'crystal',
                       crystalType: 'Hunger',
                       remainingActiveSeconds: 1_440,
                     },
                   },
                   boardwalkTileObjects: {
                     '6': {
-                      objectType: 'Crystal',
+                      objectType: 'crystal',
                       crystalType: 'XP',
                       remainingActiveSeconds: 900,
                     },
@@ -482,15 +491,175 @@ void test('the ground a tile is on is the map, not what the tile holds', () => {
     garden?.tiles.map((tile) => [tile.id, tile.objectType, tile.tileType]),
     [
       [4, 'decor', 'Dirt'],
-      [5, 'Crystal', 'Dirt'],
+      [5, 'crystal', 'Dirt'],
     ],
     'decoration and a shard in the soil are both soil tiles',
   );
   assert.deepEqual(
     garden?.boardwalkTiles.map((tile) => [tile.id, tile.objectType, tile.tileType]),
-    [[6, 'Crystal', 'Boardwalk']],
+    [[6, 'crystal', 'Boardwalk']],
     'and a shard on the boardwalk is a boardwalk tile',
   );
+});
+
+/**
+ * What one tile says about itself, read through the arm its own kind selects.
+ *
+ * This is the reason the union is worth having, and it is a check and not a comment: `npm run typecheck`
+ * compiles this file, so a field read off the wrong kind of tile (`tile.eggId` on a plant, `tile.crystalType`
+ * on a decoration) is a build error rather than `undefined` at runtime.
+ */
+function readingOf(tile: Tile): string {
+  switch (tile.objectType) {
+    case 'plant':
+      return `${tile.species}, ${tile.plots.length} crops`;
+    case 'egg':
+      return `${tile.eggId}, due ${tile.maturedAt}`;
+    case 'decor':
+      return `${tile.decorId} at ${tile.rotation}${tile.mountedCrop === null ? '' : `, wearing ${tile.mountedCrop.species}`}`;
+    case 'crystal':
+      return tile.hasLife
+        ? `${tile.crystalType}, ${tile.remainingActiveSeconds}s left`
+        : `${tile.crystalType}, no charge stated`;
+    default:
+      return tile.record.string('objectType') === ''
+        ? 'no kind at all'
+        : `a kind this reader does not know: ${tile.record.string('objectType')}`;
+  }
+}
+
+void test("a tile is the arm its own kind declares, and carries that arm's fields", () => {
+  // The four schemas the save can write, one tile each, plus a kind none of them declares and a decoration
+  // with nothing mounted on it — the two arms that are easiest to get wrong, because they are the quiet ones.
+  const store = new ObservableStore({
+    initial: {
+      data: { players: [{ id: 'p_1' }] },
+      child: {
+        data: {
+          userSlots: [
+            {
+              userId: 'p_1',
+              data: {
+                garden: {
+                  tileObjects: {
+                    '0': {
+                      objectType: 'plant',
+                      species: 'Clover',
+                      slots: [{ species: 'Clover', startTime: 0, endTime: 1_000, size: 50, slotId: 0 }],
+                      plantedAt: 0,
+                      maturedAt: 1_000,
+                    },
+                    '1': { objectType: 'egg', eggId: 'SnowEgg', plantedAt: 0, maturedAt: 60_000 },
+                    '2': {
+                      objectType: 'decor',
+                      decorId: 'MarblePedestal',
+                      rotation: 90,
+                      mountedCrop: {
+                        species: 'Tomato',
+                        startTime: 0,
+                        endTime: 2_000,
+                        size: 75,
+                        x: 0.1,
+                        y: -0.2,
+                        slotId: 3,
+                      },
+                    },
+                    '3': { objectType: 'decor', decorId: 'Fence' },
+                    '4': { objectType: 'crystal', crystalType: 'Hunger', remainingActiveSeconds: 1_440 },
+                    // A crystal tile that states no charge at all, which is not the same as a spent one.
+                    '5': { objectType: 'crystal', crystalType: 'XP' },
+                    '6': { objectType: 'pet', species: 'Fox' },
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+  });
+  const state = new StateReader(store);
+  state.selfPlayerId = 'p_1';
+  const tiles = state.garden(0)?.tiles ?? [];
+  const byId = new Map(tiles.map((tile) => [tile.id, tile]));
+
+  assert.deepEqual(
+    tiles.map(readingOf),
+    [
+      'Clover, 1 crops',
+      'SnowEgg, due 60000',
+      'MarblePedestal at 90, wearing Tomato',
+      'Fence at 0',
+      'Hunger, 1440s left',
+      'XP, no charge stated',
+      'a kind this reader does not know: pet',
+    ],
+    'each tile reads as its own kind, and a kind none declares reads as the base',
+  );
+
+  // The fields themselves, arm by arm — and the ones that are absent read as the game's own defaults. Each
+  // tile is bound to a local first: narrowing applies to a reference, so `byId.get(1)?.objectType === 'egg'`
+  // would not narrow the *second* call to `get`.
+  const plant = byId.get(0);
+  const egg = byId.get(1);
+  const decor = byId.get(2);
+  const bareDecor = byId.get(3);
+  const charged = byId.get(4);
+  const bare = byId.get(5);
+  const unknown = byId.get(6);
+  assert.equal(plant?.objectType === 'plant' ? plant.species : null, 'Clover');
+  assert.equal(plant?.objectType === 'plant' ? plant.plots.length : null, 1, 'and its plots are its `slots`');
+  assert.equal(egg?.objectType === 'egg' ? egg.eggId : null, 'SnowEgg');
+  assert.equal(egg?.objectType === 'egg' ? egg.maturedAt : null, 60_000);
+  assert.equal(
+    decor?.objectType === 'decor' ? decor.rotation : null,
+    90,
+    'a turned decoration states its angle',
+  );
+  assert.equal(
+    decor?.objectType === 'decor' ? (decor.mountedCrop?.species ?? null) : null,
+    'Tomato',
+    'and its mounted crop is read as a crop, with the crop reader',
+  );
+  assert.equal(decor?.objectType === 'decor' ? (decor.mountedCrop?.x ?? null) : null, 0.1);
+  assert.equal(decor?.objectType === 'decor' ? (decor.mountedCrop?.positioned ?? null) : null, true);
+  assert.equal(
+    bareDecor?.objectType === 'decor' ? bareDecor.mountedCrop : 'not a decoration',
+    null,
+    'a decoration with nothing mounted carries no crop',
+  );
+  assert.equal(bareDecor?.objectType === 'decor' ? bareDecor.rotation : null, 0, 'and stands at zero');
+  assert.equal(charged?.objectType === 'crystal' ? charged.crystalType : null, 'Hunger');
+  assert.equal(charged?.objectType === 'crystal' ? charged.remainingActiveSeconds : null, 1_440);
+  assert.equal(
+    charged?.objectType === 'crystal' ? charged.hasLife : null,
+    true,
+    'a stated charge is a charge',
+  );
+  assert.equal(
+    bare?.objectType === 'crystal' ? bare.remainingActiveSeconds : null,
+    0,
+    'a charge it never stated reads as zero',
+  );
+  assert.equal(
+    bare?.objectType === 'crystal' ? bare.hasLife : null,
+    false,
+    'and is told apart from a spent one',
+  );
+
+  // A kind none of the four declares is the empty kind, and the save's own spelling is still in the record:
+  // the arm stands for "not one of the four" so the union narrows, and nothing the save said is lost.
+  assert.equal(unknown?.objectType, '', 'a fifth kind reads as no kind');
+  assert.equal(unknown?.record.string('objectType'), 'pet', 'and the record still says what the save said');
+  assert.equal(unknown?.plots.length, 0, 'with the base readings it shares with every arm');
+
+  // Every arm keeps the escape hatch, and the three readings that are on all of them.
+  for (const tile of tiles) {
+    assert.ok(tile.record !== undefined, `tile ${tile.id} keeps its record`);
+    assert.equal(typeof tile.plantedAt, 'number');
+    assert.equal(typeof tile.maturedAt, 'number');
+    assert.ok(Array.isArray(tile.plots));
+  }
 });
 
 void test('a crop id is the wire slotId, and a tile id is the tileObjects key', () => {

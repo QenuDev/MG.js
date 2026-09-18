@@ -373,9 +373,18 @@ export function toCrop(value: unknown, nowMs: number, entityPath: string): Crop 
 }
 
 /**
- * One garden tile, typed from the tile schema `ts` in the game's own bundle:
+ * One garden tile, typed from the game's own tile schemas — four of them, which are a union discriminated by
+ * `objectType`:
  *
- *     ts = d({ objectType, species, slots, plantedAt, maturedAt })
+ *     ka = d({ objectType: N.Plant,   species: L, slots: x(ga), plantedAt: U, maturedAt: U })
+ *     Aa = d({ objectType: N.Egg,     eggId: j, plantedAt: U, maturedAt: U })
+ *     ja = d({ objectType: N.Decor,   decorId: Ln, mountedCrop: c(_a), rotation: na })
+ *     Ma = d({ objectType: N.Crystal, crystalType: nn, remainingActiveSeconds: y(h(), b(), r(0), a(an)) })
+ *
+ * The kind the save states picks the arm, so every field a tile carries is read by the schema that declares
+ * it and no other arm carries it. A kind none of the four declares is read as `OtherTile` — the empty kind —
+ * rather than refused or guessed at: a save that grows a fifth kind is still a save this reader can hand on,
+ * and the spelling it used is in the tile's own record.
  *
  * @param id The tile's key in its own map, which the schemas declare as a number.
  * @param tileType Which of the garden's two maps it was read from, because the keys of one do not address
@@ -389,18 +398,57 @@ export function toTile(
   tileType: TileType,
 ): Tile {
   const record = new StateRecord(value);
-  const plots = toCrops(record.raw['slots'], nowMs, entityPath);
+  const objectType = record.string('objectType');
 
-  return {
+  // The three readings every kind shares, because a tile's own fields are read the same way whichever it is:
+  // `plantedAt`/`maturedAt` (declared by the plant and egg schemas) and `plots` (the plant schema's `slots`).
+  const base = {
     entityPath,
     tileType,
     id,
-    objectType: record.string('objectType'),
     plantedAt: record.number('plantedAt'),
     maturedAt: record.number('maturedAt'),
-    plots,
+    plots: toCrops(record.raw['slots'], nowMs, entityPath),
     record,
   };
+
+  if (objectType === 'plant') return { ...base, objectType, species: record.string('species') };
+  if (objectType === 'egg') return { ...base, objectType, eggId: record.string('eggId') };
+  if (objectType === 'decor') {
+    return {
+      ...base,
+      objectType,
+      decorId: record.string('decorId'),
+      rotation: record.number('rotation'),
+      // A decoration's crop, which is the decor schema's own field rather than a plot: `mountedCrop: c(_a)`.
+      mountedCrop: toMountedCrop(record.read('mountedCrop'), nowMs, `${entityPath}/mountedCrop`),
+    };
+  }
+  if (objectType === 'crystal') {
+    return {
+      ...base,
+      objectType,
+      crystalType: record.string('crystalType'),
+      // The schema defaults the seconds to zero for a tile that names none, which the game reads as spent.
+      remainingActiveSeconds: record.number('remainingActiveSeconds'),
+      hasLife: record.has('remainingActiveSeconds'),
+    };
+  }
+  // A kind none of the four declares is read as **no kind**: the arm stands for "not one of the four" so that
+  // the union still narrows, and the save's own spelling stays where it is — in the record this tile carries.
+  return { ...base, objectType: '' };
+}
+
+/**
+ * The crop a decoration carries, or `null`.
+ *
+ * `mountedCrop: c(_a)` — the decor schema's own optional crop — read with the reader a plot is read with,
+ * because it is the same shape. Absent is `null` and not an empty crop: a decoration with nothing mounted
+ * carries nothing, and an emptied plot is not a crop either.
+ */
+export function toMountedCrop(value: unknown, nowMs: number, entityPath: string): Crop | null {
+  if (value === null || value === undefined || typeof value !== 'object') return null;
+  return toCrop(value, nowMs, entityPath);
 }
 
 /**

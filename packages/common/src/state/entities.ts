@@ -220,14 +220,37 @@ export interface Crop extends StateView {
 export type TileType = 'Dirt' | 'Boardwalk';
 
 /**
- * One garden tile: the tile schema `ts` in the game's bundle.
+ * What a tile holds, in the spelling a tile writes it.
  *
- *     ts = d({ objectType, species, slots, plantedAt, maturedAt })
- *
- * A tile is keyed in `garden.tileObjects` by its own id, and the tile's own `species` is the dirt or plot
- * type rather than a crop's.
+ * A tile says its kind in lowercase (`plant`, `egg`, `decor`, `crystal`) while an inventory entry says its own
+ * in capitals (`Plant`, `Tool`, …), which is the game's spelling on each side and not a choice here.
  */
-export interface Tile extends StateView {
+export type TileObjectType = 'plant' | 'egg' | 'decor' | 'crystal';
+
+/**
+ * One garden tile: the game's own tile schemas, which are four shapes and not one.
+ *
+ *     ka = d({ objectType: N.Plant,   species: L, slots: x(ga), plantedAt: U, maturedAt: U })
+ *     Aa = d({ objectType: N.Egg,     eggId: j, plantedAt: U, maturedAt: U })
+ *     ja = d({ objectType: N.Decor,   decorId: Ln, mountedCrop: c(_a), rotation: na })
+ *     Ma = d({ objectType: N.Crystal, crystalType: nn, remainingActiveSeconds: y(h(), b(), r(0), a(an)) })
+ *     Na = f([ka, Aa, ja, Ma])      // `tileObjects`: a tile is any of the four
+ *     Pa = f([ja, Ma])              // `boardwalkTileObjects`: decoration or a charged shard only
+ *     Fa = d({ tileObjects: l(_(), Na), boardwalkTileObjects: l(_(), Pa) })
+ *
+ * The four are modelled as the game models them — a **union discriminated by `objectType`** — rather than as
+ * one record with everything optional in it. A tile then carries the fields its own kind declares and no
+ * others, and a reader that checks {@link TileBase.objectType} gets that kind's fields without a cast.
+ *
+ * Three readings are on every arm rather than on the kind that declares them, because a tile's own fields are
+ * read the same way whichever kind it is: {@link TileBase.plantedAt} and {@link TileBase.maturedAt} (declared
+ * by the plant and egg schemas) and {@link TileBase.plots} (the plant schema's `slots`). A tile whose kind
+ * does not state one reads `0`, or no crops, which is the same reading the game's own defaults make.
+ */
+export type Tile = PlantTile | EggTile | DecorTile | CrystalTile | OtherTile;
+
+/** What every tile carries, whichever kind it is. */
+export interface TileBase extends StateView {
   /** The path of this tile: `.../garden/tileObjects/<id>`. */
   readonly entityPath: string;
   /**
@@ -239,30 +262,102 @@ export interface Tile extends StateView {
    */
   readonly tileType: TileType;
   /**
-   * The tile's key in `garden.tileObjects`: what the wire calls a tile object index.
+   * The tile's key in its own map: what the wire calls a tile object index.
    *
    * The schema declares these keys as numbers, and this is the number `HarvestCrop` sends as `slot` and
    * that `CropCleanser` and `MutationPotion` send as `tileObjectIdx`.
    */
   readonly id: number;
-  /** What this tile holds. Only `plant` tiles carry crops. */
+  /** What this tile holds: the discriminant of {@link Tile}. */
   readonly objectType: ItemType;
   /**
    * When the tile's contents were placed, in server milliseconds.
    *
-   * An egg tile carries this, and it is the start of the hatching period. `0` when the field is absent.
+   * The plant and egg schemas declare it, and for an egg it is the start of the hatching period. `0` when the
+   * field is absent.
    */
   readonly plantedAt: number;
   /**
    * When the tile's contents are due to finish, in server milliseconds.
    *
-   * Present on an egg tile and on a plant tile. `0` when the field is absent.
+   * The plant and egg schemas declare it. `0` when the field is absent.
    */
   readonly maturedAt: number;
-  /** The crops planted on this tile, in the game's own order. Empty for a bare tile. */
+  /**
+   * The crops in the tile's `slots`, in the game's own order.
+   *
+   * The plant schema declares `slots`; a tile of another kind reads as no crops. A decoration's crop is
+   * {@link DecorTile.mountedCrop} rather than a plot.
+   */
   readonly plots: Crop[];
   /** Everything else the tile carries, read by name. The escape hatch. */
   readonly record: StateRecordLike;
+}
+
+/** A plant tile: a species growing in `slots`. */
+export interface PlantTile extends TileBase {
+  readonly objectType: 'plant';
+  /** The planted species — the same name an inventory seed or produce carries. */
+  readonly species: string;
+}
+
+/** An egg tile: the egg that is hatching in it. */
+export interface EggTile extends TileBase {
+  readonly objectType: 'egg';
+  /** The egg's own id, in the spelling the egg table uses (`SnowEgg`). */
+  readonly eggId: string;
+}
+
+/** A decoration tile: the decoration standing on it, at the angle it is placed at. */
+export interface DecorTile extends TileBase {
+  readonly objectType: 'decor';
+  /** The decoration's id, as the game's decor table spells it. */
+  readonly decorId: string;
+  /**
+   * The angle the decoration is placed at, in degrees.
+   *
+   * The game hangs six decorations half a tile off their tile at `0`, `90`, `180` and `270`, which moves both
+   * the art and its place in the world stack. `0` when the field is absent.
+   */
+  readonly rotation: number;
+  /**
+   * A crop mounted **on** the decoration, or `null`.
+   *
+   * The decor schema declares it (`mountedCrop: c(_a)`), and it is a crop like any other: a decoration can
+   * carry one where a plant tile carries `slots`.
+   */
+  readonly mountedCrop: Crop | null;
+}
+
+/** A crystal tile: a shard charged in it, and how much of that charge is left. */
+export interface CrystalTile extends TileBase {
+  readonly objectType: 'crystal';
+  /** The crystal's type, as the crystal table spells it (`Hunger`). */
+  readonly crystalType: string;
+  /** What is left of the charge, in seconds. `0` when the tile states none, which the game reads as spent. */
+  readonly remainingActiveSeconds: number;
+  /**
+   * Whether the tile states a charge at all.
+   *
+   * A spent crystal states a zero; a tile that states nothing has no charge to count. The two read the same
+   * through {@link remainingActiveSeconds}, so the difference is named here, exactly as an inventory entry's
+   * own `hasLife` names it.
+   */
+  readonly hasLife: boolean;
+}
+
+/**
+ * A tile whose `objectType` is none of the four the game declares.
+ *
+ * A valid save holds no such tile — the game's own schema for a tile is `f([ka, Aa, ja, Ma])` — so this arm is
+ * the reader saying "a kind I do not know", which is what a **fifth** kind would be. It reads as the empty
+ * kind rather than as whatever the save spelled, because the empty kind is the only unit type that can stand
+ * for "not one of the four": TypeScript needs a unit type for an arm of a discriminated union, and an arm
+ * typed `string` is a supertype of every literal, which silently stops the whole union from narrowing. The
+ * save's own spelling is not lost: {@link TileBase.record} states it.
+ */
+export interface OtherTile extends TileBase {
+  readonly objectType: '';
 }
 
 /**

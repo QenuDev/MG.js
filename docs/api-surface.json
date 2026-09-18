@@ -970,7 +970,6 @@
         "StateChange",
         "StateRecordLike",
         "Storage",
-        "Tile",
         "WaitOptions",
         "Watchable"
       ],
@@ -983,6 +982,7 @@
         "MutationGroup",
         "PointerTokens",
         "StateSubscriber",
+        "Tile",
         "TileType",
         "WatchTarget"
       ],
@@ -1096,6 +1096,7 @@
     },
     "headless/handshake": {
       "Variable": [
+        "ADMISSION_FRAME",
         "HANDSHAKE_ACTIONS",
         "HANDSHAKE_GAME_NAME"
       ]
