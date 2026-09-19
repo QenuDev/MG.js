@@ -121,6 +121,7 @@ export function extractArtTables(chunks: readonly ParsedChunkLike[]): Extraction
     harvestTypes: take(accepted, 'harvestTypes'),
     iconFills: take(accepted, 'iconFills'),
     itemTypes: take(accepted, 'itemTypes'),
+    kindSchemas: take(accepted, 'kindSchemas'),
     scale: take(accepted, 'scale'),
     overMutations: take(accepted, 'overMutations'),
     placement: take(accepted, 'placement'),
@@ -164,6 +165,8 @@ export function evidenceOf(candidate: TableCandidate<unknown>): Evidence {
     start: candidate.start,
     end: candidate.end,
     support: candidate.support,
+    // Omitted rather than set to `undefined`: a data file has no null evidence for a table that states one range.
+    ...(candidate.reading === undefined ? {} : { reading: candidate.reading }),
     coverage: candidate.coverage,
   };
 }

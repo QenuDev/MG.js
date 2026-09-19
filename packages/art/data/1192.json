@@ -136,6 +136,130 @@
       "start": 3894,
       "support": []
     },
+    "kindSchemas": {
+      "chunk": "worldDepthSortKey-BXUHHrP0.js",
+      "coverage": {
+        "counts": {
+          "arms": 16,
+          "cropArms": 1,
+          "fields": 70,
+          "itemArms": 8,
+          "itemKinds": 7,
+          "optionalFields": 9,
+          "petVariants": 2,
+          "tileArms": 4,
+          "tileKinds": 4,
+          "tileTypes": 4
+        },
+        "notes": ["optional wrapper(s), read from the variants: c"]
+      },
+      "declaration": "Ta",
+      "end": 634761,
+      "invariant": "exactly the item kinds the item-type enum states, each with at least one arm; the largest union whose arms state an `objectType` through one enum, one arm per member; a crop read from the plant schema's own `slots` member; and a pet base reachable from both the item union's pet arm and the pet variants, one of which wraps the extras the other requires",
+      "looksFor": "the game's own kind schemas: the strict object each item kind's union arm names, the crop schema a plant's own `slots` member holds, the pet base whose two variants add the outfit extras, and the tile union whose arms discriminate on `objectType` through the other, lowercase enum",
+      "predicate": "kind-schema-table",
+      "reading": [
+        {
+          "declaration": "_a",
+          "end": 634145,
+          "start": 634078
+        },
+        {
+          "declaration": "aa",
+          "end": 633315,
+          "start": 633190
+        },
+        {
+          "declaration": "Aa",
+          "end": 635023,
+          "start": 634967
+        },
+        {
+          "declaration": "ba",
+          "end": 634447,
+          "start": 634370
+        },
+        {
+          "declaration": "Ca",
+          "end": 634600,
+          "start": 634535
+        },
+        {
+          "declaration": "ga",
+          "end": 634074,
+          "start": 633937
+        },
+        {
+          "declaration": "ja",
+          "end": 635094,
+          "start": 635027
+        },
+        {
+          "declaration": "ka",
+          "end": 634963,
+          "start": 634891
+        },
+        {
+          "declaration": "Ma",
+          "end": 635186,
+          "start": 635098
+        },
+        {
+          "declaration": "N",
+          "end": 31180,
+          "start": 31091
+        },
+        {
+          "declaration": "Na",
+          "end": 635206,
+          "start": 635190
+        },
+        {
+          "declaration": "Sa",
+          "end": 634531,
+          "start": 634506
+        },
+        {
+          "declaration": "va",
+          "end": 634203,
+          "start": 634149
+        },
+        {
+          "declaration": "wa",
+          "end": 634678,
+          "start": 634604
+        },
+        {
+          "declaration": "xa",
+          "end": 634502,
+          "start": 634451
+        },
+        {
+          "declaration": "ya",
+          "end": 634366,
+          "start": 634207
+        }
+      ],
+      "start": 634682,
+      "support": [
+        "Aa",
+        "Ca",
+        "Ma",
+        "N",
+        "Na",
+        "Sa",
+        "_a",
+        "aa",
+        "ba",
+        "ga",
+        "ja",
+        "ka",
+        "va",
+        "wa",
+        "xa",
+        "ya"
+      ]
+    },
     "mutationArt": {
       "chunk": "resources-D_3Zwcn-.js",
       "coverage": {
@@ -854,6 +978,412 @@
       "Produce": "Produce",
       "Seed": "Seed",
       "Tool": "Tool"
+    },
+    "kindSchemas": {
+      "arms": {
+        "Aa": {
+          "declaration": "Aa",
+          "fields": [
+            {
+              "name": "objectType",
+              "required": true
+            },
+            {
+              "name": "eggId",
+              "required": true
+            },
+            {
+              "name": "plantedAt",
+              "required": true
+            },
+            {
+              "name": "maturedAt",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "Ca": {
+          "declaration": "Ca",
+          "fields": [
+            {
+              "name": "sourceEggId",
+              "required": true
+            },
+            {
+              "name": "abilityCooldowns",
+              "required": true
+            },
+            {
+              "name": "equippedCosmetics",
+              "required": true
+            }
+          ],
+          "spreads": ["Sa"]
+        },
+        "Ma": {
+          "declaration": "Ma",
+          "fields": [
+            {
+              "name": "objectType",
+              "required": true
+            },
+            {
+              "name": "crystalType",
+              "required": true
+            },
+            {
+              "name": "remainingActiveSeconds",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "Sa": {
+          "declaration": "Sa",
+          "fields": [
+            {
+              "name": "itemType",
+              "required": true
+            }
+          ],
+          "spreads": ["aa"]
+        },
+        "Ta#6": {
+          "declaration": "Ta",
+          "fields": [
+            {
+              "name": "decorId",
+              "required": true
+            },
+            {
+              "name": "itemType",
+              "required": true
+            },
+            {
+              "name": "quantity",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "_a": {
+          "declaration": "_a",
+          "fields": [
+            {
+              "name": "id",
+              "required": true
+            },
+            {
+              "name": "species",
+              "required": true
+            },
+            {
+              "name": "itemType",
+              "required": true
+            },
+            {
+              "name": "size",
+              "required": true
+            },
+            {
+              "name": "mutations",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "aa": {
+          "declaration": "aa",
+          "fields": [
+            {
+              "name": "id",
+              "required": true
+            },
+            {
+              "name": "petSpecies",
+              "required": true
+            },
+            {
+              "name": "name",
+              "required": true
+            },
+            {
+              "name": "xp",
+              "required": true
+            },
+            {
+              "name": "hunger",
+              "required": true
+            },
+            {
+              "name": "mutations",
+              "required": true
+            },
+            {
+              "name": "targetScale",
+              "required": true
+            },
+            {
+              "name": "abilities",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "ba": {
+          "declaration": "ba",
+          "fields": [
+            {
+              "name": "id",
+              "required": true
+            },
+            {
+              "name": "species",
+              "required": true
+            },
+            {
+              "name": "itemType",
+              "required": true
+            },
+            {
+              "name": "slots",
+              "required": true
+            },
+            {
+              "name": "plantedAt",
+              "required": true
+            },
+            {
+              "name": "maturedAt",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "ga": {
+          "declaration": "ga",
+          "fields": [
+            {
+              "name": "species",
+              "required": true
+            },
+            {
+              "name": "startTime",
+              "required": true
+            },
+            {
+              "name": "endTime",
+              "required": true
+            },
+            {
+              "name": "size",
+              "required": true
+            },
+            {
+              "name": "mutations",
+              "required": true
+            },
+            {
+              "name": "x",
+              "required": false
+            },
+            {
+              "name": "y",
+              "required": false
+            },
+            {
+              "name": "rotation",
+              "required": false
+            },
+            {
+              "name": "flipped",
+              "required": false
+            },
+            {
+              "name": "preserved",
+              "required": false
+            },
+            {
+              "name": "slotId",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "ja": {
+          "declaration": "ja",
+          "fields": [
+            {
+              "name": "objectType",
+              "required": true
+            },
+            {
+              "name": "decorId",
+              "required": true
+            },
+            {
+              "name": "mountedCrop",
+              "required": false
+            },
+            {
+              "name": "rotation",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "ka": {
+          "declaration": "ka",
+          "fields": [
+            {
+              "name": "objectType",
+              "required": true
+            },
+            {
+              "name": "species",
+              "required": true
+            },
+            {
+              "name": "slots",
+              "required": true
+            },
+            {
+              "name": "plantedAt",
+              "required": true
+            },
+            {
+              "name": "maturedAt",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "va": {
+          "declaration": "va",
+          "fields": [
+            {
+              "name": "species",
+              "required": true
+            },
+            {
+              "name": "itemType",
+              "required": true
+            },
+            {
+              "name": "quantity",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "wa": {
+          "declaration": "wa",
+          "fields": [
+            {
+              "name": "sourceEggId",
+              "required": false
+            },
+            {
+              "name": "abilityCooldowns",
+              "required": false
+            },
+            {
+              "name": "equippedCosmetics",
+              "required": false
+            }
+          ],
+          "spreads": ["Sa"]
+        },
+        "xa": {
+          "declaration": "xa",
+          "fields": [
+            {
+              "name": "eggId",
+              "required": true
+            },
+            {
+              "name": "itemType",
+              "required": true
+            },
+            {
+              "name": "quantity",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "ya#0": {
+          "declaration": "ya",
+          "fields": [
+            {
+              "name": "toolId",
+              "required": true
+            },
+            {
+              "name": "itemType",
+              "required": true
+            },
+            {
+              "name": "quantity",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "ya#1": {
+          "declaration": "ya",
+          "fields": [
+            {
+              "name": "id",
+              "required": true
+            },
+            {
+              "name": "toolId",
+              "required": true
+            },
+            {
+              "name": "itemType",
+              "required": true
+            },
+            {
+              "name": "quantity",
+              "required": true
+            },
+            {
+              "name": "remainingActiveSeconds",
+              "required": true
+            }
+          ],
+          "spreads": []
+        }
+      },
+      "crops": ["ga"],
+      "items": {
+        "Decor": ["Ta#6"],
+        "Egg": ["xa"],
+        "Pet": ["Ca"],
+        "Plant": ["ba"],
+        "Produce": ["_a"],
+        "Seed": ["va"],
+        "Tool": ["ya#0", "ya#1"]
+      },
+      "pets": {
+        "base": ["aa"],
+        "variants": ["Ca", "wa"]
+      },
+      "tileTypes": {
+        "Crystal": "crystal",
+        "Decor": "decor",
+        "Egg": "egg",
+        "Plant": "plant"
+      },
+      "tiles": {
+        "Crystal": ["Ma"],
+        "Decor": ["ja"],
+        "Egg": ["Aa"],
+        "Plant": ["ka"]
+      }
     },
     "mutationArt": {
       "Ambercharged": {

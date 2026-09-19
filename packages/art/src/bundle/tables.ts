@@ -82,6 +82,70 @@ export interface IconFill {
 /** A number, or the per-part overrides the game states for one species. */
 export type AnchorValue = number | { readonly [part: string]: number | AnchorValue };
 
+/**
+ * One field a game schema declares, in the game's own spelling.
+ *
+ * `required` is the game's own optionality, not this package's opinion: a field the game wraps in the schema
+ * library's `optional` construction may be absent, and every other field must be present. The extraction reads
+ * that wrapper from the two pet variants rather than from its minified name (see `predicates.ts`).
+ */
+export interface DeclaredField {
+  readonly name: string;
+  readonly required: boolean;
+}
+
+/**
+ * One schema the game declares: an object literal, the declaration it sits in, and the fields it writes itself.
+ *
+ * `spreads` names the arms whose fields this one inherits, so a consumer resolves a kind's field list by walking
+ * them base first. `fields` is the literal's own members only, in the game's own order: inheriting the same field
+ * twice would make "which schema declared it" unanswerable.
+ */
+export interface SchemaArm {
+  /** The declaration this arm was read from, in the game's own spelling. */
+  readonly declaration: string;
+  /** The declarations this arm spreads, in the game's own order. */
+  readonly spreads: readonly string[];
+  /** The fields this arm's own literal writes, in the game's own order, none inherited. */
+  readonly fields: readonly DeclaredField[];
+}
+
+/**
+ * The schemas the game declares for its kinds, per family.
+ *
+ * A kind maps to the arms its union arm names, and an arm maps to its own fields plus the arms it spreads, so
+ * "which fields does kind `<K>` declare, and which are required" is a walk: the family's record for `K`, then
+ * `arms[id].fields`, then each `spreads` base's fields. A kind with more than one arm is a union the game states
+ * twice -- the tools and the pets -- and each arm is a variant a consumer can tell apart rather than a schema
+ * flattened silently.
+ *
+ * The two discriminators are not the same enum, which is why the families are kept apart even though they can
+ * spell a member the same way (`items` and `tiles` both have a `Plant`). The item side states `itemType` through
+ * the capitalised item-type enum; the tile side states `objectType` through the other enum, whose *literals* are
+ * lowercase and live in `tileTypes`. Only the family says which enum an entry belongs to.
+ */
+export interface KindSchemas {
+  /** The seven item kinds: the item-type member -> the arms its union arm names, in the union's order. */
+  readonly items: Readonly<Record<string, readonly string[]>>;
+  /** The four tile kinds: the object-type *member* each arm states -> the arms the union names. */
+  readonly tiles: Readonly<Record<string, readonly string[]>>;
+  /**
+   * The object-type enum's own member -> literal map, read from the declaration the arms name rather than from
+   * the union the keys come from -- so a witness can compare two independent readings (`tileTypes` and `tiles`)
+   * and disagree with one of them, which a map derived from those same keys could not.
+   */
+  readonly tileTypes: Readonly<Record<string, string>>;
+  /** The arm a plant slot's crop is read through (one today, named by the plant schema's own `slots` member). */
+  readonly crops: readonly string[];
+  /** The pet schema the item union's pet arm is built on: the shared base and the variants that add extras. */
+  readonly pets: {
+    readonly base: readonly string[];
+    readonly variants: readonly string[];
+  };
+  /** Every arm the records above name, each recorded once, keyed by the id those records use. */
+  readonly arms: Readonly<Record<string, SchemaArm>>;
+}
+
 export interface ArtTables {
   /** category -> name -> path, the game's own nesting. */
   readonly spriteNames: Readonly<Record<string, Readonly<Record<string, SpritePath>>>>;
@@ -102,6 +166,8 @@ export interface ArtTables {
   readonly iconFills: Readonly<Record<string, IconFill>>;
   /** member -> the literal the game's own item-type enum assigns it (the consumer's `itemType` string). */
   readonly itemTypes: Readonly<Record<string, string>>;
+  /** The field list the game declares per kind, in the two families, with the crop and pet schemas. */
+  readonly kindSchemas: KindSchemas;
   readonly scale: {
     readonly cap: number;
     readonly referenceTilePx: number;
@@ -146,6 +212,7 @@ export const MODEL_TABLES = [
   'harvestTypes',
   'iconFills',
   'itemTypes',
+  'kindSchemas',
   'scale',
   'overMutations',
   'placement',
@@ -182,7 +249,23 @@ export interface Evidence {
    * did this predicate need" is the question a shape change makes urgent.
    */
   readonly support: readonly string[];
+  /**
+   * The declarations behind `support`, each with the range its initializer occupies.
+   *
+   * A table whose value is one lookup states its origin in `declaration`/`start`/`end`. A table whose value is a
+   * set of schemas -- the kind schemas, one arm per declaration -- has more than one origin, and this is where
+   * each sits. It is optional because no other table needs it, and it is translated back to the game's own bytes
+   * exactly as `start`/`end` are.
+   */
+  readonly reading?: readonly EvidenceReading[];
   readonly coverage: Coverage;
+}
+
+/** One declaration a multi-declaration table was read from, and where its initializer sits in the chunk. */
+export interface EvidenceReading {
+  readonly declaration: string;
+  readonly start: number;
+  readonly end: number;
 }
 
 /** A predicate's measurement of what it found: counts, and anything it could not resolve. */

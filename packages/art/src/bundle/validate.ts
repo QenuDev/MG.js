@@ -30,7 +30,7 @@ export interface ValidationFailure {
   readonly detail: string;
 }
 
-/** How many offenders a failure lists before it says "and N more". */
+/** How many offenders a failure lists before it says how many more there are. */
 const LIST_LIMIT = 8;
 
 function frameSet(atlas: AtlasFrames): ReadonlySet<string> {
@@ -259,6 +259,57 @@ export function validateTables(tables: ArtTables, atlas: AtlasFrames): readonly 
       table: 'iconFills',
       saw: capped(iconOffenders),
       detail: `${iconOffenders.length} item-type literals do not have exactly one icon fill`,
+    });
+  }
+
+  // 9. The kind schemas are keyed by the *member* the item union arm names, and the game's own enum says what
+  //    that member's `itemType` string is. A key that is only the member and not the literal a consumer passes
+  //    would read the right schema for the wrong kind, so the two are compared rather than one being assumed.
+  const schemaOffenders: string[] = [];
+  for (const kind of Object.keys(tables.kindSchemas.items)) {
+    const literal = tables.itemTypes[kind];
+    if (literal === undefined) schemaOffenders.push(`${kind}: not an item-type member`);
+    else if (literal !== kind) schemaOffenders.push(`${kind}: the enum assigns ${literal}`);
+  }
+  // 10. The tile family is the *other* enum. Its keys come from the union's arms and `tileTypes` comes from the
+  //     enum declaration the arms name, so these are two independent readings and either can be wrong: an arm
+  //     may state a member the enum does not assign, and the enum may assign a member no arm states (which is
+  //     what a two-armed subset accepted as "the tile union" would look like). The predicate deliberately does
+  //     not require the two to agree, because a check that cannot disagree is not a witness. None of the
+  //     literals may be an item-type literal either: `entities.ts:272` types a tile's `objectType` as the item
+  //     enum, which is the conflation this would catch if it ever reached the extraction.
+  const tileOffenders: string[] = [];
+  const tileTypes = tables.kindSchemas.tileTypes;
+  const itemLiterals = new Set(Object.values(tables.itemTypes));
+  for (const member of Object.keys(tables.kindSchemas.tiles)) {
+    const literal = tileTypes[member];
+    if (literal === undefined) tileOffenders.push(`${member}: the object-type enum assigns it no literal`);
+    else {
+      if (!/^[a-z][a-z0-9]*$/.test(literal)) tileOffenders.push(`${member}: ${literal} is not lowercase`);
+      if (itemLiterals.has(literal)) tileOffenders.push(`${member}: ${literal} is an item-type literal`);
+    }
+  }
+  for (const [member, literal] of Object.entries(tileTypes)) {
+    if (tables.kindSchemas.tiles[member] === undefined) {
+      tileOffenders.push(`${member}: the enum assigns ${literal}, which has no schema`);
+    }
+  }
+  if (tileOffenders.length > 0) {
+    failures.push({
+      check:
+        'kind-schema-table: every tile kind is a member the object-type enum assigns a lowercase literal to, every member it assigns has a schema, and no literal is an item-type literal',
+      table: 'kindSchemas',
+      saw: capped(tileOffenders),
+      detail: `${tileOffenders.length} tile kinds and object-type members do not agree`,
+    });
+  }
+  if (schemaOffenders.length > 0) {
+    failures.push({
+      check:
+        'kind-schema-table: every item kind the union names is a member whose item-type literal is that same string',
+      table: 'kindSchemas',
+      saw: capped(schemaOffenders),
+      detail: `${schemaOffenders.length} item kinds do not read back as the string a consumer passes`,
     });
   }
 

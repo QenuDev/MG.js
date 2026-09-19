@@ -284,7 +284,21 @@ export function remapEvidence(
       const cut = [...file.cuts].reverse().find((candidate) => candidate.fixtureStart <= offset);
       return cut === undefined ? offset : offset + (cut.sourceStart - cut.fixtureStart);
     };
-    remapped[id] = { ...entry, start: map(entry.start), end: map(entry.end) };
+    remapped[id] = {
+      ...entry,
+      start: map(entry.start),
+      end: map(entry.end),
+      // A table read from many declarations states each one's range, so every range takes the same trip.
+      ...(entry.reading === undefined
+        ? {}
+        : {
+            reading: entry.reading.map((reading) => ({
+              ...reading,
+              start: map(reading.start),
+              end: map(reading.end),
+            })),
+          }),
+    };
   }
   return remapped as Readonly<Record<TableId, Evidence>>;
 }

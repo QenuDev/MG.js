@@ -18,6 +18,7 @@ Read from the game's own chunks for game version **1192** (art version **1192**)
 | `harvestTypes` | `harvest-type-enum` | `worldDepthSortKey-BXUHHrP0.js` [50560,50668) | mutationAnchor(species, artName, art, harvestType) |
 | `iconFills` | `icon-fill-table` | `resources-D_3Zwcn-.js` #Fi [72760,73551) | iconArt(entry), ICON_FILL |
 | `itemTypes` | `item-type-enum` | `worldDepthSortKey-BXUHHrP0.js` #E [3894,4023) | iconArt(entry), ICON_FILL |
+| `kindSchemas` | `kind-schema-table` | `worldDepthSortKey-BXUHHrP0.js` #Ta [634682,634761) | the declared-against-exposed gate: a consumer reads `data/<version>.json` by path and compares each kind's field list to the schema the game states |
 | `scale` | `scale-cap` | `resources-D_3Zwcn-.js` #En [17173,17176) | mutationAnchor(species, artName, art, harvestType), iconArt(entry) |
 | `overMutations` | `mutation-over-set` | `resources-D_3Zwcn-.js` #On [17547,17609) | mutationStack(mutation), plantPicture(...) |
 | `placement` | `placement-function` | `resources-D_3Zwcn-.js` #Dn [17177,17540) | mutationAnchor(species, artName, art, harvestType), mutationPlacement(mutation, icon, art) |
@@ -117,6 +118,18 @@ Read from the game's own chunks for game version **1192** (art version **1192**)
 - **Consumers**: iconArt(entry), ICON_FILL
 - **Read from**: `worldDepthSortKey-BXUHHrP0.js` declaration `E`, bytes [3894,4023)
 - **Measured**: membersRequestedByTheIconTable 7, membersAssignedInThisChunk 7, membersWithConflictingLiterals 0
+
+## `kindSchemas`
+
+- **Looks for**: the game's own kind schemas: the strict object each item kind's union arm names, the crop schema a plant's own `slots` member holds, the pet base whose two variants add the outfit extras, and the tile union whose arms discriminate on `objectType` through the other, lowercase enum
+- **Invariant**: exactly the item kinds the item-type enum states, each with at least one arm; the largest union whose arms state an `objectType` through one enum, one arm per member; a crop read from the plant schema's own `slots` member; and a pet base reachable from both the item union's pet arm and the pet variants, one of which wraps the extras the other requires
+- **Confirmed by**: kind-schema-table: every item kind is a member whose item-type literal is that same string; every tile kind is a member the object-type enum assigns a lowercase literal to, and every member it assigns has a schema, and by `tests/bundle/kind-schemas.test.ts`
+- **Consumers**: the declared-against-exposed gate: a consumer reads `data/<version>.json` by path and compares each kind's field list to the schema the game states
+- **Read from**: `worldDepthSortKey-BXUHHrP0.js` declaration `Ta`, bytes [634682,634761)
+- **Read with**: `Aa`, `Ca`, `Ma`, `N`, `Na`, `Sa`, `_a`, `aa`, `ba`, `ga`, `ja`, `ka`, `va`, `wa`, `xa`, `ya`
+- **Read at**: `_a` [634078,634145), `aa` [633190,633315), `Aa` [634967,635023), `ba` [634370,634447), `Ca` [634535,634600), `ga` [633937,634074), `ja` [635027,635094), `ka` [634891,634963), `Ma` [635098,635186), `N` [31091,31180), `Na` [635190,635206), `Sa` [634506,634531), `va` [634149,634203), `wa` [634604,634678), `xa` [634451,634502), `ya` [634207,634366)
+- **Measured**: itemKinds 7, itemArms 8, tileKinds 4, tileArms 4, tileTypes 4, cropArms 1, petVariants 2, arms 16, fields 70, optionalFields 9
+  - optional wrapper(s), read from the variants: c
 
 ## `scale`
 

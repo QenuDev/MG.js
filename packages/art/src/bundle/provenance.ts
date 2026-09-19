@@ -90,6 +90,16 @@ export const PROVENANCE: Readonly<Record<TableId, TableProvenance>> = {
     confirmedBy: [],
     consumers: ['iconArt(entry)', 'ICON_FILL'],
   },
+  kindSchemas: {
+    predicate: 'kind-schema-table',
+    validator:
+      'kind-schema-table: every item kind is a member whose item-type literal is that same string; every tile kind is a member the object-type enum assigns a lowercase literal to, and every member it assigns has a schema',
+    // The tile half compares two readings, so the tests that doctor one of them are what confirm it can fail.
+    confirmedBy: ['tests/bundle/kind-schemas.test.ts'],
+    consumers: [
+      "the declared-against-exposed gate: a consumer reads `data/<version>.json` by path and compares each kind's field list to the schema the game states",
+    ],
+  },
   scale: {
     predicate: 'scale-cap',
     validator: 'scale-cap: the cap is a fraction and the divisor is a tile size',
@@ -231,6 +241,14 @@ export function renderProvenanceDoc(
       );
       if (evidence.support.length > 0) {
         lines.push(`- **Read with**: ${evidence.support.map((name) => `\`${name}\``).join(', ')}`);
+      }
+      // A table read from many declarations states where each one sits; a table read from one states that above.
+      if (evidence.reading !== undefined && evidence.reading.length > 0) {
+        lines.push(
+          `- **Read at**: ${evidence.reading
+            .map((entry) => `\`${entry.declaration}\` [${entry.start},${entry.end})`)
+            .join(', ')}`,
+        );
       }
       lines.push(
         `- **Measured**: ${Object.entries(evidence.coverage.counts)

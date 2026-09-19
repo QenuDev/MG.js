@@ -1549,39 +1549,158 @@
           "fixtureEnd": 23932
         },
         {
+          "declaration": "D",
+          "sourceStart": 844074,
+          "sourceEnd": 844163,
+          "fixtureStart": 23944,
+          "fixtureEnd": 24033
+        },
+        {
           "declaration": "O",
           "sourceStart": 844166,
           "sourceEnd": 844295,
-          "fixtureStart": 23944,
-          "fixtureEnd": 24073
+          "fixtureStart": 24045,
+          "fixtureEnd": 24174
         },
         {
           "declaration": "B",
           "sourceStart": 901616,
           "sourceEnd": 901681,
-          "fixtureStart": 24085,
-          "fixtureEnd": 24150
+          "fixtureStart": 24186,
+          "fixtureEnd": 24251
         },
         {
           "declaration": "Pa",
           "sourceStart": 901685,
           "sourceEnd": 901766,
-          "fixtureStart": 24163,
-          "fixtureEnd": 24244
+          "fixtureStart": 24264,
+          "fixtureEnd": 24345
         },
         {
           "declaration": "V",
           "sourceStart": 901975,
           "sourceEnd": 936353,
-          "fixtureStart": 24256,
-          "fixtureEnd": 58634
+          "fixtureStart": 24357,
+          "fixtureEnd": 58735
         },
         {
           "declaration": "U",
           "sourceStart": 937743,
           "sourceEnd": 938793,
-          "fixtureStart": 58646,
-          "fixtureEnd": 59696
+          "fixtureStart": 58747,
+          "fixtureEnd": 59797
+        },
+        {
+          "declaration": "Mo",
+          "sourceStart": 959925,
+          "sourceEnd": 960049,
+          "fixtureStart": 59810,
+          "fixtureEnd": 59934
+        },
+        {
+          "declaration": "Uo",
+          "sourceStart": 960669,
+          "sourceEnd": 960806,
+          "fixtureStart": 59947,
+          "fixtureEnd": 60084
+        },
+        {
+          "declaration": "J",
+          "sourceStart": 960809,
+          "sourceEnd": 960876,
+          "fixtureStart": 60096,
+          "fixtureEnd": 60163
+        },
+        {
+          "declaration": "Wo",
+          "sourceStart": 960880,
+          "sourceEnd": 960934,
+          "fixtureStart": 60176,
+          "fixtureEnd": 60230
+        },
+        {
+          "declaration": "Go",
+          "sourceStart": 960938,
+          "sourceEnd": 961097,
+          "fixtureStart": 60243,
+          "fixtureEnd": 60402
+        },
+        {
+          "declaration": "Ko",
+          "sourceStart": 961101,
+          "sourceEnd": 961178,
+          "fixtureStart": 60415,
+          "fixtureEnd": 60492
+        },
+        {
+          "declaration": "qo",
+          "sourceStart": 961182,
+          "sourceEnd": 961233,
+          "fixtureStart": 60505,
+          "fixtureEnd": 60556
+        },
+        {
+          "declaration": "Jo",
+          "sourceStart": 961237,
+          "sourceEnd": 961262,
+          "fixtureStart": 60569,
+          "fixtureEnd": 60594
+        },
+        {
+          "declaration": "Yo",
+          "sourceStart": 961266,
+          "sourceEnd": 961331,
+          "fixtureStart": 60607,
+          "fixtureEnd": 60672
+        },
+        {
+          "declaration": "Xo",
+          "sourceStart": 961335,
+          "sourceEnd": 961409,
+          "fixtureStart": 60685,
+          "fixtureEnd": 60759
+        },
+        {
+          "declaration": "Zo",
+          "sourceStart": 961413,
+          "sourceEnd": 961491,
+          "fixtureStart": 60772,
+          "fixtureEnd": 60850
+        },
+        {
+          "declaration": "ts",
+          "sourceStart": 961621,
+          "sourceEnd": 961693,
+          "fixtureStart": 60863,
+          "fixtureEnd": 60935
+        },
+        {
+          "declaration": "ns",
+          "sourceStart": 961697,
+          "sourceEnd": 961753,
+          "fixtureStart": 60948,
+          "fixtureEnd": 61004
+        },
+        {
+          "declaration": "rs",
+          "sourceStart": 961757,
+          "sourceEnd": 961823,
+          "fixtureStart": 61017,
+          "fixtureEnd": 61083
+        },
+        {
+          "declaration": "is",
+          "sourceStart": 961827,
+          "sourceEnd": 961915,
+          "fixtureStart": 61096,
+          "fixtureEnd": 61184
+        },
+        {
+          "declaration": "as",
+          "sourceStart": 961919,
+          "sourceEnd": 961935,
+          "fixtureStart": 61197,
+          "fixtureEnd": 61213
         }
       ],
       "imports": [

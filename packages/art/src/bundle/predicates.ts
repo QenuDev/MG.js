@@ -26,6 +26,7 @@ import {
   leafStrings,
   memberValue,
   type ParsedChunk,
+  type ShapeDeclaration,
   type ShapeFunction,
   type ShapeObjectLiteral,
   type ShapeValue,
@@ -34,10 +35,12 @@ import type {
   AnchorValue,
   ArtTables,
   Coverage,
+  EvidenceReading,
   IconFill,
   PlacementExternal,
   PlantPart,
   PlantRecord,
+  SchemaArm,
   TableId,
 } from './tables.js';
 
@@ -63,6 +66,8 @@ export interface TableCandidate<T> {
   readonly end: number;
   /** Other declarations in the chunk this predicate had to read to accept the table. */
   readonly support: readonly string[];
+  /** The declaration behind each `support` name and where it sits, for a table read from many declarations. */
+  readonly reading?: readonly EvidenceReading[];
   readonly coverage: Coverage;
   readonly value: T;
 }
@@ -1699,6 +1704,561 @@ const itemTypeEnum: TablePredicate<ArtTables['itemTypes']> = {
   },
 };
 
+/** One schema the game declares, as the extraction reads it before it becomes a table value. */
+interface SchemaShape {
+  /** The id the table records the arm under: its declaration name, or `<name>#<n>` for an anonymous arm. */
+  readonly id: string;
+  /** The declaration the arm sits in, in the game's own spelling. */
+  readonly declaration: string;
+  readonly declarationStart: number;
+  readonly declarationEnd: number;
+  readonly object: ShapeObjectLiteral;
+}
+
+/** The members of a union construction, or `null` when the value is not a union. */
+function unionMembers(value: ShapeValue | null | undefined): readonly ShapeValue[] | null {
+  if (value === null || value === undefined || value.kind !== 'call') return null;
+  const only = value.args.length === 1 ? value.args[0] : undefined;
+  return only !== undefined && only.kind === 'array' ? only.items : null;
+}
+
+/** The object literal a schema expression wraps: a strict-object call, or a bare object literal. */
+function schemaObject(value: ShapeValue | null | undefined): ShapeObjectLiteral | null {
+  if (value === null || value === undefined) return null;
+  if (value.kind === 'object') return value.object;
+  const only = value.kind === 'call' && value.args.length === 1 ? value.args[0] : undefined;
+  return only !== undefined && only.kind === 'object' ? only.object : null;
+}
+
+/**
+ * The declarations an object literal spreads, in the game's own order.
+ *
+ * The projection drops a spread element (there is no member to hold it), so the literal's own text is the only
+ * place it survives. That text is byte-identical in the fixture and in the chunk, which is what keeps the answer
+ * the same in both runs.
+ */
+function spreadNames(object: ShapeObjectLiteral): readonly string[] {
+  const names: string[] = [];
+  for (const match of object.text.matchAll(/\.\.\.\s*([A-Za-z_$][\w$]*)/g)) {
+    const name = match[1];
+    if (name !== undefined) names.push(name);
+  }
+  return names;
+}
+
+/** The enum member a discriminator states: `literal(<enum>.<member>)`, or `null` for any other expression. */
+function literalMember(
+  value: ShapeValue | null,
+): { readonly enumName: string; readonly member: string } | null {
+  if (value === null || value.kind !== 'call') return null;
+  const only = value.args.length === 1 ? value.args[0] : undefined;
+  if (only === undefined || only.kind !== 'reference') return null;
+  const enumName = only.path.at(-2);
+  const member = only.path.at(-1);
+  if (enumName === undefined || member === undefined) return null;
+  return { enumName, member };
+}
+
+/** A declaration read as one schema arm, or `null` when it is not one. */
+function armOfDeclaration(declaration: ShapeDeclaration): SchemaShape | null {
+  const object = schemaObject(declaration.value);
+  if (object === null) return null;
+  return {
+    id: declaration.name,
+    declaration: declaration.name,
+    declarationStart: declaration.valueStart,
+    declarationEnd: declaration.valueEnd,
+    object,
+  };
+}
+
+/** The declaration named `name` read as one schema arm, or `null`. */
+function armNamed(chunk: ParsedChunk, name: string): SchemaShape | null {
+  const declaration = declarationNamed(chunk, name);
+  return declaration === null ? null : armOfDeclaration(declaration);
+}
+
+/**
+ * The arms a union declaration names, in the union's own order.
+ *
+ * The arm may be a reference to a declaration, or an object literal written inline; a reference to a declaration
+ * that is itself a union -- the game states the tools as two schemas -- contributes each of its own arms, named
+ * `<declaration>#<index>` so two variants of one kind stay apart.
+ */
+function unionArms(chunk: ParsedChunk, union: ShapeDeclaration): readonly SchemaShape[] {
+  const members = unionMembers(union.value);
+  if (members === null) return [];
+  const arms: SchemaShape[] = [];
+  members.forEach((member, index) => {
+    if (member.kind !== 'reference') {
+      const object = schemaObject(member);
+      if (object !== null) {
+        arms.push({
+          id: `${union.name}#${index}`,
+          declaration: union.name,
+          declarationStart: union.valueStart,
+          declarationEnd: union.valueEnd,
+          object,
+        });
+      }
+      return;
+    }
+    const name = member.path.at(-1);
+    if (name === undefined) return;
+    const declaration = declarationNamed(chunk, name);
+    if (declaration === null) return;
+    const nested = unionMembers(declaration.value);
+    if (nested === null) {
+      const arm = armOfDeclaration(declaration);
+      if (arm !== null) arms.push(arm);
+      return;
+    }
+    nested.forEach((inner, innerIndex) => {
+      const object = schemaObject(inner);
+      if (object !== null) {
+        arms.push({
+          id: `${name}#${innerIndex}`,
+          declaration: name,
+          declarationStart: declaration.valueStart,
+          declarationEnd: declaration.valueEnd,
+          object,
+        });
+      }
+    });
+  });
+  return arms;
+}
+
+/** The kind an arm declares, following the schemas it spreads, or `null` when it states none. */
+function discriminatorOf(
+  chunk: ParsedChunk,
+  arm: SchemaShape,
+  key: string,
+  seen: Set<string> = new Set(),
+): { readonly enumName: string; readonly member: string } | null {
+  const direct = literalMember(memberValue(arm.object, key));
+  if (direct !== null) return direct;
+  for (const base of spreadNames(arm.object)) {
+    if (seen.has(base)) continue;
+    seen.add(base);
+    const baseArm = armNamed(chunk, base);
+    if (baseArm === null) continue;
+    const found = discriminatorOf(chunk, baseArm, key, seen);
+    if (found !== null) return found;
+  }
+  return null;
+}
+
+/** The union that names every kind the game's item-type enum states, and no kind it does not. */
+function itemUnionOf(
+  chunk: ParsedChunk,
+  enumName: string,
+  kinds: ReadonlySet<string>,
+): { readonly declaration: ShapeDeclaration; readonly arms: readonly SchemaShape[] } | null {
+  for (const declaration of chunk.declarations) {
+    if (unionMembers(declaration.value) === null) continue;
+    const arms = unionArms(chunk, declaration);
+    if (arms.length === 0) continue;
+    const named = new Set<string>();
+    let ok = true;
+    for (const arm of arms) {
+      const discriminator = discriminatorOf(chunk, arm, 'itemType');
+      if (discriminator === null || discriminator.enumName !== enumName) {
+        ok = false;
+        break;
+      }
+      named.add(discriminator.member);
+    }
+    if (!ok) continue;
+    if (named.size !== kinds.size || ![...named].every((kind) => kinds.has(kind))) continue;
+    return { declaration, arms };
+  }
+  return null;
+}
+
+/** The schema a `slots` member holds: the reference inside an array wrapper, or the reference itself. */
+function slotsReference(value: ShapeValue | null): string | null {
+  if (value === null) return null;
+  if (value.kind === 'reference') return value.path.at(-1) ?? null;
+  const only = value.kind === 'call' && value.args.length === 1 ? value.args[0] : undefined;
+  return only !== undefined && only.kind === 'reference' ? (only.path.at(-1) ?? null) : null;
+}
+
+/** The crop schema a plant arm's own `slots` member names. */
+function cropArmOf(chunk: ParsedChunk, arms: readonly SchemaShape[]): SchemaShape | null {
+  for (const arm of arms) {
+    const reference = slotsReference(memberValue(arm.object, 'slots'));
+    if (reference === null) continue;
+    const crop = armNamed(chunk, reference);
+    if (crop !== null) return crop;
+  }
+  return null;
+}
+
+/** The deepest schema an arm spreads: the base the game builds the arm on. */
+function baseArmOf(chunk: ParsedChunk, arm: SchemaShape, seen: Set<string> = new Set()): SchemaShape | null {
+  for (const base of spreadNames(arm.object)) {
+    if (seen.has(base)) continue;
+    seen.add(base);
+    const baseArm = armNamed(chunk, base);
+    if (baseArm === null) continue;
+    return baseArmOf(chunk, baseArm, seen) ?? baseArm;
+  }
+  return null;
+}
+
+/**
+ * Every declaration that declares the same extras over the same base as this arm.
+ *
+ * The game states the pet twice: one variant requires the outfit extras and one makes them optional. They are
+ * the same schema with the same spread base and the same own fields, so that is the shape this looks for -- and
+ * finding both is what lets the optional idiom be read off the game rather than named (see `optionalWrappers`).
+ */
+function variantArmsOf(chunk: ParsedChunk, arm: SchemaShape): readonly SchemaShape[] {
+  const bases = new Set(spreadNames(arm.object));
+  const names = new Set(arm.object.members.map((member) => member.key));
+  const variants: SchemaShape[] = [];
+  for (const declaration of chunk.declarations) {
+    const candidate = armOfDeclaration(declaration);
+    if (candidate === null) continue;
+    const candidateBases = spreadNames(candidate.object);
+    if (candidateBases.length !== bases.size || !candidateBases.every((base) => bases.has(base))) continue;
+    const candidateNames = candidate.object.members.map((member) => member.key);
+    if (candidateNames.length !== names.size || !candidateNames.every((name) => names.has(name))) continue;
+    variants.push(candidate);
+  }
+  return variants.sort((left, right) => left.object.start - right.object.start);
+}
+
+/** A structural key for a schema expression, so two arms' members compare by shape rather than by spelling. */
+function shapeKey(value: ShapeValue): string {
+  switch (value.kind) {
+    case 'reference':
+      return `ref:${value.path.join('.')}`;
+    case 'call':
+      return `call:${value.callee}(${value.args.map(shapeKey).join(',')})`;
+    case 'string':
+      return `str:${value.text}`;
+    case 'number':
+      return `num:${value.text}`;
+    case 'boolean':
+      return `bool:${String(value.value)}`;
+    case 'null':
+      return 'null';
+    case 'array':
+      return `[${value.items.map(shapeKey).join(',')}]`;
+    case 'object':
+      return `{${value.object.members.map((member) => `${member.key}:${shapeKey(member.value)}`).join(',')}}`;
+    default:
+      return `other:${value.text}`;
+  }
+}
+
+/**
+ * The callee the game wraps an optional field in, learned from the game's own variants rather than named.
+ *
+ * Naming the wrapper would be naming a minified symbol, and it changes with every build -- the same two pet
+ * variants state it under a different letter in each capture this package ships. What does not change is the
+ * relationship: one variant writes a field and the other writes `<wrapper>(<the same field>)`, and the wrapper is
+ * therefore optionality. Every field that wrapper is applied to anywhere in the schemas -- the crop's position,
+ * a decor's mounted crop, the pet's outfit extras -- is optional for the same reason.
+ */
+function optionalWrappers(groups: readonly (readonly SchemaShape[])[]): ReadonlySet<string> {
+  const found = new Set<string>();
+  for (const group of groups) {
+    for (const left of group) {
+      for (const right of group) {
+        if (left === right) continue;
+        for (const member of left.object.members) {
+          const wrapped = member.value;
+          if (wrapped.kind !== 'call' || wrapped.args.length !== 1) continue;
+          const inner = wrapped.args[0];
+          const plain = memberValue(right.object, member.key);
+          if (inner === undefined || plain === null) continue;
+          if (shapeKey(inner) !== shapeKey(plain)) continue;
+          found.add(wrapped.callee);
+        }
+      }
+    }
+  }
+  return found;
+}
+
+/** The declaration a discriminator names, read for the members it assigns -- a reading separate from the arms. */
+function enumNamed(
+  chunk: ParsedChunk,
+  name: string,
+): { readonly declaration: ShapeDeclaration; readonly literals: Readonly<Record<string, string>> } | null {
+  const declaration = declarationNamed(chunk, name);
+  if (declaration === null) return null;
+  const literals = enumMembers(declaration.text);
+  return literals === null ? null : { declaration, literals };
+}
+
+/**
+ * The tile union: the largest union whose arms each state an `objectType` through one and the same enum.
+ *
+ * The game states a two-armed subset beside the four-armed union, and both name the same enum, so the member
+ * count is what separates them -- the maximal union wins, and a tie is refused rather than guessed. The enum
+ * itself is *not* consulted here: its members are read separately, from the declaration the arms name, so that
+ * "the arms and the enum agree" is a comparison two independent readings make rather than a condition discovery
+ * enforces (see `validate.ts`).
+ */
+function tileUnionOf(chunk: ParsedChunk): {
+  readonly union: ShapeDeclaration;
+  readonly arms: readonly SchemaShape[];
+  readonly enumName: string;
+} | null {
+  let best: {
+    readonly union: ShapeDeclaration;
+    readonly arms: readonly SchemaShape[];
+    readonly enumName: string;
+  } | null = null;
+  let tied = false;
+  for (const declaration of chunk.declarations) {
+    if (unionMembers(declaration.value) === null) continue;
+    const arms = unionArms(chunk, declaration);
+    if (arms.length < 2) continue;
+    let enumName: string | null = null;
+    const members = new Set<string>();
+    let ok = true;
+    for (const arm of arms) {
+      const discriminator = discriminatorOf(chunk, arm, 'objectType');
+      if (discriminator === null) {
+        ok = false;
+        break;
+      }
+      if (enumName === null) enumName = discriminator.enumName;
+      else if (enumName !== discriminator.enumName) {
+        ok = false;
+        break;
+      }
+      members.add(discriminator.member);
+    }
+    if (!ok || enumName === null || members.size !== arms.length) continue;
+    if (best === null || members.size > best.arms.length) {
+      best = { union: declaration, arms, enumName };
+      tied = false;
+    } else if (members.size === best.arms.length) {
+      tied = true;
+    }
+  }
+  return tied ? null : best;
+}
+
+/** The predicate's own name and prose, shared by the candidate builder and the record the extractor keeps. */
+const KIND_SCHEMA_PREDICATE = 'kind-schema-table';
+const KIND_SCHEMA_LOOKS_FOR =
+  "the game's own kind schemas: the strict object each item kind's union arm names, the crop schema a plant's own `slots` member holds, the pet base whose two variants add the outfit extras, and the tile union whose arms discriminate on `objectType` through the other, lowercase enum";
+const KIND_SCHEMA_INVARIANT =
+  "exactly the item kinds the item-type enum states, each with at least one arm; the largest union whose arms state an `objectType` through one enum, one arm per member; a crop read from the plant schema's own `slots` member; and a pet base reachable from both the item union's pet arm and the pet variants, one of which wraps the extras the other requires";
+
+/** Read the kind schemas out of one chunk, or `null` when this chunk does not state them. */
+function kindSchemaCandidate(
+  context: PredicateContext,
+  chunk: ParsedChunk,
+): TableCandidate<ArtTables['kindSchemas']> | null {
+  const enumName = context.declarations.itemTypes;
+  const kinds = new Set(Object.keys(context.tables.itemTypes ?? {}));
+  if (enumName === undefined || kinds.size === 0) return null;
+
+  const union = itemUnionOf(chunk, enumName, kinds);
+  if (union === null) return null;
+
+  const items: Record<string, string[]> = {};
+  for (const arm of union.arms) {
+    const discriminator = discriminatorOf(chunk, arm, 'itemType');
+    if (discriminator === null) return null;
+    const ids = items[discriminator.member] ?? [];
+    ids.push(arm.id);
+    items[discriminator.member] = ids;
+  }
+
+  const crop = cropArmOf(chunk, union.arms);
+  if (crop === null) return null;
+
+  const petId = items['Pet']?.[0];
+  const petArm = petId === undefined ? undefined : union.arms.find((arm) => arm.id === petId);
+  if (petArm === undefined) return null;
+  const base = baseArmOf(chunk, petArm);
+  if (base === null) return null;
+  const variants = variantArmsOf(chunk, petArm);
+  if (variants.length === 0) return null;
+
+  // Every arm the table records, each once: the kind's own arms, the crop, the pet variants, the base they
+  // resolve through, and every declaration those spread so `spreads` names a recorded arm.
+  const shapes = new Map<string, SchemaShape>();
+  const record = (arm: SchemaShape): void => {
+    if (!shapes.has(arm.id)) shapes.set(arm.id, arm);
+  };
+  for (const arm of union.arms) record(arm);
+  record(crop);
+  for (const arm of variants) record(arm);
+  record(base);
+  for (const arm of [petArm, base, ...variants]) {
+    for (const name of spreadNames(arm.object)) {
+      const spread = armNamed(chunk, name);
+      if (spread !== null) record(spread);
+    }
+  }
+
+  const tile = tileUnionOf(chunk);
+  if (tile === null) return null;
+  // The keys are the *members* the arms state, not the literals: the arm writes `objectType: literal(<enum>.
+  // <member>)`, so the member is the arm's own reading, and the enum's own reading is kept beside it as
+  // `tileTypes`. The two are compared later, so a mis-read of either is a disagreement rather than a condition
+  // this loop makes impossible.
+  const tiles: Record<string, string[]> = {};
+  for (const arm of tile.arms) {
+    const discriminator = discriminatorOf(chunk, arm, 'objectType');
+    if (discriminator === null) return null;
+    record(arm);
+    const ids = tiles[discriminator.member] ?? [];
+    ids.push(arm.id);
+    tiles[discriminator.member] = ids;
+  }
+  const tileEnum = enumNamed(chunk, tile.enumName);
+
+  const groups: SchemaShape[][] = Object.values(items).map((ids) =>
+    ids.map((id) => shapes.get(id)).filter((arm): arm is SchemaShape => arm !== undefined),
+  );
+  for (const ids of Object.values(tiles)) {
+    groups.push(ids.map((id) => shapes.get(id)).filter((arm): arm is SchemaShape => arm !== undefined));
+  }
+  groups.push([...variants]);
+  const optional = optionalWrappers(groups);
+
+  const arms: Record<string, SchemaArm> = {};
+  for (const [id, shape] of shapes) {
+    arms[id] = {
+      declaration: shape.declaration,
+      spreads: spreadNames(shape.object),
+      fields: shape.object.members.map((member) => ({
+        name: member.key,
+        required: !(member.value.kind === 'call' && optional.has(member.value.callee)),
+      })),
+    };
+  }
+
+  // Every declaration a fixture has to keep, with where its initializer sits: the object arms, the tile union,
+  // and the enum that assigns the tile kinds. The table's own declaration is cited above, not here.
+  const declarationRanges = new Map<string, { readonly start: number; readonly end: number }>();
+  for (const shape of shapes.values()) {
+    if (!declarationRanges.has(shape.declaration)) {
+      declarationRanges.set(shape.declaration, {
+        start: shape.declarationStart,
+        end: shape.declarationEnd,
+      });
+    }
+  }
+  declarationRanges.set(tile.union.name, {
+    start: tile.union.valueStart,
+    end: tile.union.valueEnd,
+  });
+  if (tileEnum !== null) {
+    declarationRanges.set(tileEnum.declaration.name, {
+      start: tileEnum.declaration.valueStart,
+      end: tileEnum.declaration.valueEnd,
+    });
+  }
+
+  const support = [...declarationRanges.keys()].filter((name) => name !== union.declaration.name).sort();
+  const reading: EvidenceReading[] = [...declarationRanges.entries()]
+    .filter(([name]) => name !== union.declaration.name)
+    .map(([declaration, range]) => ({ declaration, start: range.start, end: range.end }))
+    .sort((left, right) => left.declaration.localeCompare(right.declaration));
+
+  const value: ArtTables['kindSchemas'] = {
+    items,
+    tiles,
+    tileTypes: tileEnum?.literals ?? {},
+    crops: [crop.id],
+    pets: { base: [base.id], variants: variants.map((arm) => arm.id) },
+    arms,
+  };
+  const fieldCount = Object.values(arms).reduce((total, arm) => total + arm.fields.length, 0);
+  const optionalCount = Object.values(arms).reduce(
+    (total, arm) => total + arm.fields.filter((field) => !field.required).length,
+    0,
+  );
+
+  return {
+    id: 'kindSchemas',
+    predicate: KIND_SCHEMA_PREDICATE,
+    looksFor: KIND_SCHEMA_LOOKS_FOR,
+    invariant: KIND_SCHEMA_INVARIANT,
+    chunk: chunk.file,
+    declaration: union.declaration.name,
+    start: union.declaration.valueStart,
+    end: union.declaration.valueEnd,
+    support,
+    reading,
+    coverage: {
+      counts: {
+        itemKinds: Object.keys(items).length,
+        itemArms: union.arms.length,
+        tileKinds: Object.keys(tiles).length,
+        tileArms: tile.arms.length,
+        tileTypes: Object.keys(tileEnum?.literals ?? {}).length,
+        cropArms: 1,
+        petVariants: variants.length,
+        arms: Object.keys(arms).length,
+        fields: fieldCount,
+        optionalFields: optionalCount,
+      },
+      notes: [`optional wrapper(s), read from the variants: ${[...optional].sort().join(', ') || 'none'}`],
+    },
+    value,
+  };
+}
+
+const kindSchemaTable: TablePredicate<ArtTables['kindSchemas']> = {
+  id: 'kindSchemas',
+  predicate: KIND_SCHEMA_PREDICATE,
+  looksFor: KIND_SCHEMA_LOOKS_FOR,
+  invariant: KIND_SCHEMA_INVARIANT,
+  candidates(context) {
+    const found: TableCandidate<ArtTables['kindSchemas']>[] = [];
+    for (const chunk of context.chunks) {
+      const candidate = kindSchemaCandidate(context, chunk);
+      if (candidate !== null) found.push(candidate);
+    }
+    return found;
+  },
+  violations(candidate, context) {
+    const problems: string[] = [];
+    const counts = candidate.coverage.counts;
+    const requested = Object.keys(context.tables.itemTypes ?? {}).length;
+    if ((counts['itemKinds'] ?? 0) !== requested) {
+      problems.push(`${counts['itemKinds'] ?? 0} of ${requested} item kinds have a schema`);
+    }
+    if ((counts['tileKinds'] ?? 0) < 2) {
+      problems.push(`${counts['tileKinds'] ?? 0} tile kinds are declared`);
+    }
+    // One arm per member is the union's own shape. Whether the arms and the enum agree is *not* decided here:
+    // that comparison belongs to `validate.ts`, which owes this discovery nothing.
+    if ((counts['tileKinds'] ?? 0) !== (counts['tileArms'] ?? 0)) {
+      problems.push(
+        `${counts['tileKinds'] ?? 0} tile kinds for ${counts['tileArms'] ?? 0} arms, not one member each`,
+      );
+    }
+    if ((counts['petVariants'] ?? 0) < 2) {
+      problems.push(`${counts['petVariants'] ?? 0} pet variants, not the two the game declares`);
+    }
+    if ((counts['optionalFields'] ?? 0) === 0) {
+      problems.push('no field is optional, so the optional wrapper was not read off the variants');
+    }
+    for (const [id, arm] of Object.entries(candidate.value.arms)) {
+      for (const base of arm.spreads) {
+        if (candidate.value.arms[base] === undefined) {
+          problems.push(`${id} spreads ${base}, which is not a recorded arm`);
+        }
+      }
+    }
+    return problems;
+  },
+};
+
 /** Every predicate, in the order the extraction runs them: each stage may read the ones before it. */
 export const PREDICATES = [
   spriteNameTable,
@@ -1713,6 +2273,7 @@ export const PREDICATES = [
   placementFunction,
   iconFillTable,
   itemTypeEnum,
+  kindSchemaTable,
 ] as unknown as readonly TablePredicate<never>[];
 
 /** `null` for a number that is not a number, so a note can say so rather than print `NaN`. */
