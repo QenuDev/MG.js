@@ -130,25 +130,6 @@ export function mutationName(mutation: Mutation): string {
 }
 
 /**
- * The item-type enum (`E` in the bundle), whose literals are the save's own `itemType` spellings.
- *
- * An inventory item no longer discriminates on this type: {@link ItemKind} (`state/items/base.ts`) is the
- * closed union the item arms are built from, and this one is open because a fifth tile kind must still
- * compile. What is left typed by it is a tile's `objectType` ({@link TileBase.objectType}) — and a tile's
- * `objectType` is *not* this enum, which is capitalised, but the game's other lowercase one, so this name is
- * wrong for its last user and splitting it into `ItemKind`/`TileKind` is still pending.
- */
-export type ItemType =
-  | 'Seed'
-  | 'Produce'
-  | 'Plant'
-  | 'Tool'
-  | 'Pet'
-  | 'Egg'
-  | 'Decor'
-  | (string & Record<never, never>);
-
-/**
  * A view of one location in the store.
  *
  * Every view knows the path it was built from. That is what lets {@link StateReader.watch} match a change
@@ -252,12 +233,21 @@ export interface Crop extends StateView {
 export type TileType = 'Dirt' | 'Boardwalk';
 
 /**
- * What a tile holds, in the spelling a tile writes it.
+ * The tile kind enum, whose literals are a tile's own `objectType` spellings.
  *
  * A tile says its kind in lowercase (`plant`, `egg`, `decor`, `crystal`) while an inventory entry says its own
- * in capitals (`Plant`, `Tool`, …), which is the game's spelling on each side and not a choice here.
+ * in capitals (`Plant`, `Tool`, …), which is the game's spelling on each side and not a choice here. The item
+ * side names its own enum `ItemKind` (`state/items/base.ts`), and the two share no literal — an item kind is
+ * not a tile kind and a tile kind is not an item kind, which `tests/state/entities.test.ts` measures.
+ *
+ * The four are exactly the arms the game's own tile schema declares (`kindSchemas.tiles` in
+ * `packages/art/data/<version>.json`, one arm per kind, quoted in full on {@link Tile}), and this union is
+ * **closed**. The arms in `reader.ts` each state their own narrowed literal and a spelling none of the four
+ * declares reads as `''`, which {@link TileBase.objectType} admits as the empty kind, so a fifth *declared*
+ * kind is a decision here rather than a string that compiles. An open tail would not buy that either: a
+ * `(string & Record<never, never>)` member is a supertype of every literal, `'Seed'` included.
  */
-export type TileObjectType = 'plant' | 'egg' | 'decor' | 'crystal';
+export type TileKind = 'plant' | 'egg' | 'decor' | 'crystal';
 
 /**
  * One garden tile: the game's own tile schemas, which are four shapes and not one.
@@ -300,8 +290,13 @@ export interface TileBase extends StateView {
    * that `CropCleanser` and `MutationPotion` send as `tileObjectIdx`.
    */
   readonly id: number;
-  /** What this tile holds: the discriminant of {@link Tile}. */
-  readonly objectType: ItemType;
+  /**
+   * What this tile holds: the discriminant of {@link Tile}, in the game's tile enum ({@link TileKind}).
+   *
+   * `''` is {@link OtherTile}'s empty kind — the arm a spelling none of the four declares reads as — and it is
+   * the same empty kind the item side has, not a fifth tile kind.
+   */
+  readonly objectType: TileKind | '';
   /**
    * When the tile's contents were placed, in server milliseconds.
    *

@@ -988,7 +988,6 @@
         "ItemKind",
         "ItemOfKind",
         "ItemOwnFields",
-        "ItemType",
         "KindReader",
         "Mutation",
         "MutationGroup",

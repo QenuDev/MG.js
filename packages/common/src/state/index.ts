@@ -9,7 +9,6 @@ export type {
   Currency,
   Garden,
   Inventory,
-  ItemType,
   Mutation,
   MutationGroup,
   MutationInfo,

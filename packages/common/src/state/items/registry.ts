@@ -30,7 +30,7 @@ import { readTool } from './tool.js';
  */
 export type KindReader<K extends ItemKind> = (record: StateRecord) => ItemOwnFields<K>;
 
-/** The kinds, in the library's own order — the same order `ItemType`'s literals are listed in. */
+/** The kinds, in the library's own order — the same order `ItemKind`'s literals are listed in. */
 export const ITEM_READERS = {
   Seed: readSeed,
   Produce: readProduce,
