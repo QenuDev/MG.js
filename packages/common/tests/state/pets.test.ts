@@ -1,28 +1,26 @@
 /**
- * Where a pet is: the game's own walk over its three carriers, with the live values winning.
+ * Where a pet is: the game's own walk over its three carriers, and the index it builds over them.
  *
  * ## Why this file exists
  *
- * §7 S1 of the plan this pass implements: a pet lives in a pet slot, in the bag, or in a storage, and a
- * consumer that types the bag arm and reads `xp` has the **save's** copy, which for a pet that is out in a
- * slot is not the live one. The game itself does both halves: `bo` walks the three carriers
- * (`worldDepthSortKey-BXUHHrP0.js` ~645890, quoted in `state/pets.ts`), and the seat system **overlays** a
- * bag pet with the pet-slot progress record, keyed by id, before showing it
- * (`installSeatSystems-B2ZqVPv6.js` ~340426). A consumer had to hand-roll both; `petsOf`/`petById` are
- * where the game has them.
+ * §7 S1 of the plan this pass implements: a pet lives in a pet slot, in the bag, or in a storage, and the
+ * game reads all three. `bo` walks the carriers (`worldDepthSortKey-BXUHHrP0.js` ~645890, quoted in
+ * `state/pets.ts`), and `Yu` reduces that walk to one entry per id — the carrier's own fields, reported from
+ * the last carrier in walk order, plus the index's own `isInPetSlot` (`worldDepthSortKey-BXUHHrP0.js`
+ * ~705743, exported as `Tr` and installed as `petsProgress`). A consumer had to hand-roll both;
+ * `petsOf`/`petById` are where the game has them.
  *
  * ## The two copies of `pet_live` are built to disagree
  *
- * That pet is in a slot and in the bag, and the copies state **different** numbers for every one of the six
- * fields the game overlays. A fixture whose copies agree cannot show which one won, which is exactly the
- * §1.1 failure mode this plan is about ("the fixture kept the fields, the test agreed with the model"). So
- * the slot record says `xp: 40, hunger: 10` and the bag item says `xp: 3, hunger: 99`: an implementation
- * that returned the bag item passes every assertion about *shape* and fails these about *value*.
+ * That pet is in a slot and in the bag, and the copies state **different** values for every field, so a test
+ * can say which carrier the index reported rather than agreeing with a number both copies carry. That is
+ * the §1.1 failure mode this plan is about ("the fixture kept the fields, the test agreed with the model"):
+ * the bag item says `xp: 3, hunger: 99` and the slot record says `xp: 40, hunger: 10`, and the bag comes
+ * after the slots in the walk, so the bag's values are the ones the index reports. An implementation that
+ * took the slot record's numbers passes every assertion about *shape* and fails these about *value*.
  *
- * They also disagree on `species` (`SnowFox` live, `Fox` saved) precisely because it is **not** in the
- * game's overlay list — it is taken from the carrier being read, so the test can tell that apart from the
- * six fields that come from the slot. The other fixtures cover the remaining shapes: a pet in the bag only,
- * a pet in a storage only, a pet in a slot only, and two carriers that state no id.
+ * The other fixtures cover the remaining shapes: a pet in the bag only, a pet in a storage only, a pet in a
+ * slot only, and two carriers that state no id.
  *
  * ## Built through the real readers
  *
@@ -56,10 +54,10 @@ const ONLY_IN_STORAGE = 'pet_hutch_only';
 const ONLY_IN_SLOT = 'pet_slot_only';
 
 /**
- * The live pet-slot record, quoted in the game's own spellings.
+ * The pet-slot record for the duplicated id, quoted in the game's own spellings.
  *
- * Its values are the ones a consumer showing a card wants, and they are deliberately the six the game's
- * overlay takes from here: `hunger`, `xp`, `targetScale`, `name`, `mutations`, `abilityCooldowns`.
+ * Every value here differs from the bag item's for the same id, which is what lets the tests say which
+ * carrier the index reported rather than agreeing with a value both copies carry.
  */
 const LIVE_SLOT_RECORD = {
   id: LIVE_IN_SLOT,
@@ -78,8 +76,8 @@ const LIVE_SLOT_RECORD = {
 /**
  * The slot-only pet, whose values are its own: nothing else in the fixture states this id.
  *
- * It is the primary carrier — the whole reason this module exists is that its record is the live one — so
- * the tests assert its address and every value rather than only its presence.
+ * It is the one branch where a slot carrier is the index's only entry, so the tests assert its address and
+ * every value rather than only its presence.
  */
 const ONLY_SLOT_RECORD = {
   id: ONLY_IN_SLOT,
@@ -107,10 +105,9 @@ const IDLESS_STORAGE_ITEM = { itemType: 'Pet', petSpecies: 'Cat', name: 'Newborn
 /**
  * The save's own inventory, quoted in the game's own spellings.
  *
- * `pet_live`'s bag copy disagrees with the slot record on every overlaid field **and** on `species`, which
- * is not overlaid. `abilities`, `sourceEggId` and `equippedCosmetics` are not overlaid either, so the bag
- * copy's values are the ones a join must keep — that is what tells "the six fields" apart from "the whole
- * slot record".
+ * `pet_live`'s bag copy disagrees with the slot record on every field. The bag comes after the slots in the
+ * walk, so it is the carrier the index reports for that id, and the tests assert the bag's values —
+ * `name`, `species` and the extras included — rather than the slot's.
  */
 const SAVED_INVENTORY = {
   items: [
@@ -230,9 +227,9 @@ void test('a pet that is only in a slot is itself: the slot branch, read from pe
   const joined = petById(player, ONLY_IN_SLOT);
   assert.ok(joined !== null, 'the primary carrier is reachable');
 
-  // The slot record is already the live one, so the join has nothing to overlay: every value is the slot's
-  // own, and the address is the slot's. This is the branch a consumer showing a card for a pet that is out
-  // takes, and nothing else in this file asserts it.
+  // The slot record is the only carrier that states this id, so the index reports the slot's own values and
+  // the address is the slot's. This is the branch a consumer showing a card for a pet that is out takes, and
+  // nothing else in this file asserts it.
   assert.equal(joined.entityPath, `${SLOT_DATA}/petSlots/1`);
   assert.equal(joined.species, 'Cat');
   assert.equal(joined.name, 'Mittens II');
@@ -244,6 +241,10 @@ void test('a pet that is only in a slot is itself: the slot branch, read from pe
   assert.equal(joined.sourceEggId, 'CatEgg');
   assert.deepEqual(joined.abilityCooldowns, { NineLives: 45 });
   assert.deepEqual(joined.equippedCosmetics, { hat: 'PartyHat' });
+
+  // It is in a pet slot, so the game's own flag is true — the question the entry's address used to be
+  // misread as answering.
+  assert.equal(joined.isInPetSlot, true, 'a slot carrier is a pet that is out');
 
   // And the walk reaches it first, in slot order, before any bag or storage entry.
   assert.equal(petsOf(player)[1]?.id, ONLY_IN_SLOT);
@@ -262,6 +263,15 @@ void test('two carriers that state no id are two pets, not one collapsed entry',
   );
   assert.equal(unnamed[0]?.entityPath, `${SLOT_DATA}/inventory/items/3`);
   assert.equal(unnamed[1]?.entityPath, `${SLOT_DATA}/inventory/storages/1/items/1`);
+
+  // Neither is a slot carrier, and an empty id is not an id the slots state, so the index's flag is false
+  // for both. The game's own `i.has('')` would answer true if any slot also stated no id; that is two
+  // spellings of "no id" matching, not a pet that is out, which is why this module does not ask it.
+  assert.deepEqual(
+    unnamed.map((pet) => pet.isInPetSlot),
+    [false, false],
+    'an id-less bag or storage carrier is not out',
+  );
 
   // An empty id names nothing, so the by-id lookup answers `null` rather than picking one of them.
   assert.equal(petById(player, ''), null);
@@ -282,8 +292,8 @@ void test('a bag pet with no slot record is itself, and the join does not change
   const joined = petById(player, ONLY_IN_BAG);
   assert.ok(joined !== null, 'a pet in the bag is one of the player’s pets');
 
-  // Every field a pet has, with the bag item's own readings: no slot record names this id, so there is
-  // nothing to overlay.
+  // Every field a pet has, with the bag item's own readings: no slot record names this id, so the index's
+  // only entry for it is this carrier and its `isInPetSlot` is false.
   assert.deepEqual(joined, {
     entityPath: bagArm.entityPath,
     id: bagArm.id,
@@ -298,30 +308,36 @@ void test('a bag pet with no slot record is itself, and the join does not change
     sourceEggId: bagArm.sourceEggId,
     equippedCosmetics: bagArm.equippedCosmetics,
     record: bagArm.record,
+    isInPetSlot: false,
   });
 });
 
-void test('the live slot record wins the six fields the game overlays, and only those', () => {
+void test('the index reports the last carrier’s own values when two carriers state one id', () => {
   const player = fixturePlayer();
   const joined = petById(player, LIVE_IN_SLOT);
   assert.ok(joined !== null);
 
-  // The six `installSeatSystems` overlays, quoted in `state/pets.ts`. The saved copies are all different,
-  // so each assertion names which record won rather than agreeing with a value both carry.
-  assert.equal(joined.xp, 40, 'the live xp, not the save’s 3');
-  assert.equal(joined.hunger, 10, 'the live hunger, not the save’s 99');
-  assert.equal(joined.targetScale, 1.25, 'the live scale, not the save’s 0.5');
-  assert.equal(joined.name, 'Frost', 'the slot’s name when it has one');
-  assert.deepEqual(joined.mutations, ['Rainbow'], 'the live mutations, not the save’s Gold');
-  assert.deepEqual(joined.abilityCooldowns, { DawnCoinFinder: 30 }, 'the live cooldowns, not the save’s 999');
+  // The slot record and the bag item disagree on every field, and the bag is later in the walk (slots → bag
+  // → storages), so the index's entry for this id is the bag's reading. Every assertion names which record
+  // the index reported rather than agreeing with a value both carry: these are the *saved* numbers, not the
+  // slot's 40, 10, 1.25, 'Frost', ['Rainbow'], { DawnCoinFinder: 30 }.
+  assert.equal(joined.xp, 3, 'the bag’s xp, which is the carrier the index reached last');
+  assert.equal(joined.hunger, 99, 'the bag’s hunger');
+  assert.equal(joined.targetScale, 0.5, 'the bag’s scale');
+  assert.equal(joined.name, 'Saved Frost', 'the bag’s name');
+  assert.deepEqual(joined.mutations, ['Gold'], 'the bag’s mutations');
+  assert.deepEqual(joined.abilityCooldowns, { SnowyCoinFinder: 999 }, 'the bag’s cooldowns');
 
-  // Not overlaid, so they are the carrier's own reading: a pet whose save states an ability or a cosmetic
-  // the slot record has not caught up with keeps it. `species` is here for the same reason, and it is the
-  // sharpest of the four, because the two copies disagree (`SnowFox` live, `Fox` saved).
-  assert.equal(joined.species, 'Fox', 'the carrier’s own species reading, which is not overlaid');
-  assert.deepEqual(joined.abilities, ['SnowyCoinFinder'], 'abilities are not overlaid');
-  assert.equal(joined.sourceEggId, 'FoxEgg', 'the egg is not overlaid');
-  assert.deepEqual(joined.equippedCosmetics, { tie: 'Bowtie' }, 'cosmetics are not overlaid');
+  // `species`, `abilities`, `sourceEggId` and `equippedCosmetics` come from that same carrier: the index
+  // reports one carrier's whole record, not six fields of one and the rest of another.
+  assert.equal(joined.species, 'Fox', 'the bag’s species, not the slot’s SnowFox');
+  assert.deepEqual(joined.abilities, ['SnowyCoinFinder'], 'the bag’s abilities');
+  assert.equal(joined.sourceEggId, 'FoxEgg', 'the bag’s egg');
+  assert.deepEqual(joined.equippedCosmetics, { tie: 'Bowtie' }, 'the bag’s cosmetics');
+
+  // A slot states this id, so the game's own flag says the pet is out — the fact the old precedence was
+  // reaching for.
+  assert.equal(joined.isInPetSlot, true, 'a slot carries this id');
 });
 
 void test('a joined pet is the pet’s own shape, not the bag arm’s', () => {
@@ -329,14 +345,14 @@ void test('a joined pet is the pet’s own shape, not the bag arm’s', () => {
   const joined = petById(player, LIVE_IN_SLOT);
   assert.ok(joined !== null);
 
-  // The address and the carrier-owned fields are the bag's, because the bag is the last carrier the walk
-  // reaches for this id — not because the pet "is" in the bag. The game's `bo` yields both carriers and does
-  // not say which owns the pet; only the six live fields are resolved, and they come from the slot record.
-  // A join that took the slot's address would be asserting an ownership the game does not state.
+  // The address and every field are the bag's, because the bag is the last carrier the walk reaches for
+  // this id and that is the carrier the index reports — not because the pet "is" in the bag. The game's `bo`
+  // yields both carriers and `Yu` indexes them by id without saying which owns the pet; a join that took the
+  // slot's address would be asserting an ownership the game does not state.
   assert.equal(joined.entityPath, `${SLOT_DATA}/inventory/items/1`);
 
-  // Exactly `Pet`'s fields: the bag arm's `itemType` is a discriminant of the item union, so a joined pet
-  // that carried it would be an item arm wearing the pet pointer's name.
+  // Exactly `Pet`'s fields plus the index's own flag: the bag arm's `itemType` is a discriminant of the item
+  // union, so a joined pet that carried it would be an item arm wearing the pet pointer's name.
   assert.deepEqual(Object.keys(joined).sort(), [
     'abilities',
     'abilityCooldowns',
@@ -344,6 +360,7 @@ void test('a joined pet is the pet’s own shape, not the bag arm’s', () => {
     'equippedCosmetics',
     'hunger',
     'id',
+    'isInPetSlot',
     'mutations',
     'name',
     'record',
@@ -355,14 +372,22 @@ void test('a joined pet is the pet’s own shape, not the bag arm’s', () => {
   assert.equal(Object.hasOwn(joined, 'itemType'), false, 'the join is a pet, not an item arm');
 });
 
-void test('the game’s name rule: the slot’s name when it has one, the item’s name otherwise', () => {
-  const unnamed = toPet({ ...LIVE_SLOT_RECORD, name: '' }, `${SLOT_DATA}/petSlots/0`);
-  assert.ok(unnamed !== null);
-  const player = fixturePlayer([unnamed]);
+void test('the name is the last carrier’s own, with no species-default fallback', () => {
+  // The bag copy of `pet_live` still names it and the bag is the last carrier, so the bag's name is the one
+  // the index reports.
+  const unnamedSlot = toPet({ ...LIVE_SLOT_RECORD, name: '' }, `${SLOT_DATA}/petSlots/0`);
+  assert.ok(unnamedSlot !== null);
+  const joined = petById(fixturePlayer([unnamedSlot]), LIVE_IN_SLOT);
+  assert.equal(joined?.name, 'Saved Frost', 'the later carrier’s name is the one reported');
 
-  const joined = petById(player, LIVE_IN_SLOT);
-  assert.ok(joined !== null);
-  assert.equal(joined.name, 'Saved Frost', 'the item’s name stands in for a slot record that names none');
+  // With no later carrier, the stated name is the slot's own `''`. The game's index would fall back to the
+  // species' default name (`name ?? M[petSpecies].name`); this library carries no species-name table and
+  // reports what the save states, a deliberate divergence stated in `state/pets.ts`.
+  const bagless: Player = {
+    ...fixturePlayer([unnamedSlot]),
+    inventory: toInventory({ items: [{ itemType: 'Egg', eggId: 'SnowEgg' }] }, `${SLOT_DATA}/inventory`),
+  };
+  assert.equal(petById(bagless, LIVE_IN_SLOT)?.name, '', 'the save states no name and none is invented');
 });
 
 void test('petsOf walks the three carriers in the game’s own order', () => {
@@ -396,22 +421,23 @@ void test('a pet two carriers state is one entry, addressed by the last carrier 
     'the named id is named once',
   );
 
-  // The bag copy comes first in the walk and the hutch's later, so the later carrier is the one the entry is
-  // addressed to. That is the rule, not a claim about where the pet is.
+  // The bag copy comes first in the walk and the hutch's later, so the later carrier is the one the index
+  // reports. That is the rule the entry follows, not a claim about where the pet is.
   const pet = petById(player, ONLY_IN_STORAGE);
   assert.ok(pet !== null);
   assert.equal(pet.entityPath, `${SLOT_DATA}/inventory/storages/1/items/0`);
-  assert.equal(pet.name, 'Mittens', 'the last carrier’s own name, which is not overlaid');
+  assert.equal(pet.name, 'Mittens', 'the last carrier’s own name');
+  assert.equal(pet.isInPetSlot, false, 'no slot states this id, so the pet is not out');
 });
 
-void test('the live pet is the same one entry petById and petsOf answer with', () => {
+void test('the pet is the same one entry petById and petsOf answer with', () => {
   const player = fixturePlayer();
   const joined = petById(player, LIVE_IN_SLOT);
   assert.ok(joined !== null);
 
-  // Both `petsOf` and `petById` build the joined value with the same reader and the same slot record, so the
-  // two objects are equal field for field — including the `record` and `entityPath` of the bag, the last
-  // carrier the walk reaches for this id.
+  // Both `petsOf` and `petById` build the joined value from the same carrier, so the two objects are equal
+  // field for field — including the `record` and `entityPath` of the bag, the last carrier the walk reaches
+  // for this id.
   assert.deepEqual(
     petsOf(player).find((pet) => pet.id === LIVE_IN_SLOT),
     joined,
@@ -425,6 +451,7 @@ void test('a pet in a storage is a pet of the player, read from its own carrier'
   assert.equal(pet.name, 'Mittens');
   assert.equal(pet.hunger, 60);
   assert.equal(pet.entityPath, `${SLOT_DATA}/inventory/storages/1/items/0`);
+  assert.equal(pet.isInPetSlot, false, 'the hutch is a storage, so the pet is not out');
 });
 
 void test('a player with no pets has none: an empty list and an empty answer, never undefined', () => {
@@ -441,14 +468,67 @@ void test('a player with no pets has none: an empty list and an empty answer, ne
   assert.equal(petById(petless, ''), null, 'an id no pet carries is nothing, the empty string included');
 });
 
-void test('the carrier itself still reads the save’s copy, which the join is what corrects', () => {
+void test('the index reports the bag’s own copy, so the join adds the flag and not a value', () => {
   const player = fixturePlayer();
   const bagArm = petArmOf(bagItemWithId(player.inventory, LIVE_IN_SLOT));
   assert.ok(bagArm !== null);
 
-  // The defect the join closes: the arm a consumer reaches through `inventory.items` has the stale numbers,
-  // and only the join puts the live ones on it.
+  // The bag is the carrier the index reached last for this id, so the joined pet states the bag's own
+  // numbers — the same ones the arm already has. Nothing overwrites them with the slot record's 40/10; the
+  // slot's contribution to this entry is `isInPetSlot`.
   assert.equal(bagArm.xp, 3);
   assert.equal(bagArm.hunger, 99);
-  assert.equal(petById(player, LIVE_IN_SLOT)?.xp, 40);
+  assert.equal(petById(player, LIVE_IN_SLOT)?.xp, 3);
+  assert.equal(petById(player, LIVE_IN_SLOT)?.hunger, 99);
+  assert.equal(petById(player, LIVE_IN_SLOT)?.isInPetSlot, true);
+});
+
+void test('a numeric slot id joins the bag item that states the same number', () => {
+  // The reader accepts a number for an id and renders it (`StateRecord.id`), which a grow slot's `slotId`
+  // already needs. Both pet carriers must read it the same way or the join silently misses: a slot reading
+  // `''` while the bag item reads `'42'` is the §0 bug back again.
+  const numericSlot = toPet(
+    { id: 42, petSpecies: 'Fox', name: 'Forty Two', xp: 5, hunger: 5 },
+    `${SLOT_DATA}/petSlots/9`,
+  );
+  assert.ok(numericSlot !== null);
+  assert.equal(numericSlot.id, '42', 'the slot carrier renders a numeric id the way the base reader does');
+
+  const player: Player = {
+    ...fixturePlayer([numericSlot]),
+    inventory: toInventory(
+      { items: [{ itemType: 'Pet', id: 42, petSpecies: 'Fox', name: 'Saved' }] },
+      `${SLOT_DATA}/inventory`,
+    ),
+  };
+  assert.equal(petById(player, '42')?.isInPetSlot, true, 'the two carriers met on the same id');
+  assert.equal(petById(player, '42')?.name, 'Saved', 'the bag is the last carrier');
+});
+
+void test('an id-less bag pet does not inherit an id-less slot record', () => {
+  // The old join keyed its slot lookup on `''`, so a pet that states no id could be handed an unrelated
+  // id-less slot record's fields. The lookup no longer runs on the empty id: the slot's entry is the slot's,
+  // the bag's is the bag's.
+  const idlessSlot = toPet(
+    { petSpecies: 'Cat', name: 'Slot Hatchling', xp: 111, hunger: 111 },
+    `${SLOT_DATA}/petSlots/7`,
+  );
+  assert.ok(idlessSlot !== null);
+  const player: Player = {
+    ...fixturePlayer([idlessSlot]),
+    inventory: toInventory(
+      { items: [{ itemType: 'Pet', petSpecies: 'Fox', name: 'Bag Hatchling', xp: 1, hunger: 80 }] },
+      `${SLOT_DATA}/inventory`,
+    ),
+  };
+
+  const unnamed = petsOf(player).filter((pet) => pet.id === '');
+  assert.deepEqual(
+    unnamed.map((pet) => [pet.name, pet.xp, pet.isInPetSlot]),
+    [
+      ['Slot Hatchling', 111, true],
+      ['Bag Hatchling', 1, false],
+    ],
+    'each id-less carrier keeps its own values, and only the slot carrier is out',
+  );
 });

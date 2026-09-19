@@ -25,8 +25,8 @@
  * added five more: `CommunityApiSource`, `CommunityApiContractError`, `DEFAULT_COMMUNITY_API_URL`,
  * `SUPPORTED_API_CONTRACT` and `verifyContract`. The item union added the last two: `ITEM_READERS` (the
  * one place a kind is registered, and the runtime list a generic consumer walks) and `ITEM_KINDS` (the
- * kinds it walks). The pet join added `petsOf` and `petById` (`state/pets.ts`), which is where a pet is
- * whichever of its three carriers holds it, with the live slot record winning.
+ * kinds it walks). The pet join added `petsOf` and `petById` (`state/pets.ts`), the game's own by-id index
+ * over the three carriers: one entry per pet, the last carrier's own fields plus its `isInPetSlot`.
  *
  * The figure in this paragraph read 150 while the measured list held 152: this pass re-measured rather
  * than adjusting it, because a count that is not a command's output is the drift this list exists to catch.
@@ -50,7 +50,7 @@ import { test } from 'node:test';
 
 /**
  * Every runtime export of the `common` root barrel, sorted. Measured, not written by hand. Transcribing
- * 144 identifiers manually would have produced a snapshot of my typing rather than of the code.
+ * 152 identifiers manually would have produced a snapshot of my typing rather than of the code.
  */
 const EXPECTED_EXPORTS: readonly string[] = [
   'ACTION_NAMES',

@@ -45,7 +45,7 @@ import type { PetFields } from './items/pet.js';
  * A crop mutation id.
  *
  * The eleven ids are the keys of the game's own mutation table, which is the art bundle's `mutationRecords`
- * table at the version this library is kept against (`packages/art/data/1192.json`; the minified
+ * table at the version this library is kept against (`packages/art/data/<version>.json`; the minified
  * declaration it was read from is recorded in `docs/art-provenance.md`), and they are the values that appear
  * in a crop's `mutations` array. They are **not** the display names: see {@link MutationInfo}.
  *
@@ -89,7 +89,7 @@ export interface MutationInfo {
  * Every mutation the game defines, keyed by id.
  *
  * The same eleven ids are the keys of the art bundle's `mutationRecords` table for the version this library
- * is kept against (`packages/art/data/1192.json`), which is where a reader checks this list rather than
+ * is kept against (`packages/art/data/<version>.json`), which is where a reader checks this list rather than
  * trusting it.
  */
 export const MUTATIONS: Readonly<Record<string, MutationInfo>> = {
@@ -155,8 +155,8 @@ export interface StateView {
  * One crop planted on a tile: the game's grow-slot schema.
  *
  * The schema the art pipeline extracted at the version this library is kept against is `kindSchemas.crops`
- * in `packages/art/data/1192.json` (`ga` in that build; `docs/art-provenance.md` records where it was read
- * from), and it declares:
+ * in `packages/art/data/<version>.json` (`ga` in that build; `docs/art-provenance.md` records where it was
+ * read from), and it declares:
  *
  *     ga = d({ species, startTime, endTime, size, mutations, x, y, rotation, flipped, preserved, slotId })
  *
@@ -536,10 +536,11 @@ export interface Player extends StateView, Currency {
    * inventory item, not one of these — so this is not all of the player's pets.
    *
    * For every pet the player has, wherever it lives, use `state/pets.ts`'s `petsOf` (slots, bag and
-   * storages, the game's own walk, one entry per pet); for one pet by id with the **live** numbers, use its
-   * `petById`, which is the game's own overlay of this slot record over the save's stale copy. A pet is out
-   * when one of these states its id — `entityPath` on a joined pet is where its record was read, not a
-   * statement that the pet is out.
+   * storages, the game's own by-id index, one entry per pet); for one pet by id, use its `petById`, which
+   * returns the index's entry for that pet — the last carrier's own fields plus the game's own `isInPetSlot`,
+   * whether a pet slot states the id. A pet is out when one of these states its id, or when a joined pet's
+   * `isInPetSlot` is true; `entityPath` on a joined pet is where its record was read, not a statement that
+   * the pet is out.
    */
   readonly pets: Pet[];
   /** The player's ability and event log. Capped by the game, so use entry timestamps as a watermark. */

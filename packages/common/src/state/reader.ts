@@ -242,8 +242,9 @@ function readInventoryItemBase(record: StateRecord, entityPath: string, nowMs: n
  * only the escape hatch could reach. A kind none of the seven declares is {@link OtherItem} — the empty
  * kind — and the spelling the save used stays in its own `record`, exactly as `OtherTile`'s does.
  *
- * The base is read first because it holds the readings every kind shares; the kind's own reader then merges
- * over it, so a field a kind declares wins over the base's empty one.
+ * The base is read first because it holds the readings every kind shares; the kind's own reader then adds the
+ * fields only that kind declares. Its return type is `Omit<ItemOfKind<K>, keyof InventoryItemBase>`, so it
+ * cannot restate a base field even by accident — the shared reading is the base's, once.
  */
 export function toInventoryItem(value: unknown, entityPath: string, nowMs = 0): InventoryItem {
   const record = new StateRecord(value);
@@ -336,7 +337,7 @@ export function toActivityEntry(value: unknown, entityPath: string): ActivityEnt
  * One crop, typed from the game's grow-slot schema.
  *
  * The schema is `kindSchemas.crops` in the art bundle at the version this library is kept against
- * (`packages/art/data/1192.json` — `ga` in that build, with its provenance in `docs/art-provenance.md`),
+ * (`packages/art/data/<version>.json` — `ga` in that build, with its provenance in `docs/art-provenance.md`),
  * and it declares:
  *
  *     ga = d({ species, startTime, endTime, size, mutations, x, y, rotation, flipped, preserved, slotId })
@@ -532,7 +533,7 @@ export function toPet(value: unknown, entityPath: string): Pet | null {
 
   return {
     entityPath,
-    id: record.string('id'),
+    id: base.id,
     species: base.species,
     name: base.name,
     mutations: base.mutations,

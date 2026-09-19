@@ -5,10 +5,11 @@
  *
  * The game's own item union (`Ta` in the client bundle) is one union of eight schemas over the seven
  * `itemType` members — the tool is the one kind with two variants. Task 0 extracted those schemas into the
- * `@mg.js/art` bundle table `kindSchemas` (`packages/art/data/1192.json`): `kindSchemas.items` maps each kind
- * to its arm(s), `kindSchemas.arms` states each arm's fields in the game's own spellings, and
+ * `@mg.js/art` bundle table `kindSchemas` (`packages/art/data/<version>.json`): `kindSchemas.items` maps each
+ * kind to its arm(s), `kindSchemas.arms` states each arm's fields in the game's own spellings, and
  * `kindSchemas.pets` records the pet base both pet carriers are built on. That table is the evidence base,
- * and its per-field provenance is recorded in `docs/art-provenance.md`.
+ * and its per-declaration provenance — the declaration and byte range each table was cut from — is recorded
+ * in `docs/art-provenance.md`.
  *
  * So every field below was read from the schema that declares it, and an arm carries exactly the fields its
  * kind declares. The tables in the game's bundle are:

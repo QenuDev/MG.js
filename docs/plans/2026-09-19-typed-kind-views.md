@@ -306,7 +306,7 @@ The same fix should take the same-shaped problems with it, and most of the value
 item below is a per-kind field with no typed home, or two carriers of one schema, which is what makes the
 completeness gate worth building once rather than per kind.
 
-**S1 — a pet lives in three places, and the live numbers are in a fourth.** The game's own walker
+**S1 — a pet lives in three places, and the game indexes all three.** The game's own walker
 (`worldDepthSortKey-BXUHHrP0.js` ~645890):
 
 ```js
@@ -317,8 +317,10 @@ function* bo(e){ for (let t of e.petSlots) yield {pet:t, location:{kind:`petSlot
 function xo(e){ return Array.from(bo(e), ({pet:e}) => e) }
 ```
 
-and the game **overlays** a bag pet with the pet-slot progress record, keyed by id, before showing it
-(`installSeatSystems-B2ZqVPv6.js` ~340426):
+and the game builds `petsProgress`, a **by-id index over all three carriers**, which the seat system applies to
+the item it is showing (`installSeatSystems-B2ZqVPv6.js` ~340426; the index itself is `Yu`, exported as `Tr`,
+in `worldDepthSortKey-BXUHHrP0.js` ~705743, and it carries `isInPetSlot`, the game's own answer to whether a
+pet is out):
 
 ```js
 let e = F(this.activeItem), n = this.petsProgress[e], r = n?.name ?? this.activeItem.name;
@@ -328,9 +330,10 @@ n && (t = { ...this.activeItem, hunger: n.hunger, xp: n.xp, targetScale: n.targe
 
 So a consumer that types `PetItem` and reads `item.xp` has the **saved** value, which for a pet that is out in
 a slot is not the live one. This library's `Player.pets` (`entities.ts:589`) is the slot list only, so today a
-consumer must hand-roll `bo` and the overlay — and the consumer in §0 will need exactly that next (a card that
+consumer must hand-roll `bo` and the index — and the consumer in §0 will need exactly that next (a card that
 shows a charging cooldown). **T5** adds it where the game has it: `state/pets.ts` with
-`petsOf(player)`/`petById(player, id)` returning the live pet, documented as the game's own precedence.
+`petsOf(player)`/`petById(player, id)` returning that index's entry per pet — the last carrier's own fields
+plus its `isInPetSlot` — documented as the game's own map, not a precedence (§13 corrects this passage).
 
 **S2 — one pet schema, two hand-written field lists.** `Pet` (slot, `entities.ts:397-425`) and the bag pet
 share `aa`; today `Pet` has the fields and the bag arm has none. `PetFields` (§3) is stated once and both
@@ -341,8 +344,9 @@ implement it, so `toPet` and `readPet` cannot drift — which is how the bag pet
 `N`, lowercase, and `OtherTile.objectType` is `''`, which is not an `ItemType` member at all. The arms still
 narrow (their literals are disjoint), so this is a correctness-of-name defect rather than a live bug, and it is
 the same class as the item hole: a kind family typed by another family's enum. **T6** splits `ItemKind` from
-`TileKind` (and keeps `ItemType`'s open tail as the tile arm does, because a fifth tile kind must still
-compile).
+`TileKind`, and `TileKind` is **closed**: `TileBase.objectType: TileKind | ''`, where `''` is `OtherTile`'s
+empty kind. An open tail would accept `'Seed'` as a tile kind and stop the family narrowing, so a fifth
+*declared* kind is a decision here rather than a string that compiles.
 
 **S4 — per-kind readers have no home.** `toInventoryItem` (`reader.ts:224`) reads the shared fields, `toPet`
 (`:500`) reads a pet's own, `toCrop` (`:350`) reads a crop's, and each of them half-reads a pet. After T1-T3
@@ -399,14 +403,16 @@ the symbols they pin (runtime only — `toInventoryItem`/`toInventoryItems` keep
 union on its discriminant, or it is not modelled yet.* *Breaking:* no.
 
 **T5 — where a pet is (S1/S7).** `state/pets.ts`: `petsOf(player)` (slots, bag, storages — the game's `bo`) and
-`petById(player, id)` (the live pet, slot record over bag item). *Test first:* a fixture with one pet in a slot
-and the same id in the bag, where the slot record's `xp`/`hunger` win; and a bag pet with no slot, which is
-itself. *Breaking:* no (new functions); `Player.pets` keeps its meaning and its doc points at `petsOf`.
+`petById(player, id)` (that index's entry per pet: the last carrier's own fields plus `isInPetSlot`; §13). *Test
+first:* a fixture with one pet in a slot and the same id in the bag, where the two carriers disagree, so the
+test can say which one the index reports; and a bag pet with no slot, which is itself. *Breaking:* no (new
+functions); `Player.pets` keeps its meaning and its doc points at `petsOf`.
 
-**T6 — the enum split (S3).** `ItemKind` (from `ItemFields`) vs `TileKind` (`'plant'|'egg'|'decor'|'crystal'`
-plus the open tail); `TileBase.objectType: TileKind`. *Test first:* a compile-only test that an item kind is
-not assignable to a tile's `objectType` and vice versa (the shape of the test `ac7bcb5` used to measure that an
-open arm stops narrowing). *Breaking:* yes, in name only.
+**T6 — the enum split (S3).** `ItemKind` (from `ItemFields`) vs `TileKind`
+(`'plant'|'egg'|'decor'|'crystal'`, closed); `TileBase.objectType: TileKind | ''`. *Test first:* a compile-only
+test that an item kind is not assignable to a tile's `objectType` and vice versa (the `Extract`-against-`never`
+shape `tests/client-contract.test.ts` established — with `ItemType`'s open tail `'Seed'` would be accepted and
+the assertion could not hold). *Breaking:* yes, in name only.
 
 **Ordering.** T0 first (nothing can be measured without it), then T1+T2+T3 in one commit (the union, its
 reader, and the gate are one unit of work — the tile commit `ac7bcb5` is the precedent for the size), T4 with
@@ -475,3 +481,17 @@ viewer's pet-card test (Sheep, 165 kg, 412 h, 80/80, 74%) passes against the lib
 4. The two consumer migrations (§9) land, and `grep -rn "record.raw" garden-viewer-svelte/src` returns nothing.
 5. The §0 report's pet reads correctly through the library's own arm — level 80, 165 kg, 412 h, hunger 185 —
    with the viewer's reader no longer touching the escape hatch.
+
+## 13. Deviations and rulings
+
+Every decision this pass took that changed what the plan above says. The code is the record; this table is so
+the document and the code agree and the decisions outlive the pass's own workspace.
+
+| the plan said | what landed, and why |
+|---|---|
+| T0 extracts the item union (§6 T0), with the tile kinds' completeness check elsewhere | T0 extracted **four** families — the item union, the tile union, the crop schema and the pet base — because §6 puts the tile arms "in the same predicate pass" and §10 puts the tile kinds' completeness check in this pass. The table is named `kindSchemas`, not `itemSchemas`, because it holds tiles too. |
+| the minified-name guard excludes a name that occurs in the extractor's prose | Narrowed to a **provable stoplist**: a name is excluded only if it genuinely occurs as a whole word in that prose (`as`, `is`, `ts`), each with a measured count, and a pinned floor on how many distinctive names remain greped keeps the exclusion from growing silently. |
+| T1–T4 land in one commit (§8 Ordering) | **Two** commits: T1+T2+T4, then T3. The surface manifest forces the docs into the first, and the gate's honest outcome may be red until its arms exist, so the surface and a provably-red gate do not share a commit. |
+| the gate's per-kind converse is scoped to the kind's own reader (§6 T3) | That converse is vacuous for the five item kinds whose readers return `{}`, so the pass added an items-only **base-step converse**, plus two renames the plan did not name: `slots`→`plots` for tile arms and `slotId`→`id` for crops. |
+| `petsOf` returns one entry per carrier with the live slot record winning (§7 S1, §8 T5) | `petsOf` **collapses duplicate ids** to one entry per pet and follows the game's own index (`Yu`, exported as `Tr` and installed as `Bo`), which reports the **last** carrier in walk order and carries the index's own `isInPetSlot`. The plan's slot-record overlay is not in that index and is not applied; the pass's divergence from the game's species-name fallback is stated in `state/pets.ts`. This row corrects §7 S1's characterization of `petsProgress` and §8 T5's task text, which are otherwise unchanged. |
+| `TileKind` keeps `ItemType`'s open tail (§7 S3, §8 T6) | `TileKind` is **closed**, with `TileBase.objectType: TileKind \| ''`. The tail is the hazard §2 quotes, and with it T6's assertion could not hold because `'Seed'` would extend the union. |

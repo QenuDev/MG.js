@@ -276,8 +276,9 @@ export function validateTables(tables: ArtTables, atlas: AtlasFrames): readonly 
   //     may state a member the enum does not assign, and the enum may assign a member no arm states (which is
   //     what a two-armed subset accepted as "the tile union" would look like). The predicate deliberately does
   //     not require the two to agree, because a check that cannot disagree is not a witness. None of the
-  //     literals may be an item-type literal either: `entities.ts:272` types a tile's `objectType` as the item
-  //     enum, which is the conflation this would catch if it ever reached the extraction.
+  //     literals may be an item-type literal either: a tile kind and an item kind are two families
+  //     (`entities.ts` types a tile's `objectType` as `TileKind | ''` and an item's `itemType` as `ItemKind`),
+  //     so a literal on both sides would be one spelling standing for two kinds.
   const tileOffenders: string[] = [];
   const tileTypes = tables.kindSchemas.tileTypes;
   const itemLiterals = new Set(Object.values(tables.itemTypes));

@@ -26,7 +26,8 @@
  *
  * `sourceEggId` is the egg enum `j`. The other two are records, and **no extracted table carries their
  * shape**, so the game's own declarations are the evidence and are quoted here in the style the model uses
- * for a bundle citation (`worldDepthSortKey-BXUHHrP0.js` at 1192, beside `aa`/`Ca`):
+ * for a bundle citation (`worldDepthSortKey-BXUHHrP0.js` in the capture the data file names, beside
+ * `aa`/`Ca`):
  *
  *     ia = l(_(), ra)                    abilityCooldowns: a string-keyed record of numbers
  *     ra = y(h(), r(0))
