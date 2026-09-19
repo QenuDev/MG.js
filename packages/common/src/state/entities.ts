@@ -536,7 +536,16 @@ export interface Player extends StateView, Currency {
   readonly garden: Garden | null;
   /** Everything the player owns, in hand and in storage. */
   readonly inventory: Inventory;
-  /** The pets this player has out. A pet in a bag or a storage is an inventory item, not one of these. */
+  /**
+   * The pets this player has **out**, from the game's `petSlots`. A pet in a bag or a storage is an
+   * inventory item, not one of these — so this is not all of the player's pets.
+   *
+   * For every pet the player has, wherever it lives, use `state/pets.ts`'s `petsOf` (slots, bag and
+   * storages, the game's own walk, one entry per pet); for one pet by id with the **live** numbers, use its
+   * `petById`, which is the game's own overlay of this slot record over the save's stale copy. A pet is out
+   * when one of these states its id — `entityPath` on a joined pet is where its record was read, not a
+   * statement that the pet is out.
+   */
   readonly pets: Pet[];
   /** The player's ability and event log. Capped by the game, so use entry timestamps as a watermark. */
   readonly activityLog: ActivityEntry[];

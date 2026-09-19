@@ -52,6 +52,7 @@ export { ITEM_KINDS, ITEM_READERS } from './items/index.js';
 export type { ApplyPatchOptions, ApplyPatchResult, PatchOutcome } from './patch.js';
 export { applyPatch, deepClone, deepEqual, JsonPatch } from './patch.js';
 export * from './paths.js';
+export { petById, petsOf } from './pets.js';
 export type { PointerTokens } from './pointer.js';
 export {
   addLeadingChild,

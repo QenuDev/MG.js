@@ -939,6 +939,8 @@
         "joinPointer",
         "mutationName",
         "parsePointer",
+        "petById",
+        "petsOf",
         "player",
         "playerCount",
         "pointerContains",

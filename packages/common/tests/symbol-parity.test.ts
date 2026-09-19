@@ -16,7 +16,7 @@
  *
  * ## The snapshot
  *
- * 150 runtime names from `packages/common/src/index.ts`. 133 were measured at `737b`-era HEAD
+ * 152 runtime names from `packages/common/src/index.ts`. 133 were measured at `737b`-era HEAD
  * `db7371f`. The named state accessors and the game's server clock added the rest: `StateReader`,
  * `StateRecord`, `asRecord`, `ServerClock`, `asFiniteMs`, `MUTATIONS`, `mutationName` and the four
  * documented field-name lists, in the same commit as this line. `toCurrency` followed, in the commit that
@@ -25,9 +25,11 @@
  * added five more: `CommunityApiSource`, `CommunityApiContractError`, `DEFAULT_COMMUNITY_API_URL`,
  * `SUPPORTED_API_CONTRACT` and `verifyContract`. The item union added the last two: `ITEM_READERS` (the
  * one place a kind is registered, and the runtime list a generic consumer walks) and `ITEM_KINDS` (the
- * kinds it walks). The figure in this paragraph read 153 while the measured list held 148 — this pass
- * re-measured rather than adjusting it, because a count that is not a command's output is the drift this
- * list exists to catch.
+ * kinds it walks). The pet join added `petsOf` and `petById` (`state/pets.ts`), which is where a pet is
+ * whichever of its three carriers holds it, with the live slot record winning.
+ *
+ * The figure in this paragraph read 150 while the measured list held 152: this pass re-measured rather
+ * than adjusting it, because a count that is not a command's output is the drift this list exists to catch.
  *
  *     node --import tsx -e \
  *       "import('./packages/common/src/index.ts').then(m=>console.log(Object.keys(m).sort().join('\n')))"
@@ -175,6 +177,8 @@ const EXPECTED_EXPORTS: readonly string[] = [
   'parseFrame',
   'parsePointer',
   'parseResultCode',
+  'petById',
+  'petsOf',
   'player',
   'playerCount',
   'pointerContains',
