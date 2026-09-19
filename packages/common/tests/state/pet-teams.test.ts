@@ -44,7 +44,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { PetTeam } from '../../src/state/entities.js';
 import { teamIsOut, teamMembersOf } from '../../src/state/pet-teams.js';
-import { asRecord, StateReader, toPetTeam } from '../../src/state/reader.js';
+import { asRecord, StateReader, toPet, toPetTeam } from '../../src/state/reader.js';
 import { ObservableStore } from '../../src/state/store.js';
 
 const SLOT_DATA = '/child/data/userSlots/0/data';
@@ -346,6 +346,64 @@ void test('both sides of the comparison are sets of distinct ids, not lists of e
   );
   assert.ok(twoEntries !== null);
   assert.equal(teamIsOut(player, twoEntries), false, 'two entries, one distinct id, two pets in the slots');
+});
+
+/**
+ * The game's own `Uu`, transcribed verbatim from the build this reader was written against.
+ *
+ * `assets/sendQuinoaRpc-CltrbGZc.js`, v1230:
+ *
+ *     function Uu(e,t){let n=new Set(e.petSlots.map(e=>e.id)),r=new Set(t.members.map(e=>e.petId));
+ *       return r.size>0&&r.size===t.members.length&&r.size===n.size&&t.members.every(e=>n.has(e.petId))}
+ *
+ * It is here so the rule can be run rather than described: the table below hands the same save and the same
+ * team to both, in the shape each expects, and any disagreement is a port that drifted. A test that asserted
+ * only the cases this release thought of would be a test of this release's reading of the rule.
+ */
+function gameIsOut(slots: readonly string[], members: readonly string[]): boolean {
+  const out = new Set(slots);
+  const named = new Set(members);
+  return (
+    named.size > 0 &&
+    named.size === members.length &&
+    named.size === out.size &&
+    members.every((petId) => out.has(petId))
+  );
+}
+
+void test('the rule is the game’s own expression, run over the same saves', () => {
+  const cases: readonly { why: string; slots: string[]; members: string[] }[] = [
+    { why: 'the same pets, in the same order', slots: ['a', 'b'], members: ['a', 'b'] },
+    { why: 'the same pets, in another order', slots: ['a', 'b'], members: ['b', 'a'] },
+    { why: 'all three slots', slots: ['a', 'b', 'c'], members: ['a', 'b', 'c'] },
+    { why: 'the team names fewer pets than are out', slots: ['a', 'b'], members: ['a'] },
+    { why: 'the team names a pet that is gone', slots: ['a', 'b'], members: ['a', 'c'] },
+    { why: 'the team names one pet twice', slots: ['a'], members: ['a', 'a'] },
+    { why: 'an empty team', slots: ['a'], members: [] },
+    { why: 'no pets out at all', slots: [], members: ['a'] },
+    { why: 'one pet stated in two slots', slots: ['a', 'a'], members: ['a'] },
+    { why: 'nothing out and an empty team', slots: [], members: [] },
+  ];
+
+  for (const one of cases) {
+    const team = toPetTeam(
+      { id: 'team', name: '', members: one.members.map((petId) => ({ petId })), emblem: {} },
+      'x',
+    );
+    assert.ok(team !== null);
+    // The slot pets are the package's own reading of a slot record, for the reason the file's header gives:
+    // a stand-in cast into place would be this test's idea of a pet rather than the reader's.
+    const pets = one.slots.map((id, index) => {
+      const pet = toPet({ id, petSpecies: 'Cat', name: '' }, `${SLOT_DATA}/petSlots/${index}`);
+      assert.ok(pet !== null, 'a slot record that states a species is a pet');
+      return pet;
+    });
+    assert.equal(
+      teamIsOut({ ...fixturePlayer(), pets }, team),
+      gameIsOut(one.slots, one.members),
+      `${one.why}: the game says ${gameIsOut(one.slots, one.members)}`,
+    );
+  }
 });
 
 void test('a team read by hand carries its own record, for a field this release does not name', () => {
