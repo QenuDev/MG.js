@@ -288,8 +288,8 @@ for (const kind of ITEM_KINDS)
   });
 ```
 
-and its converse — a field on an arm the game does not declare — because a *model* that invents fields is as
-wrong as one that drops them.
+and its converse, scoped to the fields the kind's own reader produced: a name there that the game does not
+declare for that kind is as wrong as a missing one, and it is the same assertion with the two lists swapped.
 
 **It must be shown to fail**, per I8 (`docs/DESIGN.md:629`): delete `hunger` from `readPet` and watch the pet
 case go red; add a field name to the extracted list and watch it go red. Both are one-line mutations, and the
@@ -302,8 +302,9 @@ and it is the reason §1.2's stale version claim cannot recur.
 
 ## 7. Sibling issues this pass closes
 
-The user's ask: the same-ish fix should take the same-ish problems with it. Every one below is in the same
-neighbourhood (a per-kind field that has no typed home, or two carriers of one schema).
+The same fix should take the same-shaped problems with it, and most of the value here is in the last few: every
+item below is a per-kind field with no typed home, or two carriers of one schema, which is what makes the
+completeness gate worth building once rather than per kind.
 
 **S1 — a pet lives in three places, and the live numbers are in a fourth.** The game's own walker
 (`worldDepthSortKey-BXUHHrP0.js` ~645890):
@@ -438,7 +439,7 @@ viewer's pet-card test (Sheep, 165 kg, 412 h, 80/80, 74%) passes against the lib
 - **Not a `petStrength`/`petWeight` helper here.** The arithmetic the viewer needed (`domain/pets.ts`) is one
   consumer's presentation of the game's own maths; whether it belongs in this library is a separate question
   and is not answered by typing the fields.
-- **Not an `Inert surface`** (`DESIGN.md` §5): every reader added here is called by `toInventoryItem`, and
+- **No inert surface** (`DESIGN.md` §5): every reader added here is called by `toInventoryItem`, and
   `ITEM_KINDS` is read by the completeness test.
 
 ## 11. Open questions for the human
