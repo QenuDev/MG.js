@@ -42,11 +42,14 @@ import type {
   Garden,
   Inventory,
   Pet,
+  PetTeam,
+  PetTeamMember,
   Player,
   PlayerRecord,
   Room,
   StateRecordLike,
   Storage,
+  TeamEmblem,
   Tile,
   TileType,
 } from './entities.js';
@@ -542,6 +545,63 @@ export function toPet(value: unknown, entityPath: string): Pet | null {
   };
 }
 
+/**
+ * One pet team, typed from the game's pet-team record schema.
+ *
+ * The schema (`sendQuinoaRpc-CltrbGZc.js`, `$l`) is `{ id, name, members: array(1..3 of {petId, petSpecies,
+ * name}), emblem }`, and every field but the emblem's arm is reported as the save states it — a team whose
+ * members were all sold still reads, because the team carries its own copy of each name. There is no test
+ * that makes a record a team the way `petSpecies` makes one a pet: a team is a record the save lists under
+ * `petTeams`, and a caller asked for it.
+ *
+ * The emblem is the one field with arms, and {@link TeamEmblem} states what each one carries. An arm this
+ * release does not know is reported as the type the save gave rather than forced into one of the four.
+ */
+export function toPetTeam(value: unknown, entityPath: string): PetTeam | null {
+  if (value === null || typeof value !== 'object') return null;
+  const record = new StateRecord(value);
+
+  return {
+    entityPath,
+    id: record.id('id'),
+    name: record.string('name'),
+    members: readTeamMembers(record),
+    emblem: readTeamEmblem(record.record('emblem')),
+    record,
+  };
+}
+
+/**
+ * A team's members, read as the schema states them.
+ *
+ * The species is read with the same two spellings every pet-carrying kind accepts, in the same order: the
+ * wire's `petSpecies` first, then the `species` a produce stack or a seed would use.
+ */
+function readTeamMembers(record: StateRecordLike): PetTeamMember[] {
+  return record.records('members').map((member) => ({
+    petId: member.id('petId'),
+    species: member.string('petSpecies') || member.string('species'),
+    name: member.string('name'),
+  }));
+}
+
+/** One emblem, discriminated on the wire's own `type` — the fifth arm is this reader's, and says so. */
+function readTeamEmblem(record: StateRecordLike): TeamEmblem {
+  const stated = record.string('type');
+  switch (stated) {
+    case 'number':
+      return { type: 'number', number: record.number('number') };
+    case 'pet':
+      return { type: 'pet', petId: record.id('petId') };
+    case 'icon':
+      return { type: 'icon', icon: record.string('icon') };
+    case 'cosmetic':
+      return { type: 'cosmetic', cosmetic: record.string('cosmetic') };
+    default:
+      return { type: 'other', stated };
+  }
+}
+
 /** Options for {@link StateReader}. */
 interface StateReaderOptions {
   /** Applied to paths before they are used for subscriber matching. */
@@ -813,6 +873,26 @@ export class StateReader {
     return pets;
   }
 
+  /**
+   * One player slot's pet teams, in the save's own order.
+   *
+   * The field sits in the same saved object as `petSlots`, so a save that predates the feature reads as an
+   * empty list rather than as a failure — which is what `petTeams: []` is in the sample states the game's own
+   * bundle embeds.
+   */
+  petTeams(slotIndex: number): PetTeam[] {
+    const field = `${USER_SLOTS}/${slotIndex}/data/petTeams`;
+    const value = this.store.get(field);
+    if (!Array.isArray(value)) return [];
+    const teams: PetTeam[] = [];
+    for (let index = 0; index < value.length; index += 1) {
+      // The path uses the array index rather than the result length, for the reason `pets` states.
+      const team = toPetTeam(value[index], `${field}/${index}`);
+      if (team !== null) teams.push(team);
+    }
+    return teams;
+  }
+
   /** One pet by id across every slot, or `null`. */
   pet(petId: string): Pet | null {
     const value = this.store.get(USER_SLOTS);
@@ -1023,6 +1103,7 @@ export class StateReader {
       ),
       garden: toGarden(gardenValue, nowMs, `${dataPath ?? `${USER_SLOTS}/${index}/data`}/garden`),
       pets: slotIndex === null ? [] : this.pets(slotIndex),
+      petTeams: slotIndex === null ? [] : this.petTeams(slotIndex),
       activityLog: slotIndex === null ? [] : this.activityLogs(slotIndex),
       record: new StateRecord(slotIndex === null ? value : this.store.get(dataPath as string)),
     };

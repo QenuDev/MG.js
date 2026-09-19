@@ -436,6 +436,69 @@ export interface Pet extends StateView, PetFields {
 }
 
 /**
+ * One pet a team names, as the team itself states it.
+ *
+ * A team stores its own copy of each member's species and name rather than a bare id, which is what lets a
+ * card be drawn for a pet the player has since sold (`installPlayerSystems-NMjL0ny-.js` draws the live pet
+ * when there is one and this copy when there is not). The two can disagree after a rename only for as long as
+ * the server takes to patch the teams, so a caller that shows both is showing what the save says, not a
+ * contradiction.
+ *
+ * The wire spells the species `petSpecies` here as it does everywhere a pet is stated, and the reader accepts
+ * the other spelling too, the same way every pet-carrying kind does.
+ */
+export interface PetTeamMember {
+  /** The pet's id, which is what the member is looked up by across every carrier. */
+  readonly petId: string;
+  /** The species the team remembers, which is what a portrait of a pet that is gone is drawn from. */
+  readonly species: string;
+  /** The name the team remembers. */
+  readonly name: string;
+}
+
+/**
+ * A team's emblem, discriminated on the wire's own `type`.
+ *
+ * The schema (`sendQuinoaRpc-CltrbGZc.js`, `Ql`) closes the set to four arms: a letter of the alphabet as a
+ * number 1–26, one of the team's own pets, one of ten named icons, or a cosmetic the player owns.
+ *
+ * The fifth arm is this reader's, for the same reason `OtherItem` has one: the game may add an arm, and a
+ * reader that forced an unknown type into one of the four would draw a wrong badge and report nothing. It
+ * states the type the save gave and lets a caller decide.
+ */
+export type TeamEmblem =
+  | { readonly type: 'number'; readonly number: number }
+  | { readonly type: 'pet'; readonly petId: string }
+  | { readonly type: 'icon'; readonly icon: string }
+  | { readonly type: 'cosmetic'; readonly cosmetic: string }
+  | { readonly type: 'other'; readonly stated: string };
+
+/**
+ * A saved pet team: a name, the pets it names, and the badge it is drawn with.
+ *
+ * The player's own saved data carries these beside `petSlots` (`sendQuinoaRpc-CltrbGZc.js`, the player record
+ * `Bu`: `petSlots: w(Kl), petTeams: w($l), …`), and the protocol names the five actions that change them
+ * without ever stating what one is. The two questions the game asks of a team are not fields and are not
+ * here: which team is *out* and which members are no longer with the player are joins over the save, and
+ * `state/pet-teams.ts` is where they live.
+ *
+ * Nothing about the address is a claim that the team is in a list container: `entityPath` is the entry the
+ * save holds it at, which is what `MovePetTeam` rearranges.
+ */
+export interface PetTeam extends StateView {
+  /** The path of this team: `.../userSlots/<slot>/data/petTeams/<n>`. */
+  readonly entityPath: string;
+  readonly id: string;
+  /** The player's name for it, which the game allows up to 25 of. */
+  readonly name: string;
+  /** The pets it names, in the order the save lists them — one to three, from the schema's own bound. */
+  readonly members: PetTeamMember[];
+  readonly emblem: TeamEmblem;
+  /** Everything else the team carries, read by name. The escape hatch. */
+  readonly record: StateRecordLike;
+}
+
+/**
  * One player, as the room's `players` array carries them.
  *
  * This is the room's own list, and the room says nothing about money: an entry is an id, a name and the
@@ -543,6 +606,14 @@ export interface Player extends StateView, Currency {
    * the pet is out.
    */
   readonly pets: Pet[];
+  /**
+   * The pet teams this player's save holds, in the save's own order.
+   *
+   * The same saved object `petSlots` sits in, so an empty list means the player has saved none rather than
+   * that they could not be read. Which team is the one they have **out**, and which members are pets they no
+   * longer own, are joins over the rest of the save: `state/pet-teams.ts`'s `teamIsOut` and `teamMembersOf`.
+   */
+  readonly petTeams: PetTeam[];
   /** The player's ability and event log. Capped by the game, so use entry timestamps as a watermark. */
   readonly activityLog: ActivityEntry[];
   /** Everything else this player's data carries, read by name. The escape hatch. */

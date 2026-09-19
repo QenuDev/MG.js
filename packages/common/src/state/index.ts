@@ -13,11 +13,14 @@ export type {
   MutationGroup,
   MutationInfo,
   Pet,
+  PetTeam,
+  PetTeamMember,
   Player,
   PlayerRecord,
   Room,
   StateRecordLike,
   Storage,
+  TeamEmblem,
   Tile,
   TileType,
 } from './entities.js';
@@ -51,6 +54,8 @@ export { ITEM_KINDS, ITEM_READERS } from './items/index.js';
 export type { ApplyPatchOptions, ApplyPatchResult, PatchOutcome } from './patch.js';
 export { applyPatch, deepClone, deepEqual, JsonPatch } from './patch.js';
 export * from './paths.js';
+export type { PetTeamMemberView } from './pet-teams.js';
+export { teamIsOut, teamMembersOf } from './pet-teams.js';
 export { petById, petsOf } from './pets.js';
 export type { PointerTokens } from './pointer.js';
 export {
@@ -75,6 +80,7 @@ export {
   toInventory,
   toInventoryItem,
   toInventoryItems,
+  toPetTeam,
   toStorage,
 } from './reader.js';
 export type { ObservableStoreOptions, StateChange, StateSubscriber } from './store.js';

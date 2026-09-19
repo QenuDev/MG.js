@@ -16,7 +16,7 @@
  *
  * ## The snapshot
  *
- * 152 runtime names from `packages/common/src/index.ts`. 133 were measured at `737b`-era HEAD
+ * 155 runtime names from `packages/common/src/index.ts`. 133 were measured at `737b`-era HEAD
  * `db7371f`. The named state accessors and the game's server clock added the rest: `StateReader`,
  * `StateRecord`, `asRecord`, `ServerClock`, `asFiniteMs`, `MUTATIONS`, `mutationName` and the four
  * documented field-name lists, in the same commit as this line. `toCurrency` followed, in the commit that
@@ -26,9 +26,13 @@
  * `SUPPORTED_API_CONTRACT` and `verifyContract`. The item union added the last two: `ITEM_READERS` (the
  * one place a kind is registered, and the runtime list a generic consumer walks) and `ITEM_KINDS` (the
  * kinds it walks). The pet join added `petsOf` and `petById` (`state/pets.ts`), the game's own by-id index
- * over the three carriers: one entry per pet, the last carrier's own fields plus its `isInPetSlot`.
+ * over the three carriers: one entry per pet, the last carrier's own fields plus its `isInPetSlot`. The pet
+ * teams added `toPetTeam` (`reader.ts`, one team from the save's own record), `teamMembersOf` and
+ * `teamIsOut` (`state/pet-teams.ts`, the two questions the game asks of a team: which members are still
+ * with the player, and whether this is the team they have out). The type-only additions of that pass
+ * (`PetTeam`, `PetTeamMember`, `TeamEmblem`, `PetTeamMemberView`) are absent here by construction.
  *
- * The figure in this paragraph read 150 while the measured list held 152: this pass re-measured rather
+ * The figure in this paragraph read 150 while the measured list held 152: each pass re-measures rather
  * than adjusting it, because a count that is not a command's output is the drift this list exists to catch.
  *
  *     node --import tsx -e \
@@ -50,7 +54,7 @@ import { test } from 'node:test';
 
 /**
  * Every runtime export of the `common` root barrel, sorted. Measured, not written by hand. Transcribing
- * 152 identifiers manually would have produced a snapshot of my typing rather than of the code.
+ * 155 identifiers manually would have produced a snapshot of my typing rather than of the code.
  */
 const EXPECTED_EXPORTS: readonly string[] = [
   'ACTION_NAMES',
@@ -193,12 +197,15 @@ const EXPECTED_EXPORTS: readonly string[] = [
   'scopeForForm',
   'serializeFrame',
   'summarizeError',
+  'teamIsOut',
+  'teamMembersOf',
   'toCrops',
   'toCurrency',
   'toInventory',
   'toInventoryItem',
   'toInventoryItems',
   'toMgError',
+  'toPetTeam',
   'toStorage',
   'unrefTimer',
   'utf8ByteLength',

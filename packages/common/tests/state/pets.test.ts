@@ -205,6 +205,9 @@ function fixturePlayer(pets: readonly Pet[] = slotPets()): Player {
     inventory: savedInventory(),
     garden: null,
     pets: [...pets],
+    // This file is about the three carriers a pet lives in; a team is a fourth thing the join here does not
+    // read, and `state/pet-teams.test.ts` is where one is.
+    petTeams: [],
     activityLog: [],
     record: pets[0]?.record ?? asRecord({}),
   };
