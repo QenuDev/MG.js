@@ -23,7 +23,11 @@
  * moved a player's balances out of the room's player list and into their saved data, and then the four
  * inventory readers and `toStorage` with the inventory itself. The contract-checked community source
  * added five more: `CommunityApiSource`, `CommunityApiContractError`, `DEFAULT_COMMUNITY_API_URL`,
- * `SUPPORTED_API_CONTRACT` and `verifyContract` (measured: 153 runtime names).
+ * `SUPPORTED_API_CONTRACT` and `verifyContract`. The item union added the last two: `ITEM_READERS` (the
+ * one place a kind is registered, and the runtime list a generic consumer walks) and `ITEM_KINDS` (the
+ * kinds it walks). The figure in this paragraph read 153 while the measured list held 148 — this pass
+ * re-measured rather than adjusting it, because a count that is not a command's output is the drift this
+ * list exists to catch.
  *
  *     node --import tsx -e \
  *       "import('./packages/common/src/index.ts').then(m=>console.log(Object.keys(m).sort().join('\n')))"
@@ -80,6 +84,8 @@ const EXPECTED_EXPORTS: readonly string[] = [
   'GameActions',
   'HOST_PLAYER_ID',
   'HttpError',
+  'ITEM_KINDS',
+  'ITEM_READERS',
   'JsonPatch',
   'KEEPALIVE_PING',
   'KEEPALIVE_PONG',

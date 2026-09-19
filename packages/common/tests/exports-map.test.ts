@@ -71,7 +71,16 @@ const REQUIRED_RUNTIME_EXPORTS: Record<string, readonly string[]> = {
     'interpretRejection',
     'ResultCode',
   ],
-  './state': ['ObservableStore', 'JsonPatch', 'applyPatch', 'pointerContains', 'emptyStateTree'],
+  './state': [
+    'ObservableStore',
+    'JsonPatch',
+    'applyPatch',
+    'pointerContains',
+    'emptyStateTree',
+    // The item union's registry and its kind list: the layer's public way to walk the kinds the game states.
+    'ITEM_READERS',
+    'ITEM_KINDS',
+  ],
   './catalog': [
     'CatalogClient',
     'CATALOG_KINDS',

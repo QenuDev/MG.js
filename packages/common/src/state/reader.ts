@@ -34,14 +34,13 @@
 
 import { unrefTimer } from '../poll.js';
 import { asFiniteMs, ServerClock } from './clock.js';
+import { toMutations } from './coercions.js';
 import type {
   ActivityEntry,
   Crop,
   Currency,
   Garden,
   Inventory,
-  InventoryItem,
-  Mutation,
   Pet,
   Player,
   PlayerRecord,
@@ -52,6 +51,9 @@ import type {
   TileType,
 } from './entities.js';
 import { ACTIVITY_ACTION_FIELDS, ACTIVITY_PARAMETER_FIELDS, DISCORD_ID_FIELDS } from './entities.js';
+import type { InventoryItem, InventoryItemBase } from './items/base.js';
+import { readPet } from './items/pet.js';
+import { ITEM_READERS, isItemKind } from './items/registry.js';
 import {
   activityLogs,
   CHAT,
@@ -181,18 +183,6 @@ export function asRecord(value: unknown): StateRecord {
   return new StateRecord(value);
 }
 
-/** A mutation list, keeping only strings, which is all the game sends. */
-function toMutations(value: unknown): Mutation[] {
-  if (!Array.isArray(value)) return [];
-  return value.filter((entry): entry is Mutation => typeof entry === 'string');
-}
-
-/** The string entries of an array field. */
-function toStringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-  return value.filter((entry): entry is string => typeof entry === 'string');
-}
-
 /**
  * One player as the room's own list carries them.
  *
@@ -211,38 +201,61 @@ export function toPlayerRecord(value: unknown): PlayerRecord {
 }
 
 /**
- * One inventory entry, from the game's own item union.
+ * The fields every item carries, whichever kind it is, read the same way for all of them.
  *
- * Every kind of item has its own schema, and all of them are told apart by `itemType`. The fields a kind
- * does not carry read as their empty value rather than being left off, so a caller that switches on
- * `itemType` sees a whole item either way and never has to test whether a field exists.
- *
- * `hasLife` exists because a consumable tool's `remainingActiveSeconds` can legitimately be `0`, and `0` is
- * not the same as the field being absent: a spent tool and a tool that never had a life are two different
- * items, and the save tells them apart only by whether the field is there.
+ * Every reading here is one the wire shares across kinds, which is why it is not on the kind that declares
+ * it: a pet's species is the wire's `petSpecies` and a produce stack spells the same idea `species`, a
+ * potted plant's `slots` is the field a garden tile grows crops in, and `hasLife` is derived because a
+ * consumable tool's `remainingActiveSeconds` can legitimately be `0` and `0` is not the same as the field
+ * being absent. `itemType` is left as the empty kind here and is set by {@link toInventoryItem}, which is
+ * the only caller.
  */
-export function toInventoryItem(value: unknown, entityPath: string, nowMs = 0): InventoryItem {
-  const record = new StateRecord(value);
+function readInventoryItemBase(record: StateRecord, entityPath: string, nowMs: number): InventoryItemBase {
   return {
     entityPath,
-    itemType: record.string('itemType'),
+    itemType: '',
     id: record.id('id'),
     // A pet in the bag is the one kind whose species is spelled `petSpecies`, the same as a pet in a slot.
     species: record.string('petSpecies') || record.string('species'),
+    name: record.string('name'),
     // A stack with no stated quantity is one item, which is what the save's own default says.
     quantity: record.number('quantity', 1),
     size: record.number('size'),
-    mutations: toStringArray(record.read('mutations')),
+    mutations: toMutations(record.raw['mutations']),
     toolId: record.id('toolId'),
     remainingActiveSeconds: record.number('remainingActiveSeconds'),
     hasLife: record.has('remainingActiveSeconds'),
     eggId: record.string('eggId'),
     decorId: record.string('decorId'),
-    name: record.string('name'),
     // A potted plant's crops live under the same `slots` field a garden tile's do.
     crops: toCrops(record.read('slots'), nowMs, `${entityPath}/slots`),
     record,
   };
+}
+
+/**
+ * One inventory entry, from the game's own item union.
+ *
+ * Every kind of item has its own schema, and all of them are told apart by `itemType`. The entry is read as
+ * a discriminated union rather than as one wide record: a caller that switches on `itemType` sees the fields
+ * that kind declares and no others, so a field with no home is a compile error rather than an `undefined`
+ * only the escape hatch could reach. A kind none of the seven declares is {@link OtherItem} — the empty
+ * kind — and the spelling the save used stays in its own `record`, exactly as `OtherTile`'s does.
+ *
+ * The base is read first because it holds the readings every kind shares; the kind's own reader then merges
+ * over it, so a field a kind declares wins over the base's empty one.
+ */
+export function toInventoryItem(value: unknown, entityPath: string, nowMs = 0): InventoryItem {
+  const record = new StateRecord(value);
+  const base = readInventoryItemBase(record, entityPath, nowMs);
+  const stated = record.string('itemType');
+  if (!isItemKind(stated)) return { ...base, itemType: '' };
+
+  // One cast, here and only here: the registry's `satisfies` proves every kind has a reader and the guard
+  // above proves the save's own string is one of them, but no single type can carry "the fields this
+  // string's reader returns" — the map is keyed by a union, and the correlation is lost at the lookup. So
+  // the union is asserted once, at the door; everything downstream of this line narrows without one.
+  return { ...base, itemType: stated, ...ITEM_READERS[stated](record) } as InventoryItem;
 }
 
 /** One container: the decoration it came from, its size, and what is inside it. */
@@ -320,9 +333,13 @@ export function toActivityEntry(value: unknown, entityPath: string): ActivityEnt
 }
 
 /**
- * One crop, typed from the grow-slot schema `Uo` in the game's own bundle:
+ * One crop, typed from the game's grow-slot schema.
  *
- *     Uo = d({ species, startTime, endTime, size, mutations, x, y, rotation, flipped, preserved, slotId })
+ * The schema is `kindSchemas.crops` in the art bundle at the version this library is kept against
+ * (`packages/art/data/1192.json` — `ga` in that build, with its provenance in `docs/art-provenance.md`),
+ * and it declares:
+ *
+ *     ga = d({ species, startTime, endTime, size, mutations, x, y, rotation, flipped, preserved, slotId })
  *
  * `ready` and `remainingMs` are computed here against server time, which is what the game compares
  * against, because the server sends neither.
@@ -494,26 +511,32 @@ export function toGarden(value: unknown, nowMs: number, entityPath: string): Gar
 /**
  * One pet, typed from the game's pet record schema.
  *
- * `petSpecies` is what makes a record a pet, so a slot without one is not returned. A pet in a bag or
- * a storage is an inventory item rather than one of these.
+ * `petSpecies` is what makes a record a pet, so a slot without one is not returned. The test is on that
+ * wire field rather than on the composed `species`: `species` falls back to a `species` field for the kinds
+ * that spell it that way, so testing it would read a crop record as a pet. A pet in a bag or a storage is an
+ * inventory item rather than one of these.
+ *
+ * The fields are composed the way the bag arm composes them: the readings a pet shares with every kind come
+ * from the same base reader {@link toInventoryItem} uses, and `readPet` adds the pet's own seven. So the two
+ * carriers read one pet schema rather than two lists that can drift apart, and no reader's own field can
+ * override a base field.
  */
 export function toPet(value: unknown, entityPath: string): Pet | null {
   if (value === null || typeof value !== 'object') return null;
   const record = new StateRecord(value);
-  const species = record.string('petSpecies');
-  if (species === '') return null;
+  if (record.string('petSpecies') === '') return null;
+
+  // `nowMs` reaches only the base's crop reading, and a pet states no `slots`: there is no clock in this
+  // path, so the reader's zero is not standing in for a time a caller should have supplied.
+  const base = readInventoryItemBase(record, entityPath, 0);
 
   return {
     entityPath,
     id: record.string('id'),
-    species,
-    name: record.string('name'),
-    xp: record.number('xp'),
-    hunger: record.number('hunger'),
-    mutations: toMutations(record.raw['mutations']),
-    targetScale: record.number('targetScale'),
-    abilities: toStringArray(record.raw['abilities']),
-    sourceEggId: record.string('sourceEggId'),
+    species: base.species,
+    name: base.name,
+    mutations: base.mutations,
+    ...readPet(record),
     record,
   };
 }

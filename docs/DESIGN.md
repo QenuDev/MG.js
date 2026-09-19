@@ -366,6 +366,11 @@ Derived from what the codebase already does consistently; each line also names t
 - **Return `null` for "known absent", reserve `undefined` for "not supplied".** The codebase already
   reads this way (`readFrontier(): number | null`, `selfPlayerId: string | null`); make it explicit and
   never give a caller `undefined` where `null` means something.
+- **A kind family is a discriminated union on its discriminant, or it is not modelled yet.** The save's
+  `itemType`, a tile's `objectType` and their like enumerate the game's own schemas, so such a family is
+  written as one arm per kind over a shared base: a switch then reaches that arm's own fields with no cast,
+  an unknown member is the empty arm with the spelling the save used left in its record, and a field with no
+  typed home is a compile error rather than an `undefined` only the escape hatch can reach.
 - **`readonly` on every public property; hand out copies, never internal arrays/maps.**
 - **Options are one object with one polarity.** Replace the five `disableX: true` flags and the
   duplicate `autoReconnect` / `reconnect.enabled` pair with:

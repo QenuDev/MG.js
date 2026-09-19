@@ -17,9 +17,9 @@
  *
  * The rest covers the two things a caller relies on and cannot check by reading it once:
  *
- *   1. **The domain model.** A crop's fields are the game's own schema `Uo`, so the fixture uses the field
- *      names read out of bundle 1171, and a rename in a future build shows up here rather than as an
- *      `undefined` in someone's mod.
+ *   1. **The domain model.** A crop's fields are the game's grow-slot schema, and the fixture uses the field
+ *      names read out of bundle 1171, which is where it was captured — a rename in a future build shows up
+ *      here rather than as an `undefined` in someone's mod.
  *   2. **The clock.** `ready` and `remainingMs` are only correct if they are computed against server time.
  *      The fixture anchors a clock deliberately hours away from the machine clock, because a test that
  *      passes with both clocks equal would also pass with the wrong one.
@@ -134,6 +134,23 @@ function sampleStore(): ObservableStore {
                   items: [
                     { itemType: 'Seed', species: 'Clover', quantity: 12 },
                     { itemType: 'Produce', id: 'crop_1', species: 'Tomato', size: 75, mutations: ['Gold'] },
+                    {
+                      itemType: 'Plant',
+                      id: 'plant_1',
+                      species: 'Rose',
+                      slots: [
+                        {
+                          slotId: 0,
+                          species: 'Rose',
+                          startTime: SERVER_START - 20_000,
+                          endTime: SERVER_START + 40_000,
+                          size: 60,
+                          mutations: [],
+                        },
+                      ],
+                      plantedAt: SERVER_START - 20_000,
+                      maturedAt: SERVER_START + 40_000,
+                    },
                     { itemType: 'Tool', toolId: 'WateringCan', quantity: 1 },
                     {
                       itemType: 'Tool',
@@ -250,7 +267,7 @@ void test('a player carries the whole inventory, and every kind of item reads it
   assert.ok(me !== null, 'the fixture names this account');
 
   const byKind = (kind: string) => me.inventory.items.filter((item) => item.itemType === kind);
-  assert.equal(me.inventory.items.length, 7, 'every entry in the save is read');
+  assert.equal(me.inventory.items.length, 8, 'every entry in the save is read');
 
   const [seed] = byKind('Seed');
   assert.equal(seed?.species, 'Clover');
@@ -265,6 +282,16 @@ void test('a player carries the whole inventory, and every kind of item reads it
   // A kind with no quantity of its own is one item, which is the save's own default.
   assert.equal(produce?.quantity, 1);
 
+  const [plant] = byKind('Plant');
+  assert.ok(plant?.itemType === 'Plant', 'the potted plant states its kind');
+  // The plant's own two fields, which `ba` declares; its `slots` are the base's `crops`, read with the crop
+  // reader, so a potted plant reports what is growing in it the way a garden tile does.
+  assert.equal(plant.plantedAt, SERVER_START - 20_000);
+  assert.equal(plant.maturedAt, SERVER_START + 40_000);
+  assert.equal(plant.crops.length, 1);
+  assert.equal(plant.crops[0]?.species, 'Rose');
+  assert.equal(plant.crops[0]?.remainingMs, 40_000, 'a crop is timed against the server clock');
+
   const tools = byKind('Tool');
   assert.equal(tools.length, 2);
   assert.equal(tools[0]?.toolId, 'WateringCan');
@@ -273,8 +300,21 @@ void test('a player carries the whole inventory, and every kind of item reads it
 
   assert.equal(byKind('Egg')[0]?.eggId, 'SnowEgg');
   assert.equal(byKind('Decor')[0]?.decorId, 'Fence');
-  assert.equal(byKind('Pet')[0]?.species, 'Fox');
-  assert.equal(byKind('Pet')[0]?.name, 'Rusty');
+
+  const [pet] = byKind('Pet');
+  assert.ok(pet?.itemType === 'Pet', 'the bag pet states its kind');
+  // Both of these are shared fields, which is why this assertion alone could not see the hole §0 reports.
+  assert.equal(pet.species, 'Fox');
+  assert.equal(pet.name, 'Rusty');
+  // The four the card needed, off the fixture that already carried them and that nothing read.
+  assert.equal(pet.xp, 10);
+  assert.equal(pet.hunger, 50);
+  assert.equal(pet.targetScale, 1);
+  assert.deepEqual(pet.abilities, []);
+  // And the three a save may not state are present with an empty value rather than `undefined`.
+  assert.equal(pet.sourceEggId, '');
+  assert.deepEqual(pet.abilityCooldowns, {});
+  assert.deepEqual(pet.equippedCosmetics, {});
 });
 
 void test('the inventory lists every storage with the decoration it came from', () => {

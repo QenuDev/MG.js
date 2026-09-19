@@ -9,7 +9,6 @@ export type {
   Currency,
   Garden,
   Inventory,
-  InventoryItem,
   ItemType,
   Mutation,
   MutationGroup,
@@ -31,6 +30,25 @@ export {
   MUTATIONS,
   mutationName,
 } from './entities.js';
+export type {
+  DecorItem,
+  EggItem,
+  InventoryItem,
+  InventoryItemBase,
+  ItemFields,
+  ItemKind,
+  ItemOfKind,
+  ItemOwnFields,
+  KindReader,
+  OtherItem,
+  PetFields,
+  PetItem,
+  PlantItem,
+  ProduceItem,
+  SeedItem,
+  ToolItem,
+} from './items/index.js';
+export { ITEM_KINDS, ITEM_READERS } from './items/index.js';
 export type { ApplyPatchOptions, ApplyPatchResult, PatchOutcome } from './patch.js';
 export { applyPatch, deepClone, deepEqual, JsonPatch } from './patch.js';
 export * from './paths.js';

@@ -4,14 +4,21 @@
  * ## Where every field name here comes from
  *
  * Not from the vendored protocol field guide, which names only a handful of paths and gets the garden's
- * nesting wrong, and not from guessing. Every field was read out of the game's own client bundle
- * (version 1171), from the schema definitions and the accessors the game runs on the same objects a mod
- * receives. That is the standard `catalog/defs.ts` already set for entity shapes ("name the fields that
- * are actually observed"), applied to the state tree.
+ * nesting wrong, and not from guessing. Every field was read out of the game's own client bundle, from the
+ * schema definitions and the accessors the game runs on the same objects a mod receives. That is the
+ * standard `catalog/defs.ts` already set for entity shapes ("name the fields that are actually observed"),
+ * applied to the state tree.
+ *
+ * The bundle version this file is kept against is the one the art pipeline is on, and the evidence is
+ * machine-readable rather than asserted here: `packages/art/data/<version>.json` holds the schemas the
+ * extractor cut from it — the `kindSchemas` table names the item and tile schemas, per arm and per field —
+ * and `docs/art-provenance.md` records where each table was read from. Check the claim there; a version
+ * bump is a capture and a regenerate, not an edit to this paragraph.
  *
  * The consequence worth understanding: **this file is versioned with the game.** A crop's fields are the
- * schema `Uo` in the game's bundle, and a build that renames one is a build this model must follow. Each
- * type names the source it was read from, so the next person can check it rather than trust it.
+ * grow-slot schema the pipeline extracted, and a build that renames one is a build this model must follow.
+ * Each type names the table it was read from rather than a minified declaration letter, which changes every
+ * capture, so the next person can check it rather than trust it.
  *
  * ## The three levels, which are easy to get wrong
  *
@@ -28,12 +35,19 @@
  * public API where a field name is a string.
  */
 
+// The item union and the pet field list live in `state/items/`, and both edges here are type-only: they are
+// erased at runtime, so `entities.ts` keeps no runtime dependency on its own subfolder even though the item
+// views name the shared shapes this file declares.
+import type { InventoryItem } from './items/base.js';
+import type { PetFields } from './items/pet.js';
+
 /**
  * A crop mutation id.
  *
- * The eleven ids are the keys of the game's own mutation table (`U` in `quinoaPredictionAtoms`), and they
- * are the values that appear in a crop's `mutations` array. They are **not** the display names: see
- * {@link MutationInfo}.
+ * The eleven ids are the keys of the game's own mutation table, which is the art bundle's `mutationRecords`
+ * table at the version this library is kept against (`packages/art/data/1192.json`; the minified
+ * declaration it was read from is recorded in `docs/art-provenance.md`), and they are the values that appear
+ * in a crop's `mutations` array. They are **not** the display names: see {@link MutationInfo}.
  *
  * The trailing intersection is deliberate: a game update can add a mutation before this library ships, and
  * a mod checking `mutation === 'NewThing'` should still compile. The known ids give autocomplete without
@@ -71,7 +85,13 @@ export interface MutationInfo {
   readonly baseChance: number;
 }
 
-/** Every mutation the game defines at version 1171, keyed by id. */
+/**
+ * Every mutation the game defines, keyed by id.
+ *
+ * The same eleven ids are the keys of the art bundle's `mutationRecords` table for the version this library
+ * is kept against (`packages/art/data/1192.json`), which is where a reader checks this list rather than
+ * trusting it.
+ */
 export const MUTATIONS: Readonly<Record<string, MutationInfo>> = {
   Gold: { id: 'Gold', name: 'Gold', group: 'Growth', coinMultiplier: 25, baseChance: 0.01 },
   Rainbow: { id: 'Rainbow', name: 'Rainbow', group: 'Growth', coinMultiplier: 50, baseChance: 0.001 },
@@ -109,7 +129,15 @@ export function mutationName(mutation: Mutation): string {
   return MUTATIONS[mutation]?.name ?? mutation;
 }
 
-/** An inventory or placement kind, from the game's own `itemType` enum (`O` in the bundle). */
+/**
+ * The item-type enum (`E` in the bundle), whose literals are the save's own `itemType` spellings.
+ *
+ * An inventory item no longer discriminates on this type: {@link ItemKind} (`state/items/base.ts`) is the
+ * closed union the item arms are built from, and this one is open because a fifth tile kind must still
+ * compile. What is left typed by it is a tile's `objectType` ({@link TileBase.objectType}) — and a tile's
+ * `objectType` is *not* this enum, which is capitalised, but the game's other lowercase one, so this name is
+ * wrong for its last user and splitting it into `ItemKind`/`TileKind` is still pending.
+ */
 export type ItemType =
   | 'Seed'
   | 'Produce'
@@ -143,9 +171,13 @@ export interface StateView {
 }
 
 /**
- * One crop planted on a tile: the grow-slot schema `Uo` in the game's bundle.
+ * One crop planted on a tile: the game's grow-slot schema.
  *
- *     Uo = d({ species, startTime, endTime, size, mutations, x, y, rotation, flipped, preserved, slotId })
+ * The schema the art pipeline extracted at the version this library is kept against is `kindSchemas.crops`
+ * in `packages/art/data/1192.json` (`ga` in that build; `docs/art-provenance.md` records where it was read
+ * from), and it declares:
+ *
+ *     ga = d({ species, startTime, endTime, size, mutations, x, y, rotation, flipped, preserved, slotId })
  *
  * `startTime` and `endTime` are server milliseconds, and `remainingMs` and `ready` are derived from them
  * against {@link StateReader.now} rather than `Date.now()`, because that is the clock the game itself
@@ -390,35 +422,20 @@ export interface Garden extends StateView {
 }
 
 /**
- * A pet, from the game's own pet record schema.
+ * A pet in a slot, from the game's own pet record schema.
  *
- * The schema is spread from a base record and extended, so the fields are:
+ * The fields are {@link PetFields} — stated once in `state/items/pet.ts` and carried by both this type and
+ * the bag arm, so a pet in a slot and a pet in a bag cannot drift apart. The schema is a base record
+ * extended by two variants the game distinguishes (`Ca` requires the extras; `wa` makes them optional), and
+ * {@link PetFields} reads both as the same list with the empty value for an extra the save does not state.
  *
- *     { id, petSpecies, name, xp, hunger, mutations, targetScale, abilities,
- *       sourceEggId, abilityCooldowns, equippedCosmetics }
+ * What this carrier adds on its own is its address: `entityPath` and the item's `id`. A pet in a bag or a
+ * storage is an inventory item (`InventoryItem`'s pet arm), not one of these.
  */
-export interface Pet extends StateView {
+export interface Pet extends StateView, PetFields {
   /** The path of this pet: `.../userSlots/<slot>/data/petSlots/<n>`. */
   readonly entityPath: string;
   readonly id: string;
-  /** The pet's species: the wire's `petSpecies`. */
-  readonly species: string;
-  /** The name the player gave it, or `''`. */
-  readonly name: string;
-  readonly xp: number;
-  /**
-   * Hunger, `0` to `100`. `0` is starving.
-   *
-   * The scale is per species: the game renders the bar against a per-species replenish cost, so this is a
-   * bare number rather than a percentage.
-   */
-  readonly hunger: number;
-  readonly mutations: Mutation[];
-  readonly targetScale: number;
-  /** The ability ids this pet has, which is what a pet-team layout cares about. */
-  readonly abilities: string[];
-  /** The egg it hatched from. */
-  readonly sourceEggId: string;
   /** Everything else the pet carries, read by name. The escape hatch. */
   readonly record: StateRecordLike;
 }
@@ -458,73 +475,6 @@ export interface Currency {
   readonly coinsCount: number;
   /** Magic Dust, as `magicDustCount` in the player's saved data. */
   readonly magicDustCount: number;
-}
-
-/**
- * One stack in an inventory.
- *
- * The save keeps one array for everything a player owns, and `itemType` decides which of the item schemas
- * an entry is. The fields that are true of every kind are read here whatever the entry is; the rest are
- * read per kind and left empty otherwise, so a caller switching on `itemType` sees the fields that kind
- * carries rather than a hole where the others would be.
- *
- * The item schemas in the game's bundle are:
- *
- *     produce  { id, species, itemType, size, mutations }
- *     seed     { species, itemType, quantity }
- *     tool     { toolId, itemType, quantity } or { id, toolId, itemType, quantity, remainingActiveSeconds }
- *     plant    { id, species, itemType, slots, plantedAt, maturedAt }
- *     egg      { eggId, itemType, quantity }
- *     decor    { decorId, itemType, quantity }
- *     pet      { id, petSpecies, itemType, name, xp, hunger, mutations, targetScale, abilities, … }
- */
-export interface InventoryItem extends StateView {
-  /** The path of this item: `.../userSlots/<slot>/data/inventory/items/<n>`. */
-  readonly entityPath: string;
-  /** What this entry is. This is the game's own discriminator field. */
-  readonly itemType: ItemType;
-  /**
-   * The entry's own id, or `''`.
-   *
-   * A stack of seeds or eggs is identified by its species and carries no id; a pet, a potted plant and a
-   * tool with a remaining life do carry one.
-   */
-  readonly id: string;
-  /** The species, for the kinds that have one: produce, seed, plant and pet. */
-  readonly species: string;
-  /** How many are in this stack. `1` for the kinds that are stored one at a time. */
-  readonly quantity: number;
-  /** The crop's size, for produce. `0` for every other kind. */
-  readonly size: number;
-  /** The crop's mutations, for produce. Empty for every other kind. */
-  readonly mutations: Mutation[];
-  /** The tool's id, for tools. `''` for every other kind. */
-  readonly toolId: string;
-  /**
-   * Seconds of life left on a consumable tool, for the kinds that have one.
-   *
-   * `0` for a tool that is not consumable and for every other kind, which is why it is not the way to tell
-   * whether a tool is spent: `remainingActiveSeconds` being absent is. {@link hasLife} says which it is.
-   */
-  readonly remainingActiveSeconds: number;
-  /** True when the entry carries a `remainingActiveSeconds` at all, rather than reporting it as `0`. */
-  readonly hasLife: boolean;
-  /** The egg's id, for eggs. `''` for every other kind. */
-  readonly eggId: string;
-  /** The decoration's id, for decor. `''` for every other kind. */
-  readonly decorId: string;
-  /** The name the player gave it, for a pet in the bag. `''` for every other kind. */
-  readonly name: string;
-  /**
-   * What is growing in it, for a potted plant. Empty for every other kind.
-   *
-   * A plant item is a pot with crops in it, and the save holds those crops under `slots`, the same field a
-   * garden tile uses. Reading them here is what tells a potted plant with something growing from one that
-   * is bare.
-   */
-  readonly crops: Crop[];
-  /** Everything else the item carries, read by name. The escape hatch. */
-  readonly record: StateRecordLike;
 }
 
 /**
