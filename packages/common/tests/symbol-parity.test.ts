@@ -171,6 +171,9 @@ const EXPECTED_EXPORTS: readonly string[] = [
   'isCanonicalSequence',
   'isKeepalivePing',
   'isMgError',
+  // Added beside the shop-purchase union it validates (`actions/params.ts`): the one param in this package that is
+  // a discriminated union, and the one whose wrong shape the server answers with silence rather than a refusal.
+  'isShopPurchaseItem',
   'isWrappedFrame',
   'mutationName',
   'joinPointer',

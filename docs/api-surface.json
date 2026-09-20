@@ -596,6 +596,7 @@
         "failureResult",
         "getActionSpec",
         "interpretRejection",
+        "isShopPurchaseItem",
         "parseResultCode",
         "scopeForForm"
       ],
@@ -664,7 +665,8 @@
         "ActionCategory",
         "CommandFailureReason",
         "CrystalIntent",
-        "ShopKey"
+        "ShopKey",
+        "ShopPurchaseItem"
       ],
       "Variable": [
         "ACTION_NAMES",

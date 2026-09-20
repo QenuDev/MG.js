@@ -95,13 +95,65 @@ export interface MoveParams {
  */
 export type ShopKey = 'seed' | 'tool' | 'egg' | 'decor' | 'dawn' | (string & {});
 
+/**
+ * One item, as `PurchaseShopItem` states it: the kind, and the one id field that kind is named by.
+ *
+ * The field guide's shop table (§4.4) is the source: "`itemType` is derived from where the id appears in the
+ * game's static data, not from the shop key — the `tool` shop mixes real Tools with Decor items. idField is
+ * `species` for a Seed, `toolId` for a Tool, `eggId` for an Egg, `decorId` for Decor", with `{itemType: "Seed",
+ * species: "carrot"}` and `{itemType: "Decor", decorId: "SeedSilo"}` as its two examples. The game's own client
+ * says the same in code, as an outbound schema and a normaliser that switches the same four ways:
+ *
+ *   item: x(`itemType`, [ v({itemType: a(D.Seed), species: B}), v({itemType: a(D.Egg), eggId: Be}),
+ *                         v({itemType: a(D.Tool), toolId: ot}), v({itemType: a(D.Decor), decorId: z}) ])
+ *   function RW(e){switch(e.itemType){ case C.Seed: return {itemType:C.Seed, species:e.species}; … }}
+ *
+ * ## Why this is a union rather than an open record
+ *
+ * It was `{ itemType: string } & Record<string, unknown>`, which accepts anything — including the shape a caller
+ * naturally has in hand, a **shop row** (`{itemId, itemType, name, coinPrice, stock}`). That shape is missing the
+ * id field, and the failure it produces is the one this package exists to make impossible: the server does not
+ * answer a command it cannot parse, so the command is never acknowledged and the caller hears about it later as
+ * `dropped as stale` — a protocol diagnostic about the one thing it could have been told at once. `GameActions`
+ * refuses such an item before sending (`purchaseShopItem`), and {@link isShopPurchaseItem} is that rule as a
+ * function, so a caller holding `unknown` can ask the same question the compiler asks.
+ */
+export type ShopPurchaseItem =
+  | { itemType: 'Seed'; species: string }
+  | { itemType: 'Egg'; eggId: string }
+  | { itemType: 'Tool'; toolId: string }
+  | { itemType: 'Decor'; decorId: string };
+
+/** The id field each kind of shop item is named by. The whole of what the game's union accepts. */
+const SHOP_ITEM_ID_FIELD: Record<string, string> = {
+  Seed: 'species',
+  Egg: 'eggId',
+  Tool: 'toolId',
+  Decor: 'decorId',
+};
+
+/**
+ * Whether a value is an item `PurchaseShopItem` can send.
+ *
+ * The rule is {@link ShopPurchaseItem}'s own: the kind has to be one of the four, and **that kind's** id field
+ * has to be a non-empty string. Extra fields are tolerated — the game's client narrows its rich item down before
+ * sending, but nothing here has evidence that the server minds an extra one, and a guard that refused a purchase
+ * the game would have taken fails in the wrong direction. What it insists on is the arm, because an absent or
+ * mismatched id field is the failure that was measured: the command is ignored rather than refused.
+ */
+export function isShopPurchaseItem(value: unknown): value is ShopPurchaseItem {
+  if (typeof value !== 'object' || value === null) return false;
+  const item = value as Record<string, unknown>;
+  const field = typeof item.itemType === 'string' ? SHOP_ITEM_ID_FIELD[item.itemType] : undefined;
+  if (field === undefined) return false;
+  const id = item[field];
+  return typeof id === 'string' && id !== '';
+}
+
 export interface PurchaseShopItemParams {
   shop: ShopKey;
-  /**
-   * `itemType` plus the id field appropriate to it. The field guide says `itemType` is derived, so it
-   * is required here but the id field it pairs with is not statically named.
-   */
-  item: { itemType: string } & Record<string, unknown>;
+  /** The item, as the game's own command states it. See {@link ShopPurchaseItem}. */
+  item: ShopPurchaseItem;
 }
 
 // ---------------------------------------------------------------- garden & crops

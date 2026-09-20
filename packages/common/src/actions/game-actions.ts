@@ -69,6 +69,7 @@ import type {
   ToggleLockItemParams,
   WishParams,
 } from './params.js';
+import { isShopPurchaseItem } from './params.js';
 
 /**
  * Every action, typed.
@@ -178,8 +179,35 @@ export class GameActions {
 
   // --------------------------------------------------------------------------- shop
 
-  /** Replaces the older per-category purchase messages. */
+  /**
+   * Buy one item from one shop. Replaces the older per-category purchase messages.
+   *
+   * ## The one argument this layer checks at run time
+   *
+   * Every other method here trusts its params, and correctly: the wire takes the fields the type states, and a
+   * caller that cannot state them is a compile error. `item` is the exception, because it is the one param that
+   * is a **discriminated union whose arm the caller usually does not have** — a caller holding a shop row has an
+   * `itemId` and an `itemType`, which is a shape that satisfies the union's *kind* and none of its id fields.
+   *
+   * That shape is not refused by the server. It is **ignored**, so the command is never acknowledged and the
+   * caller's handle settles as `dropped as stale` — the protocol's word for a command the server silently
+   * overtook, which says nothing about the missing field. The check below turns that into an immediate, named
+   * error before anything is written to the socket, which is the same trade `FormRegistry` makes for the form of
+   * a command: silence is the failure mode worth spending a check on.
+   *
+   * A throw is this package's established answer to a call it will not make — `client.actions` throws before
+   * `Welcome` rather than sending into the void — and a caller that catches it can say something useful, which is
+   * exactly what the viewer's session does with it.
+   */
   purchaseShopItem(params: PurchaseShopItemParams): CommandHandle {
+    if (!isShopPurchaseItem(params.item)) {
+      throw new Error(
+        'PurchaseShopItem needs an item of the shape its own union states — ' +
+          '{itemType:"Seed", species} | {itemType:"Egg", eggId} | {itemType:"Tool", toolId} | ' +
+          `{itemType:"Decor", decorId} — got ${describeItem(params.item)}. The server ignores a command whose ` +
+          'item it cannot parse rather than refusing it, so this is refused here instead.',
+      );
+    }
     return this.sender.send('PurchaseShopItem', { shop: params.shop, item: params.item });
   }
 
@@ -603,3 +631,19 @@ export class GameActions {
 
 /** The method count, asserted by a test so the surface cannot silently shrink. */
 export const GAME_ACTION_METHOD_COUNT = 72;
+
+/**
+ * What a caller handed over, for {@link GameActions.purchaseShopItem}'s refusal.
+ *
+ * The kind and the field names rather than `JSON.stringify` of the value: it arrives as `unknown`, so
+ * stringifying it can throw on a cycle inside the very error that exists to explain a mistake — and the two
+ * facts that explain this one are which kind was stated and which fields came with it. `"Seed with itemId,
+ * itemType"` names both the mistake and the fix, which a dumped object does not.
+ */
+function describeItem(value: unknown): string {
+  if (typeof value !== 'object' || value === null) return typeof value;
+  const item = value as Record<string, unknown>;
+  const kind = typeof item.itemType === 'string' ? item.itemType : 'no kind';
+  const fields = Object.keys(item);
+  return `${kind} with ${fields.length === 0 ? 'no fields' : fields.join(', ')}`;
+}
