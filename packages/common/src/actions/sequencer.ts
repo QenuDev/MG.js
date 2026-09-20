@@ -41,6 +41,17 @@ export interface OutstandingCommand {
   settled: boolean;
 }
 
+/**
+ * What one frontier observation says about the commands still outstanding.
+ *
+ * `reached` is **not** a verdict: it is the list of commands whose number the server has consumed, which is
+ * what a caller needs in order to start the clock on them (see {@link CommandSequencer.observeFrontier}).
+ */
+export interface FrontierObservation {
+  /** Commands the frontier has reached or passed, with no ack and no verdict yet. */
+  reached: OutstandingCommand[];
+}
+
 /** The policy a sequencer delegates its numbering decisions to. */
 export interface SequenceStrategy {
   /** The next sequence number to stamp, without consuming it. */
@@ -310,6 +321,14 @@ export const MAX_REPORTED_STALE = 1024;
  * The ledger is what makes `DroppedStale` possible: the server never sends that code, so the only
  * way to know a command was silently overtaken is to compare the frontier against commands we sent
  * and never heard about.
+ *
+ * What the ledger deliberately does **not** decide is *when* an overtaken command is dropped. The frontier
+ * says which numbers the server has spent; it cannot say whether spending one applied a command or discarded
+ * it, and a command applied by a frame whose result is still in flight looks exactly like a command the
+ * server threw away. So {@link observeFrontier} names the commands the frontier has reached and the client
+ * gives each a grace window (`LifecycleTimeouts.ackGraceMs`) to be acknowledged in — see
+ * {@link noteStale}. Deciding it here, on the frontier alone, reported commands that had gone through as
+ * dropped.
  */
 export class CommandSequencer {
   private strategy: SequenceStrategy;
@@ -390,34 +409,57 @@ export class CommandSequencer {
   }
 
   /**
-   * Record that the server has executed up to `frontier`, and infer any commands it silently
-   * overtook.
+   * Record that the server has executed up to `frontier`, and name the commands whose number it has
+   * **reached or passed** while they are still unanswered.
+   *
+   * ## What the frontier is evidence of, and what it is not
    *
    * The protocol doc's third failure mode: a command that is neither acknowledged nor rejected, but simply
-   * never happens. If the frontier has passed a sequence we still have outstanding, that command is
-   * gone, not pending.
+   * never happens. A frontier that has gone **past** a sequence we still have outstanding is evidence for
+   * it: the number was consumed, and the command it belonged to never ran.
+   *
+   * Reaching a number is weaker evidence than passing it, and the difference is the whole reason this
+   * method does not settle anything. `executedCommandSequence` reports that a number was **consumed**;
+   * only the `QuinoaCommandResult` says whether consuming it *ran* the command or discarded it. So an
+   * entry the frontier has merely reached is a command awaiting its ack — which may be in flight behind
+   * the very frame that reported the frontier, because a server applies the command, broadcasts the
+   * patches and only then writes the result. Settling it here reported a purchase that had gone through
+   * as `dropped_stale`, which is a false negative with somebody's coins behind it.
+   *
+   * The verdict is the caller's, and it is a matter of time: {@link noteStale} records it once the ack has
+   * had its chance (the client's grace window, `LifecycleTimeouts.ackGraceMs`). Until then the entry stays
+   * outstanding, so a late ack still settles it normally and a frontier that moves further past it is
+   * reported by the next observation rather than lost.
    *
    * A non-canonical value is not a frontier at all, and the loop below must see it exactly as the
    * strategies do. The gate has to live here as well as in each strategy: the loop compares the *raw*
    * argument, so without it a fractional `RoomFrame.executedCommandSequence` (I4) could not move the
-   * counter yet would still overtake a live, legitimate command and fail it as `dropped_stale`.
+   * counter yet would still be named here.
    */
-  observeFrontier(frontier: number): { dropped: OutstandingCommand[] } {
-    if (!isCanonicalSequence(frontier)) return { dropped: [] };
+  observeFrontier(frontier: number): FrontierObservation {
+    if (!isCanonicalSequence(frontier)) return { reached: [] };
     this.strategy.observeFrontier(frontier);
 
-    const dropped: OutstandingCommand[] = [];
+    const reached: OutstandingCommand[] = [];
     for (const entry of this.outstanding.values()) {
-      if (!entry.settled && entry.sequence <= frontier) {
-        entry.settled = true;
-        this.outstanding.delete(entry.sequence);
-        if (!this.reportedStale.has(entry.sequence)) {
-          this.rememberReportedStale(entry.sequence);
-          dropped.push(entry);
-        }
-      }
+      if (entry.settled) continue;
+      if (entry.sequence > frontier) continue;
+      if (this.reportedStale.has(entry.sequence)) continue;
+      reached.push(entry);
     }
-    return { dropped };
+    return { reached };
+  }
+
+  /**
+   * Record that a command the frontier had reached is now judged dropped.
+   *
+   * The caller decides *when* (see {@link observeFrontier}); this is the bookkeeping that makes the
+   * judgement appear once. The number stays remembered after the entry is settled, because a number can be
+   * handed out again — by a rollback, or by a forward jump onto a frontier — and a second report of the
+   * same sequence would be a second answer to a question that already has one.
+   */
+  noteStale(sequence: number): void {
+    this.rememberReportedStale(sequence);
   }
 
   /**

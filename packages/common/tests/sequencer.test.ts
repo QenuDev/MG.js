@@ -227,18 +227,44 @@ describe('CommandSequencer', () => {
     assert.equal(sequencer.pending.length, 0);
   });
 
-  it('synthesizes DroppedStale when the frontier passes an unanswered command', () => {
-    // The server never sends `dropped_stale`. The API reference calls it "a client-side inference".
-    // This is that inference.
+  it('names the commands the frontier has reached, and leaves the verdict to the caller', () => {
+    // The server never sends `dropped_stale`. The API reference calls it "a client-side inference" — and the
+    // frontier is evidence for *half* of it: it says which numbers the server has spent. Whether spending one
+    // applied the command or threw it away is what the ack says, and the ack can still be in flight behind the
+    // very frame that reported the frontier. So nothing is settled here, and the entries stay outstanding.
     const sequencer = new CommandSequencer();
     sequencer.seed(0);
     sequencer.take('WaterPlant', 'req-a');
     sequencer.take('HarvestCrop', 'req-b');
 
-    const { dropped } = sequencer.observeFrontier(1);
-    assert.equal(dropped.length, 1);
-    assert.equal(dropped[0]?.requestId, 'req-a');
-    assert.equal(dropped[0]?.action, 'WaterPlant');
+    const { reached } = sequencer.observeFrontier(1);
+    assert.equal(reached.length, 1);
+    assert.equal(reached[0]?.requestId, 'req-a');
+    assert.equal(reached[0]?.action, 'WaterPlant');
+    assert.equal(
+      sequencer.pending.length,
+      2,
+      'reaching a number is not a verdict: both are still outstanding',
+    );
+
+    // A frontier that moves *past* a command is the same class of evidence, and the same wait.
+    const past = sequencer.observeFrontier(2);
+    assert.deepEqual(
+      past.reached.map((entry) => entry.requestId),
+      ['req-a', 'req-b'],
+      'both numbers are spent, so both commands await their acks',
+    );
+  });
+
+  it('stops naming a command once its verdict is recorded', () => {
+    // The caller concludes after the grace window, and `noteStale` is how it says so. The sequence stays
+    // remembered afterwards, because a number can be handed out again.
+    const sequencer = new CommandSequencer();
+    sequencer.seed(0);
+    sequencer.take('WaterPlant', 'req-a');
+    assert.equal(sequencer.observeFrontier(1).reached.length, 1);
+    sequencer.noteStale(1);
+    assert.equal(sequencer.observeFrontier(1).reached.length, 0);
   });
 
   it('ignores a non-canonical frontier for the ledger, exactly as it does for the counter', () => {
@@ -250,30 +276,22 @@ describe('CommandSequencer', () => {
     assert.equal(sequencer.take('WaterPlant', 'req-live'), 11, 'the live command holds sequence 11');
     assert.equal(sequencer.peek(), 12);
 
-    const { dropped } = sequencer.observeFrontier(11.5);
-    assert.deepEqual(dropped, [], 'a fraction is not a frontier and must not overtake a command');
+    const { reached } = sequencer.observeFrontier(11.5);
+    assert.deepEqual(reached, [], 'a fraction is not a frontier and must not overtake a command');
     assert.equal(sequencer.pending.length, 1, 'the live command is still outstanding');
     assert.equal(sequencer.frontier, 10, 'the counter gate stays shut');
 
     // The same value as a canonical integer still reconciles: this is the inference, not a blanket veto.
-    assert.equal(sequencer.observeFrontier(11).dropped.length, 1);
-    assert.equal(sequencer.pending.length, 0);
+    assert.equal(sequencer.observeFrontier(11).reached.length, 1);
+    assert.equal(sequencer.pending.length, 1, 'and the command is still there to be acknowledged');
   });
 
-  it('reports each dropped command only once', () => {
-    const sequencer = new CommandSequencer();
-    sequencer.seed(0);
-    sequencer.take('WaterPlant', 'req-a');
-    assert.equal(sequencer.observeFrontier(1).dropped.length, 1);
-    assert.equal(sequencer.observeFrontier(2).dropped.length, 0);
-  });
-
-  it('does not report a settled command as dropped', () => {
+  it('does not name a settled command', () => {
     const sequencer = new CommandSequencer();
     sequencer.seed(0);
     sequencer.take('WaterPlant', 'req-a');
     sequencer.settle('req-a', { ok: true });
-    assert.equal(sequencer.observeFrontier(5).dropped.length, 0);
+    assert.equal(sequencer.observeFrontier(5).reached.length, 0);
   });
 
   it('heals the counter when a command comes back invalid_sequence', () => {
@@ -300,7 +318,7 @@ describe('CommandSequencer', () => {
     sequencer.seed(50);
     assert.equal(sequencer.pending.length, 0);
     assert.equal(sequencer.peek(), 51);
-    assert.equal(sequencer.observeFrontier(60).dropped.length, 0);
+    assert.equal(sequencer.observeFrontier(60).reached.length, 0);
     // And the frontier that just arrived is still honoured for the next stamp.
     assert.equal(sequencer.peek(), 61);
   });
@@ -369,7 +387,7 @@ describe('CommandSequencer', () => {
     evicted.resync(0);
     evicted.take('WaterPlant', 'replay-oldest');
     assert.equal(
-      evicted.observeFrontier(1).dropped.length,
+      evicted.observeFrontier(1).reached.length,
       1,
       'the oldest reported sequence must be the one forgotten',
     );
@@ -380,7 +398,7 @@ describe('CommandSequencer', () => {
     retained.resync(total - MAX_REPORTED_STALE);
     retained.take('WaterPlant', 'replay-boundary');
     assert.equal(
-      retained.observeFrontier(total - MAX_REPORTED_STALE + 1).dropped.length,
+      retained.observeFrontier(total - MAX_REPORTED_STALE + 1).reached.length,
       0,
       'the boundary sequence is still within the bound and must be remembered',
     );
@@ -388,7 +406,7 @@ describe('CommandSequencer', () => {
     retained.resync(total - 1);
     retained.take('WaterPlant', 'replay-newest');
     assert.equal(
-      retained.observeFrontier(total).dropped.length,
+      retained.observeFrontier(total).reached.length,
       0,
       'the newest reported sequence must still be remembered',
     );

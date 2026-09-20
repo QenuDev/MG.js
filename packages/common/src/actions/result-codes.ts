@@ -7,8 +7,9 @@
  *
  * `DroppedStale` is special and is the reason this file has behaviour: the API reference marks it as a
  * client-side inference rather than a wire value. The server never sends it. A client has to notice
- * that a command it sent was overtaken by a later `executedCommandSequence` and synthesise the
- * rejection itself, otherwise a dropped command looks like a pending one forever.
+ * that a command it sent was overtaken by a later `executedCommandSequence`, wait for the ack that a
+ * command *applied* by that same frontier would still be owed, and only then synthesise the rejection
+ * itself, otherwise a dropped command looks like a pending one forever.
  */
 
 /** Every code that can appear in `QuinoaCommandResult.code`, plus the one we synthesise. */
@@ -28,8 +29,11 @@ export enum ResultCode {
   /**
    * Only ever a client-side inference. The server never sends it.
    *
-   * Synthesised when the server's own `executedCommandSequence` has advanced past a command we sent
-   * without ever acknowledging it.
+   * Synthesised when the server's own `executedCommandSequence` has reached or passed a command we sent and no
+   * acknowledgement turned up inside the grace window (`LifecycleTimeouts.ackGraceMs`). The window is what
+   * makes the inference true rather than merely early: a frontier says a *number* was spent, and only the ack
+   * says whether it was spent applying this command or discarding it. So `CommandSequencer.observeFrontier`
+   * names the commands a frontier has reached, and the client waits before concluding.
    */
   DroppedStale = 'dropped_stale',
   /** `commandType` is the literal string `"unknown"`. */

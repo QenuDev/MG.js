@@ -25,7 +25,7 @@ import { CommandHandle, failureResult } from './actions/handle.js';
 import type { FormRegistry } from './actions/registry.js';
 import { defaultFormRegistry, getActionSpec } from './actions/registry.js';
 import { interpretRejection } from './actions/result-codes.js';
-import { CommandSequencer } from './actions/sequencer.js';
+import { CommandSequencer, type OutstandingCommand } from './actions/sequencer.js';
 import type { ClientCloseEvent, ClientReport } from './client-contract.js';
 import { Emitter } from './emitter.js';
 import type { MgError } from './errors.js';
@@ -215,6 +215,13 @@ export class ClientCore extends Emitter<ClientEvents> implements CommandSender {
   private readonly timeouts: LifecycleTimeouts;
   private readonly ackMode: AckMode;
   private readonly pending = new Map<string, PendingCommand>();
+  /**
+   * The grace window of every command whose number the frontier has reached, by request id.
+   *
+   * One per command, so a frame that reaches the same command again cannot extend a deadline that has already
+   * started. See {@link awaitAckOrDrop}.
+   */
+  private readonly graceTimers = new Map<string, ReturnType<typeof setTimeout>>();
   /** FIFO queues of pending request ids, keyed by action, for `ackMode: 'fifo'`. */
   private readonly fifoByAction = new Map<string, string[]>();
   private readonly detachers: Unsubscribe[] = [];
@@ -632,6 +639,55 @@ export class ClientCore extends Emitter<ClientEvents> implements CommandSender {
   }
 
   /**
+   * Give one frontier-reached command its grace window, and report it dropped if nothing answers inside it.
+   *
+   * The window is the whole distinction between two facts the frontier cannot tell apart: the server applied
+   * the command and its result is a round trip behind, or the server consumed the number and threw the command
+   * away. The first used to be reported as the second — a purchase that went through, reported as
+   * `dropped_stale` — because a `RoomFrame` broadcast by the command's own patches reaches the client before
+   * the `QuinoaCommandResult` written after them. See `CommandSequencer.observeFrontier`.
+   *
+   * One window per command: a later frame that reaches the same command again does not extend it, because a
+   * deadline that moves is not a deadline.
+   */
+  private awaitAckOrDrop(entry: OutstandingCommand): void {
+    if (this.graceTimers.has(entry.requestId)) return;
+    const timer = setTimeout(() => {
+      this.graceTimers.delete(entry.requestId);
+      // Acknowledged inside the window: the ack is the answer, and it already settled this.
+      if (!this.pending.has(entry.requestId)) return;
+      this.sequencer.noteStale(entry.sequence);
+      this.logger.warn('command dropped as stale', {
+        action: entry.action,
+        sequence: entry.sequence,
+      });
+      this.emit('droppedStale', {
+        action: entry.action,
+        sequence: entry.sequence,
+        requestId: entry.requestId,
+      });
+      this.settlePending(entry.requestId, {
+        action: entry.action,
+        requestId: entry.requestId,
+        sequence: entry.sequence,
+        ok: false,
+        confirmed: true,
+        matchMethod: 'frontier',
+        rejection: interpretRejection(entry.action, 'dropped_stale'),
+      });
+    }, this.timeouts.ackGraceMs);
+    this.graceTimers.set(entry.requestId, timer);
+  }
+
+  /** Cancel a command's grace window, once it has settled some other way. */
+  private clearGrace(requestId: string): void {
+    const timer = this.graceTimers.get(requestId);
+    if (timer === undefined) return;
+    clearTimeout(timer);
+    this.graceTimers.delete(requestId);
+  }
+
+  /**
    * Settle a pending command.
    *
    * This is the single funnel for settlement, and it settles *both* ledgers: the handle (the caller's
@@ -649,6 +705,9 @@ export class ClientCore extends Emitter<ClientEvents> implements CommandSender {
     if (!entry || entry.done) return;
     entry.done = true;
     if (entry.timer !== null) clearTimeout(entry.timer);
+    // The ack that settles this is exactly the answer the grace window was waiting for, so the window ends
+    // here whatever the verdict is.
+    this.clearGrace(requestId);
     this.pending.delete(requestId);
 
     // `sequencer.settle` heals the counter for `invalid_sequence`, and a synthesized rejection wants the
@@ -912,40 +971,25 @@ export class ClientCore extends Emitter<ClientEvents> implements CommandSender {
     this.state.observeClock(clocked.publishedAtServerMs);
 
     const frontier = extractFrontier(message);
-    let dropped: ReturnType<CommandSequencer['observeFrontier']>['dropped'] = [];
+    let reached: ReturnType<CommandSequencer['observeFrontier']>['reached'] = [];
     if (frontier !== null) {
-      dropped = this.sequencer.observeFrontier(frontier).dropped;
+      reached = this.sequencer.observeFrontier(frontier).reached;
     }
 
     // Fallback for a `Welcome` that carried no canonical frontier: the gate is still shut, and the first
     // state frame that supplies one seeds the counter and readies the client. `observeFrontier` applies
     // the canonical rule to the counter *and* to the ledger, so a fractional frame frontier can neither
-    // open this gate nor fail a live command as stale.
+    // open this gate nor start the clock on a live command.
     if (!this.readyState && this.sequencer.frontier !== null) {
       this.readyState = true;
       this.emit('ready');
     }
 
-    for (const entry of dropped) {
-      this.logger.warn('command dropped as stale', {
-        action: entry.action,
-        sequence: entry.sequence,
-      });
-      this.emit('droppedStale', {
-        action: entry.action,
-        sequence: entry.sequence,
-        requestId: entry.requestId,
-      });
-      this.settlePending(entry.requestId, {
-        action: entry.action,
-        requestId: entry.requestId,
-        sequence: entry.sequence,
-        ok: false,
-        confirmed: true,
-        matchMethod: 'frontier',
-        rejection: interpretRejection(entry.action, 'dropped_stale'),
-      });
-    }
+    // A frontier that has reached these commands says their numbers are spent, not that the commands were
+    // dropped: the patches above are how a command's own effect is broadcast, and the result that answers it
+    // is written after. Each is given the grace window to be acknowledged in, and failing that, reported
+    // dropped. See `CommandSequencer.observeFrontier`.
+    for (const entry of reached) this.awaitAckOrDrop(entry);
 
     const patches = extractPatches(message);
     if (patches.length === 0) return;

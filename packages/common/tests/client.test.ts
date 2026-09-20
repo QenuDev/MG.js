@@ -15,7 +15,13 @@ import { ClientCore } from '../src/client.js';
 import type { ClientCloseEvent } from '../src/client-contract.js';
 import { MgCommandRejectedError, MgConfigError, MgNotReadyError } from '../src/errors.js';
 import { extractFrontier, extractPatches, parseFrame, serializeFrame } from '../src/protocol/codec.js';
-import type { Transport, TransportCloseInfo, TransportKind, TransportState } from '../src/transport/seam.js';
+import type {
+  LifecycleTimeouts,
+  Transport,
+  TransportCloseInfo,
+  TransportKind,
+  TransportState,
+} from '../src/transport/seam.js';
 import type { Unsubscribe } from '../src/unsubscribe.js';
 import { MG_VERSION } from '../src/version.js';
 
@@ -90,9 +96,16 @@ function welcome(executedCommandSequence = 10, selfPlayerId = 'p_1'): Record<str
   };
 }
 
-function makeClient(ackMode: AckMode = 'fifo'): { client: ClientCore; transport: FakeTransport } {
+function makeClient(
+  ackMode: AckMode = 'fifo',
+  timeouts: Partial<LifecycleTimeouts> = {},
+): { client: ClientCore; transport: FakeTransport } {
   const transport = new FakeTransport();
-  const client = new ClientCore({ transport, ackMode, timeouts: { commandAckMs: 50 } });
+  const client = new ClientCore({
+    transport,
+    ackMode,
+    timeouts: { commandAckMs: 50, ...timeouts },
+  });
   return { client, transport };
 }
 
@@ -767,44 +780,79 @@ describe('ClientCore: state frames', () => {
     assert.equal(stateEvents, 2, 'one for the snapshot, one for the patch');
   });
 
-  it('synthesizes DroppedStale when the frontier passes an unanswered command', () => {
-    // The server never sends this code; the API reference calls it "a client-side inference".
-    const { client, transport } = makeClient();
-    transport.deliverJson(welcome(0));
-    const handle = client.actions.waterPlant({ slot: 1 });
-    handle.result.catch(() => {});
+  it('does not fail a command the frontier reached while its ack is still in flight', async () => {
+    // REGRESSION, and the reason the frontier does not settle anything on its own. Applying a command
+    // broadcasts its patches — a `RoomFrame` carrying the new `executedCommandSequence` — and the
+    // `QuinoaCommandResult` that answers it is written *after* them. So the frame legitimately arrives first,
+    // and reading it as a verdict reported a purchase that had gone through as `dropped_stale` (which is what
+    // a person saw: "the game never confirmed the purchase" for an item they owned).
+    const { client, transport } = makeClient('fifo', { commandAckMs: 500, ackGraceMs: 40 });
+    transport.deliverJson(welcome(10));
 
-    // The event is captured into a list rather than a `let`: the assignment happens inside a callback,
-    // which control-flow analysis cannot follow, and `dropped?.action` on a `null`-initialised `let`
-    // narrows to `never`.
     const dropped: { action: string }[] = [];
     client.on('droppedStale', (event) => {
       dropped.push(event);
     });
 
+    const handle = client.actions.waterPlant({ slot: 1 });
+    assert.equal(handle.sequence, 11, 'the command takes the number after the frontier');
+
+    // The command's own frame, one number later: the frontier has *reached* it, not passed it.
     transport.deliverJson({
       type: 'RoomFrame',
-      executedCommandSequence: 5,
+      executedCommandSequence: 11,
       state: { patches: [{ op: 'replace', path: '/data/players/0/coins', value: 2 }] },
     });
+    assert.deepEqual(dropped, [], 'a frontier is not a verdict: the ack still has its window');
 
-    assert.equal(dropped[0]?.action, 'WaterPlant');
+    // ...and the ack is a round trip behind, exactly as the server's ordering allows.
+    transport.deliverJson({
+      type: 'QuinoaCommandResult',
+      requestId: handle.requestId,
+      commandType: 'WaterPlant',
+      ok: true,
+    });
+
+    const result = await handle.result;
+    assert.equal(result.ok, true, 'the acknowledgement is the answer, and it settles the handle');
+
+    // And the window ends with the ack rather than firing after it.
+    await delay(80);
+    assert.deepEqual(dropped, [], 'a command that was acknowledged must never be reported dropped');
   });
 
-  it('rejects a dropped-stale handle with the synthesized code', async () => {
-    const { client, transport } = makeClient();
-    transport.deliverJson(welcome(0));
+  it('synthesizes DroppedStale when the frontier reaches a command and nothing answers', async () => {
+    // The other half of the same rule: the server never sends this code (the API reference calls it "a
+    // client-side inference"), so it is synthesised here — but only once the ack it would owe has had its
+    // grace window and not turned up.
+    const { client, transport } = makeClient('fifo', { commandAckMs: 500, ackGraceMs: 20 });
+    transport.deliverJson(welcome(10));
+
+    // Captured into a list rather than a `let`: the assignment happens inside a callback, which control-flow
+    // analysis cannot follow, and `dropped[0]?.action` on a `null`-initialised `let` narrows to `never`.
+    const dropped: { action: string; sequence: number }[] = [];
+    client.on('droppedStale', (event) => {
+      dropped.push(event);
+    });
+
     const handle = client.actions.waterPlant({ slot: 1 });
     transport.deliverJson({
       type: 'RoomFrame',
-      executedCommandSequence: 5,
+      executedCommandSequence: 11,
       state: { patches: [{ op: 'replace', path: '/data/players/0/coins', value: 2 }] },
     });
+
+    assert.equal(dropped.length, 0, 'not while the ack still has its window');
+
     await assert.rejects(handle.result, (error: unknown) => {
       assert.ok(error instanceof MgCommandRejectedError);
       assert.equal(error.rejection.code, 'dropped_stale');
       return true;
     });
+    assert.equal(dropped[0]?.action, 'WaterPlant');
+    assert.equal(dropped[0]?.sequence, 11);
+    assert.equal(client.sequencer.pending.length, 0, 'the verdict reclaims the sequencer entry');
+    assert.equal(client.report.pending, 0, 'and the caller no longer holds a pending handle');
   });
 
   it('reports an unparseable frame instead of throwing', () => {

@@ -94,10 +94,23 @@ export interface LifecycleTimeouts {
   welcomeMs: number;
   /** How long an unacknowledged command stays pending before being treated as unconfirmed. Default 10000. */
   commandAckMs: number;
+  /**
+   * How long an ack may lag behind a frontier that has reached a command's number. Default 1000.
+   *
+   * The server consumes a command number when it applies the command, and the `RoomFrame` carrying the new
+   * frontier can reach a client **before** the `QuinoaCommandResult` that answers it: applying the command
+   * broadcasts its patches, while the result is written afterwards. So a frontier that has reached an
+   * unanswered command says "this number is used", not "this command was dropped" — the two are told apart
+   * by whether the ack turns up, and this is how long it is given to. It has to be comfortably longer than a
+   * round trip and much shorter than {@link commandAckMs}: a command that really was dropped is reported
+   * `dropped_stale` this long after the frontier reaches it.
+   */
+  ackGraceMs: number;
 }
 
 export const DEFAULT_LIFECYCLE_TIMEOUTS: LifecycleTimeouts = {
   openMs: 20_000,
   welcomeMs: 15_000,
   commandAckMs: 10_000,
+  ackGraceMs: 1_000,
 };

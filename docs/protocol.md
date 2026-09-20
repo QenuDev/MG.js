@@ -59,7 +59,7 @@ if (!result.confirmed) { /* matched by ordering: probable, not proven */ }
 
 `handle.settled` never rejects, for callers who want the outcome without exceptions. Fire-and-forget (`void client.actions.teleport(...)`) does not produce unhandled-rejection noise, but an explicit `await`/`.catch()` still sees failures.
 
-The server never sends `dropped_stale`; the API reference explicitly calls it "a client-side inference". The core synthesises it: when the server's own frontier advances past a command that was never acknowledged, that command did not happen, and the handle is told so.
+The server never sends `dropped_stale`; the API reference explicitly calls it "a client-side inference". The core synthesises it: when the server's own frontier reaches or passes a command that was never acknowledged, the number it was given has been spent, and the command's fate is decided by the acknowledgement that spending it owes. Reaching alone is not a verdict — applying a command broadcasts its patches (`RoomFrame`) before the `QuinoaCommandResult` is written, so the frame can arrive first with the command's own number. Each frontier-reached command therefore gets a grace window (`LifecycleTimeouts.ackGraceMs`, default 1 s) to be acknowledged in; a late ack settles the handle normally, and one that never comes is reported `dropped_stale`.
 
 
 ---
