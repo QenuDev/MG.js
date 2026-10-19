@@ -1,0 +1,1568 @@
+{
+  "note": "Each fixture file holds one declaration per line, cut from the named chunk. A variable is written back as `const <name> = <initializer>;` for a variable, and its own text for a function. The range in `cuts` is the initializer both times: inside the wrapper it is byte-identical to the source range, and `fixtureStart`/`fixtureEnd` are where that same initializer sits in the fixture file, which is how evidence read from a fixture is translated back to the game chunk. Every fixture file opens with a `biome-ignore-all` line, and the offsets in `cuts` are measured after it.",
+  "sources": {
+    "gameVersion": "1650",
+    "artVersion": "1650",
+    "origin": "https://magicgarden.gg",
+    "atlasManifest": "version/1650/assets/manifest.json",
+    "atlasPacks": [
+      "atlases/sprites-0.json",
+      "atlases/tiles.json",
+      "atlases/weather.json",
+      "atlases/sprites-1.json",
+      "atlases/sprites-2.json",
+      "atlases/sprites-3.json",
+      "atlases/sprites-4.json"
+    ]
+  },
+  "files": [
+    {
+      "fixture": "chunks/AsyncEpoch-uBidHipI.js",
+      "chunk": "AsyncEpoch-uBidHipI.js",
+      "fileUrl": "https://magicgarden.gg/version/1650/assets/AsyncEpoch-uBidHipI.js",
+      "cuts": [
+        {
+          "declaration": "lt",
+          "sourceStart": 20303,
+          "sourceEnd": 20432,
+          "fixtureStart": 188,
+          "fixtureEnd": 317
+        },
+        {
+          "declaration": "dt",
+          "sourceStart": 20630,
+          "sourceEnd": 50715,
+          "fixtureStart": 330,
+          "fixtureEnd": 30415
+        }
+      ],
+      "imports": [
+        {
+          "local": "e",
+          "imported": "a",
+          "from": "./rolldown-runtime-CNC7AqOf.js"
+        },
+        {
+          "local": "t",
+          "imported": "r",
+          "from": "./rolldown-runtime-CNC7AqOf.js"
+        },
+        {
+          "local": "n",
+          "imported": "t",
+          "from": "./rolldown-runtime-CNC7AqOf.js"
+        },
+        {
+          "local": "r",
+          "imported": "D",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "i",
+          "imported": "J",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "a",
+          "imported": "dt",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "o",
+          "imported": "j",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "s",
+          "imported": "s",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "c",
+          "imported": "t",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "l",
+          "imported": "u",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "u",
+          "imported": "v",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "d",
+          "imported": "n",
+          "from": "./roomId-C3q38-u4.js"
+        },
+        {
+          "local": "f",
+          "imported": "t",
+          "from": "./expiryDates-D0M2yI8F.js"
+        }
+      ]
+    },
+    {
+      "fixture": "chunks/getNormalizedScale-C6p31neC.js",
+      "chunk": "getNormalizedScale-C6p31neC.js",
+      "fileUrl": "https://magicgarden.gg/version/1650/assets/getNormalizedScale-C6p31neC.js",
+      "cuts": [
+        {
+          "declaration": "i",
+          "sourceStart": 421,
+          "sourceEnd": 456,
+          "fixtureStart": 187,
+          "fixtureEnd": 222
+        },
+        {
+          "declaration": "a",
+          "sourceStart": 459,
+          "sourceEnd": 4650,
+          "fixtureStart": 234,
+          "fixtureEnd": 4425
+        }
+      ],
+      "imports": [
+        {
+          "local": "e",
+          "imported": "aa",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "t",
+          "imported": "ta",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "n",
+          "imported": "Hi",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "r",
+          "imported": "oi",
+          "from": "./modalAtom-DGA9kfJh.js"
+        }
+      ]
+    },
+    {
+      "fixture": "chunks/modalAtom-DGA9kfJh.js",
+      "chunk": "modalAtom-DGA9kfJh.js",
+      "fileUrl": "https://magicgarden.gg/version/1650/assets/modalAtom-DGA9kfJh.js",
+      "cuts": [
+        {
+          "declaration": "R",
+          "sourceStart": 115105,
+          "sourceEnd": 115170,
+          "fixtureStart": 187,
+          "fixtureEnd": 252
+        },
+        {
+          "declaration": "Zr",
+          "sourceStart": 115174,
+          "sourceEnd": 115255,
+          "fixtureStart": 265,
+          "fixtureEnd": 346
+        },
+        {
+          "declaration": "ei",
+          "sourceStart": 115465,
+          "sourceEnd": 152860,
+          "fixtureStart": 359,
+          "fixtureEnd": 37754
+        },
+        {
+          "declaration": "H",
+          "sourceStart": 180177,
+          "sourceEnd": 180266,
+          "fixtureStart": 37766,
+          "fixtureEnd": 37855
+        },
+        {
+          "declaration": "wo",
+          "sourceStart": 216970,
+          "sourceEnd": 218020,
+          "fixtureStart": 37868,
+          "fixtureEnd": 38918
+        },
+        {
+          "declaration": "Yu",
+          "sourceStart": 1102227,
+          "sourceEnd": 1102352,
+          "fixtureStart": 38931,
+          "fixtureEnd": 39056
+        },
+        {
+          "declaration": "cd",
+          "sourceStart": 1103203,
+          "sourceEnd": 1103390,
+          "fixtureStart": 39069,
+          "fixtureEnd": 39256
+        },
+        {
+          "declaration": "ld",
+          "sourceStart": 1103394,
+          "sourceEnd": 1103497,
+          "fixtureStart": 39269,
+          "fixtureEnd": 39372
+        },
+        {
+          "declaration": "ud",
+          "sourceStart": 1103501,
+          "sourceEnd": 1103556,
+          "fixtureStart": 39385,
+          "fixtureEnd": 39440
+        },
+        {
+          "declaration": "dd",
+          "sourceStart": 1103560,
+          "sourceEnd": 1103719,
+          "fixtureStart": 39453,
+          "fixtureEnd": 39612
+        },
+        {
+          "declaration": "fd",
+          "sourceStart": 1103723,
+          "sourceEnd": 1103801,
+          "fixtureStart": 39625,
+          "fixtureEnd": 39703
+        },
+        {
+          "declaration": "pd",
+          "sourceStart": 1103805,
+          "sourceEnd": 1103857,
+          "fixtureStart": 39716,
+          "fixtureEnd": 39768
+        },
+        {
+          "declaration": "md",
+          "sourceStart": 1103861,
+          "sourceEnd": 1103886,
+          "fixtureStart": 39781,
+          "fixtureEnd": 39806
+        },
+        {
+          "declaration": "hd",
+          "sourceStart": 1103890,
+          "sourceEnd": 1103956,
+          "fixtureStart": 39819,
+          "fixtureEnd": 39885
+        },
+        {
+          "declaration": "gd",
+          "sourceStart": 1103960,
+          "sourceEnd": 1104035,
+          "fixtureStart": 39898,
+          "fixtureEnd": 39973
+        },
+        {
+          "declaration": "_d",
+          "sourceStart": 1104039,
+          "sourceEnd": 1104118,
+          "fixtureStart": 39986,
+          "fixtureEnd": 40065
+        },
+        {
+          "declaration": "xd",
+          "sourceStart": 1104248,
+          "sourceEnd": 1104321,
+          "fixtureStart": 40078,
+          "fixtureEnd": 40151
+        },
+        {
+          "declaration": "Sd",
+          "sourceStart": 1104325,
+          "sourceEnd": 1104382,
+          "fixtureStart": 40164,
+          "fixtureEnd": 40221
+        },
+        {
+          "declaration": "Cd",
+          "sourceStart": 1104386,
+          "sourceEnd": 1104453,
+          "fixtureStart": 40234,
+          "fixtureEnd": 40301
+        },
+        {
+          "declaration": "wd",
+          "sourceStart": 1104457,
+          "sourceEnd": 1104545,
+          "fixtureStart": 40314,
+          "fixtureEnd": 40402
+        },
+        {
+          "declaration": "Td",
+          "sourceStart": 1104549,
+          "sourceEnd": 1104565,
+          "fixtureStart": 40415,
+          "fixtureEnd": 40431
+        }
+      ],
+      "imports": [
+        {
+          "local": "e",
+          "imported": "a",
+          "from": "./rolldown-runtime-CNC7AqOf.js"
+        },
+        {
+          "local": "t",
+          "imported": "t",
+          "from": "./rolldown-runtime-CNC7AqOf.js"
+        },
+        {
+          "local": "n",
+          "imported": "$",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "r",
+          "imported": "Ct",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "i",
+          "imported": "D",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "a",
+          "imported": "G",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "o",
+          "imported": "J",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "s",
+          "imported": "K",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "c",
+          "imported": "Q",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "l",
+          "imported": "W",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "u",
+          "imported": "_t",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "d",
+          "imported": "bt",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "f",
+          "imported": "ct",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "p",
+          "imported": "dt",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "m",
+          "imported": "et",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "h",
+          "imported": "ft",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "g",
+          "imported": "ht",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "_",
+          "imported": "i",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "v",
+          "imported": "it",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "y",
+          "imported": "lt",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "ee",
+          "imported": "mt",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "b",
+          "imported": "nt",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "te",
+          "imported": "ot",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "x",
+          "imported": "pt",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "ne",
+          "imported": "rt",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "S",
+          "imported": "st",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "re",
+          "imported": "tt",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "C",
+          "imported": "ut",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "w",
+          "imported": "vt",
+          "from": "./environment-b8OVt4kU.js"
+        },
+        {
+          "local": "ie",
+          "imported": "Aa",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "ae",
+          "imported": "B",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "oe",
+          "imported": "Bi",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "T",
+          "imported": "Ci",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "se",
+          "imported": "Cn",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "ce",
+          "imported": "Fa",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "le",
+          "imported": "Hi",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "ue",
+          "imported": "L",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "de",
+          "imported": "Li",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "fe",
+          "imported": "Na",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "pe",
+          "imported": "O",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "E",
+          "imported": "Pa",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "me",
+          "imported": "S",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "he",
+          "imported": "U",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "ge",
+          "imported": "Vi",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "_e",
+          "imported": "Y",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "ve",
+          "imported": "Z",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "D",
+          "imported": "aa",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "ye",
+          "imported": "et",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "be",
+          "imported": "it",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "xe",
+          "imported": "m",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "O",
+          "imported": "na",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "Se",
+          "imported": "nt",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "Ce",
+          "imported": "q",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "we",
+          "imported": "qi",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "Te",
+          "imported": "sa",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "Ee",
+          "imported": "t",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "k",
+          "imported": "ta",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "De",
+          "imported": "ua",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "Oe",
+          "imported": "wi",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "ke",
+          "imported": "xn",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "Ae",
+          "imported": "zi",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "je",
+          "imported": "a",
+          "from": "./expiryDates-D0M2yI8F.js"
+        },
+        {
+          "local": "Me",
+          "imported": "i",
+          "from": "./expiryDates-D0M2yI8F.js"
+        },
+        {
+          "local": "Ne",
+          "imported": "n",
+          "from": "./expiryDates-D0M2yI8F.js"
+        },
+        {
+          "local": "Pe",
+          "imported": "r",
+          "from": "./expiryDates-D0M2yI8F.js"
+        },
+        {
+          "local": "Fe",
+          "imported": "t",
+          "from": "./expiryDates-D0M2yI8F.js"
+        },
+        {
+          "local": "Ie",
+          "imported": "a",
+          "from": "./resumeRecoveryEvents-DRp3j0sk.js"
+        },
+        {
+          "local": "Le",
+          "imported": "l",
+          "from": "./resumeRecoveryEvents-DRp3j0sk.js"
+        },
+        {
+          "local": "Re",
+          "imported": "r",
+          "from": "./resumeRecoveryEvents-DRp3j0sk.js"
+        },
+        {
+          "local": "ze",
+          "imported": "v",
+          "from": "./resumeRecoveryEvents-DRp3j0sk.js"
+        },
+        {
+          "local": "Be",
+          "imported": "_",
+          "from": "./nativeBridgeProtocol-DZZ6IU8F.js"
+        },
+        {
+          "local": "Ve",
+          "imported": "i",
+          "from": "./lib-DiSrKtK-.js"
+        },
+        {
+          "local": "He",
+          "imported": "n",
+          "from": "./lib-DiSrKtK-.js"
+        },
+        {
+          "local": "Ue",
+          "imported": "r",
+          "from": "./lib-DiSrKtK-.js"
+        },
+        {
+          "local": "We",
+          "imported": "bt",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "Ge",
+          "imported": "dt",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "Ke",
+          "imported": "_",
+          "from": "./lib--kihp-t_.js"
+        },
+        {
+          "local": "qe",
+          "imported": "t",
+          "from": "./quinoaAssetResolver-DS1gZ0Kv.js"
+        },
+        {
+          "local": "Je",
+          "imported": "c",
+          "from": "./baseAtoms-D1mdRICn.js"
+        },
+        {
+          "local": "Ye",
+          "imported": "d",
+          "from": "./baseAtoms-D1mdRICn.js"
+        },
+        {
+          "local": "Xe",
+          "imported": "f",
+          "from": "./baseAtoms-D1mdRICn.js"
+        },
+        {
+          "local": "Ze",
+          "imported": "l",
+          "from": "./baseAtoms-D1mdRICn.js"
+        },
+        {
+          "local": "Qe",
+          "imported": "o",
+          "from": "./baseAtoms-D1mdRICn.js"
+        },
+        {
+          "local": "$e",
+          "imported": "s",
+          "from": "./baseAtoms-D1mdRICn.js"
+        },
+        {
+          "local": "et",
+          "imported": "u",
+          "from": "./baseAtoms-D1mdRICn.js"
+        }
+      ]
+    },
+    {
+      "fixture": "chunks/SharedRiveSprite-DBOFo9EV.js",
+      "chunk": "SharedRiveSprite-DBOFo9EV.js",
+      "fileUrl": "https://magicgarden.gg/version/1650/assets/SharedRiveSprite-DBOFo9EV.js",
+      "cuts": [
+        {
+          "declaration": "H",
+          "sourceStart": 8699,
+          "sourceEnd": 8701,
+          "fixtureStart": 187,
+          "fixtureEnd": 189
+        },
+        {
+          "declaration": "U",
+          "sourceStart": 8704,
+          "sourceEnd": 8706,
+          "fixtureStart": 201,
+          "fixtureEnd": 203
+        },
+        {
+          "declaration": "ce",
+          "sourceStart": 8707,
+          "sourceEnd": 8805,
+          "fixtureStart": 205,
+          "fixtureEnd": 303
+        },
+        {
+          "declaration": "W",
+          "sourceStart": 8805,
+          "sourceEnd": 8836,
+          "fixtureStart": 304,
+          "fixtureEnd": 335
+        }
+      ],
+      "imports": [
+        {
+          "local": "e",
+          "imported": "Fa",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "t",
+          "imported": "aa",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "n",
+          "imported": "t",
+          "from": "./expiryDates-D0M2yI8F.js"
+        },
+        {
+          "local": "r",
+          "imported": "Ar",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "i",
+          "imported": "Er",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "a",
+          "imported": "Or",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "o",
+          "imported": "en",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "s",
+          "imported": "bi",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "c",
+          "imported": "bt",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "l",
+          "imported": "dt",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "u",
+          "imported": "y",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "d",
+          "imported": "o",
+          "from": "./quinoaAssetResolver-DS1gZ0Kv.js"
+        },
+        {
+          "local": "ee",
+          "imported": "s",
+          "from": "./quinoaAssetResolver-DS1gZ0Kv.js"
+        },
+        {
+          "local": "te",
+          "imported": "u",
+          "from": "./quinoaAssetResolver-DS1gZ0Kv.js"
+        },
+        {
+          "local": "f",
+          "imported": "y",
+          "from": "./TweenedNumber-Ctw2zWxe.js"
+        },
+        {
+          "local": "p",
+          "imported": "$t",
+          "from": "./weatherVisuals-BRVfy9sq.js"
+        },
+        {
+          "local": "ne",
+          "imported": "Tn",
+          "from": "./weatherVisuals-BRVfy9sq.js"
+        },
+        {
+          "local": "m",
+          "imported": "_n",
+          "from": "./weatherVisuals-BRVfy9sq.js"
+        },
+        {
+          "local": "re",
+          "imported": "gn",
+          "from": "./weatherVisuals-BRVfy9sq.js"
+        },
+        {
+          "local": "h",
+          "imported": "hn",
+          "from": "./weatherVisuals-BRVfy9sq.js"
+        },
+        {
+          "local": "g",
+          "imported": "mn",
+          "from": "./weatherVisuals-BRVfy9sq.js"
+        },
+        {
+          "local": "_",
+          "imported": "pn",
+          "from": "./weatherVisuals-BRVfy9sq.js"
+        },
+        {
+          "local": "ie",
+          "imported": "dn",
+          "from": "./deriveAvailableActions-CllYCzu2.js"
+        },
+        {
+          "local": "v",
+          "imported": "hn",
+          "from": "./deriveAvailableActions-CllYCzu2.js"
+        },
+        {
+          "local": "y",
+          "imported": "in",
+          "from": "./deriveAvailableActions-CllYCzu2.js"
+        },
+        {
+          "local": "b",
+          "imported": "on",
+          "from": "./deriveAvailableActions-CllYCzu2.js"
+        },
+        {
+          "local": "x",
+          "imported": "pn",
+          "from": "./deriveAvailableActions-CllYCzu2.js"
+        }
+      ]
+    },
+    {
+      "fixture": "chunks/weatherVisuals-BRVfy9sq.js",
+      "chunk": "weatherVisuals-BRVfy9sq.js",
+      "fileUrl": "https://magicgarden.gg/version/1650/assets/weatherVisuals-BRVfy9sq.js",
+      "cuts": [
+        {
+          "declaration": "Hn",
+          "sourceStart": 12585,
+          "sourceEnd": 13897,
+          "fixtureStart": 188,
+          "fixtureEnd": 1500
+        },
+        {
+          "declaration": "f",
+          "sourceStart": 21380,
+          "sourceEnd": 21407,
+          "fixtureStart": 1512,
+          "fixtureEnd": 1539
+        },
+        {
+          "declaration": "Qr",
+          "sourceStart": 40571,
+          "sourceEnd": 40635,
+          "fixtureStart": 1541,
+          "fixtureEnd": 1605
+        },
+        {
+          "declaration": "$r",
+          "sourceStart": 40642,
+          "sourceEnd": 41163,
+          "fixtureStart": 1617,
+          "fixtureEnd": 2138
+        },
+        {
+          "declaration": "ei",
+          "sourceStart": 41167,
+          "sourceEnd": 41170,
+          "fixtureStart": 2151,
+          "fixtureEnd": 2154
+        },
+        {
+          "declaration": "ti",
+          "sourceStart": 41171,
+          "sourceEnd": 41532,
+          "fixtureStart": 2156,
+          "fixtureEnd": 2517
+        },
+        {
+          "declaration": "ni",
+          "sourceStart": 41539,
+          "sourceEnd": 41540,
+          "fixtureStart": 2529,
+          "fixtureEnd": 2530
+        },
+        {
+          "declaration": "ri",
+          "sourceStart": 41541,
+          "sourceEnd": 42168,
+          "fixtureStart": 2532,
+          "fixtureEnd": 3159
+        },
+        {
+          "declaration": "J",
+          "sourceStart": 51474,
+          "sourceEnd": 51546,
+          "fixtureStart": 3170,
+          "fixtureEnd": 3242
+        },
+        {
+          "declaration": "qi",
+          "sourceStart": 51550,
+          "sourceEnd": 51589,
+          "fixtureStart": 3255,
+          "fixtureEnd": 3294
+        }
+      ],
+      "imports": [
+        {
+          "local": "e",
+          "imported": "a",
+          "from": "./rolldown-runtime-CNC7AqOf.js"
+        },
+        {
+          "local": "t",
+          "imported": "B",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "n",
+          "imported": "Fa",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "r",
+          "imported": "Ki",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "i",
+          "imported": "Pa",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "a",
+          "imported": "aa",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "o",
+          "imported": "na",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "s",
+          "imported": "nt",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "c",
+          "imported": "ta",
+          "from": "./AsyncEpoch-uBidHipI.js"
+        },
+        {
+          "local": "l",
+          "imported": "M",
+          "from": "./resumeRecoveryEvents-DRp3j0sk.js"
+        },
+        {
+          "local": "u",
+          "imported": "c",
+          "from": "./resumeRecoveryEvents-DRp3j0sk.js"
+        },
+        {
+          "local": "d",
+          "imported": "$i",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "f",
+          "imported": "$o",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "p",
+          "imported": "Ar",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "m",
+          "imported": "Ba",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "h",
+          "imported": "Ec",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "g",
+          "imported": "Eo",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "_",
+          "imported": "Hi",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "ee",
+          "imported": "Ic",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "te",
+          "imported": "Mi",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "v",
+          "imported": "Nc",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "y",
+          "imported": "Or",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "b",
+          "imported": "Qi",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "ne",
+          "imported": "So",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "re",
+          "imported": "Y",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "ie",
+          "imported": "Yo",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "ae",
+          "imported": "Za",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "x",
+          "imported": "gc",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "S",
+          "imported": "go",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "oe",
+          "imported": "io",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "se",
+          "imported": "ja",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "ce",
+          "imported": "ji",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "le",
+          "imported": "ma",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "ue",
+          "imported": "mc",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "de",
+          "imported": "os",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "fe",
+          "imported": "ro",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "C",
+          "imported": "rs",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "pe",
+          "imported": "rt",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "me",
+          "imported": "ta",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "he",
+          "imported": "uo",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "ge",
+          "imported": "wc",
+          "from": "./modalAtom-DGA9kfJh.js"
+        },
+        {
+          "local": "_e",
+          "imported": "$r",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "ve",
+          "imported": "Di",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "ye",
+          "imported": "E",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "be",
+          "imported": "Fi",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "xe",
+          "imported": "Gr",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "Se",
+          "imported": "Jr",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "Ce",
+          "imported": "Kr",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "we",
+          "imported": "Qr",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "Te",
+          "imported": "Rr",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "w",
+          "imported": "Ur",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "Ee",
+          "imported": "Wr",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "De",
+          "imported": "Xr",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "Oe",
+          "imported": "Yr",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "ke",
+          "imported": "Zr",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "Ae",
+          "imported": "ei",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "je",
+          "imported": "g",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "Me",
+          "imported": "kr",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "Ne",
+          "imported": "l",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "Pe",
+          "imported": "qr",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "Fe",
+          "imported": "ti",
+          "from": "./systemHeaderVisibility-B7CfbOGh.js"
+        },
+        {
+          "local": "Ie",
+          "imported": "w",
+          "from": "./RoomConnection-CgbI_wNo.js"
+        },
+        {
+          "local": "T",
+          "imported": "Ft",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "E",
+          "imported": "It",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "D",
+          "imported": "Kt",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "O",
+          "imported": "Wt",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "Le",
+          "imported": "a",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "k",
+          "imported": "bt",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "Re",
+          "imported": "c",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "A",
+          "imported": "dt",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "ze",
+          "imported": "kt",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "Be",
+          "imported": "l",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "Ve",
+          "imported": "mt",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "He",
+          "imported": "s",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "Ue",
+          "imported": "ut",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "j",
+          "imported": "vt",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "We",
+          "imported": "xt",
+          "from": "./BitmapFont-CBFm8YOF.js"
+        },
+        {
+          "local": "Ge",
+          "imported": "_",
+          "from": "./lib--kihp-t_.js"
+        },
+        {
+          "local": "Ke",
+          "imported": "c",
+          "from": "./lib--kihp-t_.js"
+        },
+        {
+          "local": "qe",
+          "imported": "d",
+          "from": "./lib--kihp-t_.js"
+        },
+        {
+          "local": "Je",
+          "imported": "k",
+          "from": "./lib--kihp-t_.js"
+        },
+        {
+          "local": "M",
+          "imported": "c",
+          "from": "./quinoaAssetResolver-DS1gZ0Kv.js"
+        },
+        {
+          "local": "Ye",
+          "imported": "d",
+          "from": "./quinoaAssetResolver-DS1gZ0Kv.js"
+        },
+        {
+          "local": "Xe",
+          "imported": "f",
+          "from": "./quinoaAssetResolver-DS1gZ0Kv.js"
+        },
+        {
+          "local": "Ze",
+          "imported": "l",
+          "from": "./quinoaAssetResolver-DS1gZ0Kv.js"
+        },
+        {
+          "local": "N",
+          "imported": "m",
+          "from": "./quinoaAssetResolver-DS1gZ0Kv.js"
+        },
+        {
+          "local": "P",
+          "imported": "u",
+          "from": "./quinoaAssetResolver-DS1gZ0Kv.js"
+        },
+        {
+          "local": "Qe",
+          "imported": "v",
+          "from": "./quinoaAssetResolver-DS1gZ0Kv.js"
+        },
+        {
+          "local": "$e",
+          "imported": "y",
+          "from": "./quinoaAssetResolver-DS1gZ0Kv.js"
+        },
+        {
+          "local": "et",
+          "imported": "m",
+          "from": "./baseAtoms-D1mdRICn.js"
+        },
+        {
+          "local": "tt",
+          "imported": "n",
+          "from": "./TweenedNumber-Ctw2zWxe.js"
+        },
+        {
+          "local": "nt",
+          "imported": "p",
+          "from": "./TweenedNumber-Ctw2zWxe.js"
+        },
+        {
+          "local": "rt",
+          "imported": "s",
+          "from": "./TweenedNumber-Ctw2zWxe.js"
+        },
+        {
+          "local": "it",
+          "imported": "t",
+          "from": "./TweenedNumber-Ctw2zWxe.js"
+        },
+        {
+          "local": "at",
+          "imported": "u",
+          "from": "./TweenedNumber-Ctw2zWxe.js"
+        },
+        {
+          "local": "ot",
+          "imported": "at",
+          "from": "./deriveAvailableActions-CllYCzu2.js"
+        },
+        {
+          "local": "st",
+          "imported": "ct",
+          "from": "./deriveAvailableActions-CllYCzu2.js"
+        },
+        {
+          "local": "ct",
+          "imported": "lt",
+          "from": "./deriveAvailableActions-CllYCzu2.js"
+        },
+        {
+          "local": "lt",
+          "imported": "mt",
+          "from": "./deriveAvailableActions-CllYCzu2.js"
+        },
+        {
+          "local": "ut",
+          "imported": "ot",
+          "from": "./deriveAvailableActions-CllYCzu2.js"
+        },
+        {
+          "local": "dt",
+          "imported": "pt",
+          "from": "./deriveAvailableActions-CllYCzu2.js"
+        },
+        {
+          "local": "ft",
+          "imported": "ut",
+          "from": "./deriveAvailableActions-CllYCzu2.js"
+        },
+        {
+          "local": "pt",
+          "imported": "yt",
+          "from": "./deriveAvailableActions-CllYCzu2.js"
+        },
+        {
+          "local": "mt",
+          "imported": "a",
+          "from": "./worldAssets-CwmCtGMo.js"
+        },
+        {
+          "local": "ht",
+          "imported": "f",
+          "from": "./worldAssets-CwmCtGMo.js"
+        },
+        {
+          "local": "gt",
+          "imported": "l",
+          "from": "./worldAssets-CwmCtGMo.js"
+        },
+        {
+          "local": "_t",
+          "imported": "o",
+          "from": "./worldAssets-CwmCtGMo.js"
+        },
+        {
+          "local": "vt",
+          "imported": "s",
+          "from": "./worldAssets-CwmCtGMo.js"
+        },
+        {
+          "local": "F",
+          "imported": "n",
+          "from": "./getMatrixRelativeTo-LUYsklZs.js"
+        },
+        {
+          "local": "I",
+          "imported": "t",
+          "from": "./getMatrixRelativeTo-LUYsklZs.js"
+        },
+        {
+          "local": "yt",
+          "imported": "t",
+          "from": "./isContainerTreeVisible-JbwupdrT.js"
+        },
+        {
+          "local": "bt",
+          "imported": "a",
+          "from": "./getNormalizedScale-C6p31neC.js"
+        },
+        {
+          "local": "xt",
+          "imported": "i",
+          "from": "./getNormalizedScale-C6p31neC.js"
+        },
+        {
+          "local": "St",
+          "imported": "r",
+          "from": "./getNormalizedScale-C6p31neC.js"
+        },
+        {
+          "local": "Ct",
+          "imported": "n",
+          "from": "./spatialSfx-6l1jOzaP.js"
+        },
+        {
+          "local": "wt",
+          "imported": "t",
+          "from": "./spatialSfx-6l1jOzaP.js"
+        },
+        {
+          "local": "Tt",
+          "imported": "C",
+          "from": "./questAtoms-T2QXRa9U.js"
+        }
+      ]
+    }
+  ]
+}

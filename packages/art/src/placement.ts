@@ -16,7 +16,7 @@
  * (`tests/purity.test.ts` holds the built file to that), so it cannot read the data file, and values copied
  * out of the bundle are the transcribed constants the extractor exists to remove. `mutationStack` takes the
  * game's over-set as an argument for the same reason, and the plan's own signature for these two functions
- * gained the same argument -- the four names in front of it are what it is called with, and the shape it
+ * gained the same argument -- the names it is given are what it is called with, and the shape it
  * reads is what a caller already has in hand after `art:sync`.
  *
  * The consumer's port of this arithmetic is `garden-viewer/server.mjs:914-931` (`mutationPlacement`) and

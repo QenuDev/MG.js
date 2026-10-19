@@ -5,23 +5,23 @@ and the evidence of one extraction. `npm run art:sync` writes it; `tests/bundle/
 when the committed document drifts from the record, so this page cannot describe a table the
 package no longer reads.
 
-Read from the game's own chunks for game version **1192** (art version **1192**).
+Read from the game's own chunks for game version **1650** (art version **1650**).
 
 | Table | Predicate | Read from | Consumers |
 |---|---|---|---|
-| `spriteNames` | `sprite-name-table` | `BakedRoundedRect-lGFgQzh1.js` #Nn [42891,66636) | spriteName(record, part), resolveSprite(frames, path) |
-| `mutationRecords` | `mutation-record-table` | `worldDepthSortKey-BXUHHrP0.js` #H [614141,615191) | mutationArt(mutation), mutationStack(mutation) |
-| `mutationArt` | `mutation-art-table` | `resources-D_3Zwcn-.js` #xn [15162,16354) | mutationArt(mutation), mutationStack(mutation), mutationOverlayArt(mutation) |
-| `displayFlags` | `display-flag-table` | `resources-D_3Zwcn-.js` #I [11166,14887) | mutationAnchor(species, artName, art, harvestType), plantPicture(...) |
-| `anchors` | `anchor-table` | `resources-D_3Zwcn-.js` #Tn [16701,17169) | mutationAnchor(species, artName, art, harvestType) |
-| `plants` | `plant-table` | `worldDepthSortKey-BXUHHrP0.js` #I [50900,85278) | spriteName(record, part), mutationAnchor(species, artName, art, harvestType) |
-| `harvestTypes` | `harvest-type-enum` | `worldDepthSortKey-BXUHHrP0.js` [50560,50668) | mutationAnchor(species, artName, art, harvestType) |
-| `iconFills` | `icon-fill-table` | `resources-D_3Zwcn-.js` #Fi [72760,73551) | iconArt(entry), ICON_FILL |
-| `itemTypes` | `item-type-enum` | `worldDepthSortKey-BXUHHrP0.js` #E [3894,4023) | iconArt(entry), ICON_FILL |
-| `kindSchemas` | `kind-schema-table` | `worldDepthSortKey-BXUHHrP0.js` #Ta [634682,634761) | the declared-against-exposed gate: a consumer reads `data/<version>.json` by path and compares each kind's field list to the schema the game states |
-| `scale` | `scale-cap` | `resources-D_3Zwcn-.js` #En [17173,17176) | mutationAnchor(species, artName, art, harvestType), iconArt(entry) |
-| `overMutations` | `mutation-over-set` | `resources-D_3Zwcn-.js` #On [17547,17609) | mutationStack(mutation), plantPicture(...) |
-| `placement` | `placement-function` | `resources-D_3Zwcn-.js` #Dn [17177,17540) | mutationAnchor(species, artName, art, harvestType), mutationPlacement(mutation, icon, art) |
+| `spriteNames` | `sprite-name-table` | `AsyncEpoch-uBidHipI.js` #dt [20630,50715) | spriteName(record, part), resolveSprite(frames, path) |
+| `mutationRecords` | `mutation-record-table` | `modalAtom-DGA9kfJh.js` #wo [216970,218020) | mutationArt(mutation), mutationStack(mutation) |
+| `mutationArt` | `mutation-art-table` | `weatherVisuals-BRVfy9sq.js` #Hn [12585,13897) | mutationArt(mutation), mutationStack(mutation), mutationOverlayArt(mutation) |
+| `displayFlags` | `display-flag-table` | `getNormalizedScale-C6p31neC.js` #a [459,4650) | mutationAnchor(species, artName, art, harvestType), plantPicture(...) |
+| `anchors` | `anchor-table` | `weatherVisuals-BRVfy9sq.js` #$r [40642,41163) | mutationAnchor(species, artName, art, harvestType) |
+| `plants` | `plant-table` | `modalAtom-DGA9kfJh.js` #ei [115465,152860) | spriteName(record, part), mutationAnchor(species, artName, art, harvestType) |
+| `harvestTypes` | `harvest-type-enum` | `modalAtom-DGA9kfJh.js` [115124,115232) | mutationAnchor(species, artName, art, harvestType) |
+| `iconFills` | `icon-fill-table` | `SharedRiveSprite-DBOFo9EV.js` #ce [8707,8805) | iconArt(entry), ICON_FILL |
+| `itemTypes` | `item-type-enum` | `AsyncEpoch-uBidHipI.js` #lt [20303,20432) | iconArt(entry), ICON_FILL |
+| `kindSchemas` | `kind-schema-table` | `modalAtom-DGA9kfJh.js` #_d [1104039,1104118) | the declared-against-exposed gate: a consumer reads `data/<version>.json` by path and compares each kind's field list to the schema the game states |
+| `scale` | `scale-cap` | `weatherVisuals-BRVfy9sq.js` #ei [41167,41170) | mutationAnchor(species, artName, art, harvestType), iconArt(entry) |
+| `overMutations` | `mutation-over-set` | `weatherVisuals-BRVfy9sq.js` #qi [51550,51589) | mutationStack(mutation), plantPicture(...) |
+| `placement` | `placement-function` | `weatherVisuals-BRVfy9sq.js` #ti [41171,41532) | mutationAnchor(species, artName, art, harvestType), mutationPlacement(mutation, icon, art) |
 
 ## `spriteNames`
 
@@ -29,8 +29,8 @@ Read from the game's own chunks for game version **1192** (art version **1192**)
 - **Invariant**: every leaf is a sprite path, the table is at least two categories wide, and the leaves are counted by the syntax they were written in, because a reader that projects only quoted strings reports an empty table rather than a wrong one
 - **Confirmed by**: sprite-name-table: every path is a frame the atlas has
 - **Consumers**: spriteName(record, part), resolveSprite(frames, path)
-- **Read from**: `BakedRoundedRect-lGFgQzh1.js` declaration `Nn`, bytes [42891,66636)
-- **Measured**: leaves 583, spritePaths 583, categories 13, templateLiterals 583, quotedStrings 0, leavesThatAreNotSpritePaths 0
+- **Read from**: `AsyncEpoch-uBidHipI.js` declaration `dt`, bytes [20630,50715)
+- **Measured**: leaves 724, spritePaths 724, categories 13, templateLiterals 724, quotedStrings 0, leavesThatAreNotSpritePaths 0
   - backtick literals, not quoted strings: a reader that only projected quoted strings reads this as an empty table
   - sibling matches inside this literal: 3
 
@@ -40,7 +40,7 @@ Read from the game's own chunks for game version **1192** (art version **1192**)
 - **Invariant**: every value states its group, every sprite reference resolves through the sprite-name table, and at least three keys are drawable, because a table of mutations that can all be drawn nowhere is a different table
 - **Confirmed by**: mutation-art-table: every key is a mutation the records state
 - **Consumers**: mutationArt(mutation), mutationStack(mutation)
-- **Read from**: `worldDepthSortKey-BXUHHrP0.js` declaration `H`, bytes [614141,615191)
+- **Read from**: `modalAtom-DGA9kfJh.js` declaration `wo`, bytes [216970,218020)
 - **Measured**: keys 11, valuesStatingAName 11, valuesStatingAGroup 11, valuesWithASprite 9, spriteReferencesResolved 9, spriteReferencesUnresolved 0, distinctGroups 3
 
 ## `mutationArt`
@@ -49,9 +49,10 @@ Read from the game's own chunks for game version **1192** (art version **1192**)
 - **Invariant**: every key is a mutation record this bundle states, every colour-bearing filter states both its colour and its alpha, every sprite reference resolves through the sprite-name table, and the keys that construct no colour filter at all are counted as materials rather than dropped
 - **Confirmed by**: mutation-art-table: every sprite it names is in the name table, and every mutation is a wash or a material
 - **Consumers**: mutationArt(mutation), mutationStack(mutation), mutationOverlayArt(mutation)
-- **Read from**: `resources-D_3Zwcn-.js` declaration `xn`, bytes [15162,16354)
+- **Read from**: `weatherVisuals-BRVfy9sq.js` declaration `Hn`, bytes [12585,13897)
+- **Read with**: `J`, `qi`
 - **Measured**: keys 11, valuesCarryingAFilter 9, valuesWithATint 9, valuesThatAreMaterials 2, keysThatAreMutationRecords 11, recordFieldReferences 9, referencesUnresolved 0, coloursOutsideThePackedRange 0
-  - art fields seen: colorOverlay, iconSprite, overlayFromBottom, overlaySprite, tallPlantGroundSprite
+  - art fields seen: colorOverlay, iconGlowsAtNight, iconSprite, overlayFromBottom, overlaySprite, tallPlantGroundSprite
 
 ## `displayFlags`
 
@@ -59,10 +60,10 @@ Read from the game's own chunks for game version **1192** (art version **1192**)
 - **Invariant**: every key resolves through the sprite-name table to a sprite path, at least one key states a true flag, and the default record is identified by how many keys point at it rather than by a name
 - **Confirmed by**: display-flag-table: every key is a sprite path the name table states, and the tall set is not empty
 - **Consumers**: mutationAnchor(species, artName, art, harvestType), plantPicture(...)
-- **Read from**: `resources-D_3Zwcn-.js` declaration `I`, bytes [11166,14887)
-- **Read with**: `F`
-- **Measured**: keys 109, keysWithInlineFlags 34, keysPointingAtTheDefault 75, flagsStated 218, keysResolvedThroughTheNameTable 109, keysUnresolved 0, isTallPlantTrue 15, isNarrowDisplayTrue 30, defaultReferences 75
-  - the default record is the declaration 75 keys point at
+- **Read from**: `getNormalizedScale-C6p31neC.js` declaration `a`, bytes [459,4650)
+- **Read with**: `i`
+- **Measured**: keys 125, keysWithInlineFlags 34, keysPointingAtTheDefault 91, flagsStated 250, keysResolvedThroughTheNameTable 125, keysUnresolved 0, isTallPlantTrue 15, isNarrowDisplayTrue 30, defaultReferences 91
+  - the default record is the declaration 91 keys point at
 
 ## `anchors`
 
@@ -70,8 +71,8 @@ Read from the game's own chunks for game version **1192** (art version **1192**)
 - **Invariant**: every key is a species the plant table states -- a table of fractions keyed by centreXFraction matches this shape and is refused -- and every value is a number shape, not an expression
 - **Confirmed by**: anchor-table: every key is a species in the plant table
 - **Consumers**: mutationAnchor(species, artName, art, harvestType)
-- **Read from**: `resources-D_3Zwcn-.js` declaration `Tn`, bytes [16701,17169)
-- **Measured**: keys 22, numericValues 0, recordValues 22, valuesWithPerPartNumbers 3, keysThatAreSpecies 22, keysThatAreNotSpecies 0
+- **Read from**: `weatherVisuals-BRVfy9sq.js` declaration `$r`, bytes [40642,41163)
+- **Measured**: keys 23, numericValues 0, recordValues 23, valuesWithPerPartNumbers 4, keysThatAreSpecies 23, keysThatAreNotSpecies 0
 
 ## `plants`
 
@@ -79,8 +80,8 @@ Read from the game's own chunks for game version **1192** (art version **1192**)
 - **Invariant**: every species states a plant block, every sprite reference in every part resolves through the sprite-name table, and the harvest types the table names are counted so a build that renames the enum is visible
 - **Confirmed by**: plant-table: every sprite it names is in the name table
 - **Consumers**: spriteName(record, part), mutationAnchor(species, artName, art, harvestType)
-- **Read from**: `worldDepthSortKey-BXUHHrP0.js` declaration `I`, bytes [50900,85278)
-- **Measured**: species 69, parts 207, spriteReferencesResolved 207, spriteReferencesUnresolved 0, distinctHarvestTypes 2
+- **Read from**: `modalAtom-DGA9kfJh.js` declaration `ei`, bytes [115465,152860)
+- **Measured**: species 73, parts 219, spriteReferencesResolved 219, spriteReferencesUnresolved 0, distinctHarvestTypes 2
   - harvest types named: Multiple, Single
 
 ## `harvestTypes`
@@ -89,8 +90,8 @@ Read from the game's own chunks for game version **1192** (art version **1192**)
 - **Invariant**: every member the plant table names is assigned exactly one string literal, so the placement function can be run with the game's own enum rather than with strings this package guessed
 - **Confirmed by**: harvest-type-enum: every harvest type a plant states is a member
 - **Consumers**: mutationAnchor(species, artName, art, harvestType)
-- **Read from**: `worldDepthSortKey-BXUHHrP0.js`, bytes [50560,50668)
-- **Read with**: `F`, `Rn`
+- **Read from**: `modalAtom-DGA9kfJh.js`, bytes [115124,115232)
+- **Read with**: `R`, `Zr`
 - **Measured**: membersRequestedByThePlantTable 2, membersAssignedInThisChunk 2, membersWithConflictingLiterals 0
 
 ## `iconFills`
@@ -99,16 +100,19 @@ Read from the game's own chunks for game version **1192** (art version **1192**)
 - **Invariant**: exactly the game's seven item types, each accounted for once: six routed by the switch, two of them stating a share in (0, 1] and four reaching the builder with no `sizeRatio`, and the pet routed beside the switch through the portrait bake, which states no share of its own
 - **Confirmed by**: icon-fill-table: every item type is a literal the game's item-type enum assigns exactly once
 - **Consumers**: iconArt(entry), ICON_FILL
-- **Read from**: `resources-D_3Zwcn-.js` declaration `Fi`, bytes [72760,73551)
-- **Read with**: `Bi`, `Di`, `Ei`, `Gi`, `Ii`, `Ki`, `Li`, `Mi`, `Pi`, `Ri`, `Ui`, `Vi`, `Wi`, `Zn`, `bi`, `hn`, `ji`, `q`, `vn`, `wi`, `zi`
-- **Measured**: itemTypes 7, statedShares 2, defaultShares 4, bakeFrames 1, fitFunctions 1, builderFunctions 1, canvasLiteralCalls 1, routerFunctions 1, bakeRoutes 1
-  - Plant: 0.6 (stated)
-  - Produce: 0.4 (stated)
+- **Read from**: `SharedRiveSprite-DBOFo9EV.js` declaration `ce`, bytes [8707,8805)
+- **Read with**: `H`, `U`, `W`
+- **Measured**: itemTypes 7, statedShares 2, defaultShares 4, bakeFrames 1, fitFunctions 0, builderFunctions 0, canvasLiteralCalls 0, routerFunctions 1, bakeRoutes 1
+  - share switch: ce
+  - enum: lt
+  - Pet is the one kind the switch does not state; the icon model draws it from the portrait bake
   - Seed: 1 (fit-default)
+  - Produce: 0.4 (stated)
+  - Plant: 0.6 (stated)
   - Tool: 1 (fit-default)
-  - Decor: 1 (fit-default)
-  - Egg: 1 (fit-default)
   - Pet: 1 (bake-frame)
+  - Egg: 1 (fit-default)
+  - Decor: 1 (fit-default)
 
 ## `itemTypes`
 
@@ -116,7 +120,7 @@ Read from the game's own chunks for game version **1192** (art version **1192**)
 - **Invariant**: every item kind the icon-fill table names is a member of exactly one such enum, assigned one literal, so the table's keys are strings the game states rather than names this package made up
 - **Confirmed by**: icon-fill-table: every item type is a literal the game's item-type enum assigns exactly once
 - **Consumers**: iconArt(entry), ICON_FILL
-- **Read from**: `worldDepthSortKey-BXUHHrP0.js` declaration `E`, bytes [3894,4023)
+- **Read from**: `AsyncEpoch-uBidHipI.js` declaration `lt`, bytes [20303,20432)
 - **Measured**: membersRequestedByTheIconTable 7, membersAssignedInThisChunk 7, membersWithConflictingLiterals 0
 
 ## `kindSchemas`
@@ -125,11 +129,11 @@ Read from the game's own chunks for game version **1192** (art version **1192**)
 - **Invariant**: exactly the item kinds the item-type enum states, each with at least one arm; the largest union whose arms state an `objectType` through one enum, one arm per member; a crop read from the plant schema's own `slots` member; and a pet base reachable from both the item union's pet arm and the pet variants, one of which wraps the extras the other requires
 - **Confirmed by**: kind-schema-table: every item kind is a member whose item-type literal is that same string; every tile kind is a member the object-type enum assigns a lowercase literal to, and every member it assigns has a schema, and by `tests/bundle/kind-schemas.test.ts`
 - **Consumers**: the declared-against-exposed gate: a consumer reads `data/<version>.json` by path and compares each kind's field list to the schema the game states
-- **Read from**: `worldDepthSortKey-BXUHHrP0.js` declaration `Ta`, bytes [634682,634761)
-- **Read with**: `Aa`, `Ca`, `Ma`, `N`, `Na`, `Sa`, `_a`, `aa`, `ba`, `ga`, `ja`, `ka`, `va`, `wa`, `xa`, `ya`
-- **Read at**: `_a` [634078,634145), `aa` [633190,633315), `Aa` [634967,635023), `ba` [634370,634447), `Ca` [634535,634600), `ga` [633937,634074), `ja` [635027,635094), `ka` [634891,634963), `Ma` [635098,635186), `N` [31091,31180), `Na` [635190,635206), `Sa` [634506,634531), `va` [634149,634203), `wa` [634604,634678), `xa` [634451,634502), `ya` [634207,634366)
-- **Measured**: itemKinds 7, itemArms 8, tileKinds 4, tileArms 4, tileTypes 4, cropArms 1, petVariants 2, arms 16, fields 70, optionalFields 9
-  - optional wrapper(s), read from the variants: c
+- **Read from**: `modalAtom-DGA9kfJh.js` declaration `_d`, bytes [1104039,1104118)
+- **Read with**: `Cd`, `H`, `Sd`, `Td`, `Yu`, `cd`, `dd`, `fd`, `gd`, `hd`, `ld`, `md`, `pd`, `ud`, `wd`, `xd`
+- **Read at**: `cd` [1103203,1103390), `Cd` [1104386,1104453), `dd` [1103560,1103719), `fd` [1103723,1103801), `gd` [1103960,1104035), `H` [180177,180266), `hd` [1103890,1103956), `ld` [1103394,1103497), `md` [1103861,1103886), `pd` [1103805,1103857), `Sd` [1104325,1104382), `Td` [1104549,1104565), `ud` [1103501,1103556), `wd` [1104457,1104545), `xd` [1104248,1104321), `Yu` [1102227,1102352)
+- **Measured**: itemKinds 7, itemArms 8, tileKinds 4, tileArms 4, tileTypes 4, cropArms 1, petVariants 2, arms 16, fields 75, optionalFields 14
+  - optional wrapper(s), read from the variants: C
 
 ## `scale`
 
@@ -137,10 +141,10 @@ Read from the game's own chunks for game version **1192** (art version **1192**)
 - **Invariant**: the formula occurs exactly once in the chunk that declares the constant, the constant is a fraction, the divisor is the reference tile, and the tall-decal multiplier is found exactly once and is greater than one
 - **Confirmed by**: scale-cap: the cap is a fraction and the divisor is a tile size
 - **Consumers**: mutationAnchor(species, artName, art, harvestType), iconArt(entry)
-- **Read from**: `resources-D_3Zwcn-.js` declaration `En`, bytes [17173,17176)
-- **Read with**: `An`, `kn`
+- **Read from**: `weatherVisuals-BRVfy9sq.js` declaration `ei`, bytes [41167,41170)
+- **Read with**: `ni`, `ri`
 - **Measured**: capFormulaOccurrences 1, capConstantDeclared 1, tallDecalCandidates 1
-  - formula as written: Math.min(En,m/256)
+  - formula as written: Math.min(ei,g/256)
   - cap constant: 0.75
   - tall-decal multiplier: 2
 
@@ -150,10 +154,12 @@ Read from the game's own chunks for game version **1192** (art version **1192**)
 - **Invariant**: every member is a key of the mutation art table and the set is used beside that table, so a set of anything else is refused
 - **Confirmed by**: mutation-over-set: every member is a mutation the art table states
 - **Consumers**: mutationStack(mutation), plantPicture(...)
-- **Read from**: `resources-D_3Zwcn-.js` declaration `On`, bytes [17547,17609)
-- **Read with**: `An`
-- **Measured**: members 4, membersThatAreMutationArtKeys 4, setUsedBesideTheMutationArtTable 1
-  - members: Dawnlit, Ambershine, Dawncharged, Ambercharged
+- **Read from**: `weatherVisuals-BRVfy9sq.js` declaration `qi`, bytes [51550,51589)
+- **Read with**: `J`
+- **Measured**: members 9, membersThatAreMutationArtKeys 9, setUsedBesideTheMutationArtTable 1
+  - members: Wet, Chilled, Frozen, Thunderstruck, Dawnlit, Ambershine, Dawncharged, Ambercharged, Thundercharged
+  - ladder: behindBody(-1), body(0), bodyOverlay(1), hydroBadge(2), carving(3), lunarBadge(4)
+  - groups above the body: Hydro->hydroBadge(2), Lunar->lunarBadge(4)
 
 ## `placement`
 
@@ -161,8 +167,8 @@ Read from the game's own chunks for game version **1192** (art version **1192**)
 - **Invariant**: exactly one function divides by the tile and closes over the anchors and the cap; every other name it reads is a host global or a table this extractor found, with the role read from how the function uses the name; and it returns an offset and a scale factor, which is the game's own name for what a placement is
 - **Confirmed by**: no validation can confirm it, and by `tests/bundle/placement.test.ts`
 - **Consumers**: mutationAnchor(species, artName, art, harvestType), mutationPlacement(mutation, icon, art)
-- **Read from**: `resources-D_3Zwcn-.js` declaration `Dn`, bytes [17177,17540)
-- **Read with**: `En`, `Tn`, `wn`
-- **Measured**: closesOverTheAnchorsAndTheCap 1, chunkLocalDeclarationsInTheClosure 3, externals 3, unresolvedExternals 0, returnsAnOffsetAndAScaleFactor 1, characters 925
-  - free names: D, En, Math, Tn, k, wn
-  - externals: D=harvestTypes, Math=host, k=plants
+- **Read from**: `weatherVisuals-BRVfy9sq.js` declaration `ti`, bytes [41171,41532)
+- **Read with**: `$r`, `Qr`, `ei`, `f`
+- **Measured**: closesOverTheAnchorsAndTheCap 1, chunkLocalDeclarationsInTheClosure 4, externals 2, unresolvedExternals 0, returnsAnOffsetAndAScaleFactor 1, characters 1015
+  - free names: $r, C, Math, Qr, ei, f
+  - externals: C=harvestTypes, Math=host

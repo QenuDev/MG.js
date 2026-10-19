@@ -49,7 +49,7 @@ the reference for reviewing future changes. It has four parts:
 `mg.js` is four packages over one protocol.
 
 - **`@mg.js/common`**: the platform-free core. It holds the Quinoa wire protocol, a JSON-Patch document store,
-  the 72 typed game actions, and a catalogue of live shop/weather data. **Zero runtime dependencies.
+  the 109 typed game actions, and a catalogue of live shop/weather data. **Zero runtime dependencies.
   No `node:*`, no DOM globals, no `ws`.**
 - **`@mg.js/headless`**: a standalone Node client with its own WebSocket transport, `mc_jwt` cookie auth,
   reconnect and backoff policy, version resolution. Its dependency on `ws` is optional and exists only
@@ -245,7 +245,7 @@ packages/common/src/
   poll.ts                     the one deadline poll: pollUntil/watchUntil/unrefTimer
   protocol/                   the wire: bytes <-> messages
     index.ts  wire.ts  envelope.ts  codec.ts  connect-url.ts  close-codes.ts  id.ts
-  actions/                    the commands we send; the whole 72-action surface lives here
+  actions/                    the commands we send; the whole 109-action surface lives here
     index.ts  registry.ts     <- protocol/forms.ts
     params.ts                 <- actions/types.ts
     game-actions.ts           <- actions/actions.ts

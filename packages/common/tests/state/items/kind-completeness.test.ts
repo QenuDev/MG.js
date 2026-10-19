@@ -348,7 +348,15 @@ function beyondAllowance(names: readonly string[], allowed: readonly string[]): 
  */
 const ITEM_SAMPLES = {
   Seed: { itemType: 'Seed', species: 'Clover', quantity: 12 },
-  Produce: { itemType: 'Produce', id: 'crop_1', species: 'Tomato', size: 75, mutations: ['Gold'] },
+  Produce: {
+    itemType: 'Produce',
+    id: 'crop_1',
+    species: 'Tomato',
+    size: 75,
+    mutations: ['Gold'],
+    carving: 'AAAA',
+    carvingVerdict: 'approved',
+  },
   Plant: {
     itemType: 'Plant',
     id: 'plant_1',
@@ -396,7 +404,7 @@ const TILE_SAMPLES: Readonly<Record<string, Record<string, unknown> | undefined>
   Crystal: { objectType: 'crystal', crystalType: 'Hunger', remainingActiveSeconds: 1_440 },
 };
 
-/** The crop sample, the richest slot in the reader fixture: it states every optional `ga` field. */
+/** The crop sample, the richest slot in the reader fixture: it states every optional `cd` field. */
 const CROP_SAMPLE = {
   species: 'Strawberry',
   startTime: 0,
@@ -408,6 +416,9 @@ const CROP_SAMPLE = {
   rotation: 90,
   flipped: false,
   preserved: true,
+  locked: true,
+  carving: 'AAAA',
+  carvingVerdict: 'approved',
   slotId: 7,
 } satisfies Record<string, unknown>;
 

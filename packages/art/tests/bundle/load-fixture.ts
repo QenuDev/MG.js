@@ -118,11 +118,15 @@ export function loadFixture(directory: string = FIXTURE_DIR): LoadedFixture {
 }
 
 /** Extract from chunk texts a test has changed; throws what the extractor throws. */
-export function extractTexts(texts: readonly { readonly file: string; readonly text: string }[]): {
+export function extractTexts(
+  texts: readonly { readonly file: string; readonly text: string }[],
+  manifest?: FixtureManifest,
+): {
   readonly tables: ArtTables;
   readonly evidence: Readonly<Record<TableId, Evidence>>;
 } {
-  return extractArtTables(texts.map((chunk) => projectChunk(chunk.file, chunk.text)));
+  const projected = texts.map((chunk) => projectChunk(chunk.file, chunk.text));
+  return extractArtTables(manifest === undefined ? projected : restoreImports(projected, manifest));
 }
 
 /** The chunk text for one fixture file, so a test can name what it is changing. */

@@ -1,7 +1,7 @@
 # @mg.js/common
 
-The shared protocol core of [magicgarden.js](https://github.com/QenuDev/MG.js): the wire contract for all 71
-Magic Garden "Quinoa" wire actions, exposed as a 72-method typed surface. The 72nd is `fuseCrystal`, which
+The shared protocol core of [magicgarden.js](https://github.com/QenuDev/MG.js): the wire contract for all 108
+Magic Garden "Quinoa" wire actions, exposed as a 109-method typed surface. The extra method is `fuseCrystal`, which
 shares `PlaceCrystal`'s wire string rather than owning one. The package also holds the state engine, the
 command sequencer and the domain catalogues.
 

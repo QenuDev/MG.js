@@ -57,7 +57,7 @@ the sprite and frame lookups they read, `PLANTER_POT`, and `iconArt` for invento
 | `spriteName(record, part, byName?)` | The sprite the game's own table states for one part of a record, as the path the atlas is keyed by — or `null` for a name the table does not state. |
 | `resolveSprite(frames, path)` | The frame the atlas states for one sprite, or `null` when it states none. |
 | `mutationArt(mutation)` | A mutation's wash as `rgba(...)` (or `null` for a shader material) and the name of the art it draws over the crop. |
-| `mutationStack(mutation, overMutations)` | Where a mutation sits in the draw order, whether it is an over-mutation, and which side of the crop it is drawn on. |
+| `mutationStack(mutation, overMutations)` | Where a mutation sits in the draw order: the build's stated normal-crop and tall-plant z-index, whether it is an over-mutation, and the ground art. |
 | `mutationOverlayArt(mutation)` | The art a mutation lays on a tall plant: the decal that pools at its foot, the overlay over the plant, and whether that overlay climbs from the bottom. |
 | `mutationAnchor(species, artName, art, harvestType, tables)` | The point of a species' art a mutation centres on, and the scale it is drawn at. |
 | `mutationPlacement(mutation, icon, art, tables)` | The rectangle a mutation's art is drawn into, in the crop art's own pixels. |
@@ -90,7 +90,7 @@ The recipe shapes and what they are made of:
 | `MutationArtwork` | A mutation's own art, resolved to the frame it is drawn from, and the decal a tall plant gets instead. |
 | `MutationDrawing` | A mutation's wash and the name of the art it draws over the crop. |
 | `MutationPlacement` | The rectangle a mutation's art is drawn into, in the crop art's own pixels. |
-| `MutationStack` | Where a mutation sits in the draw order, and which side of the crop it is drawn on. |
+| `MutationStack` | Where a mutation sits in the draw order, its normal-crop and tall-plant z-index, and which side of the crop it is drawn on. |
 | `MutationTint` | A mutation's crop wash, as the game's filter construction states it. |
 | `OverlayArt` | The art a mutation lays on a tall plant: the decal that pools at its foot, and the overlay over the plant. |
 | `PartExtent` | A box in the sprites' own pixels, measured from where its own left and top edges are. |

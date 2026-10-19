@@ -37,8 +37,14 @@ import { asFiniteMs, ServerClock } from './clock.js';
 import { toMutations } from './coercions.js';
 import type {
   ActivityEntry,
+  CarvingVerdict,
   Crop,
   Currency,
+  EdgeDecor,
+  EdgeObject,
+  EdgeOrientation,
+  EdgePart,
+  EdgePosition,
   Garden,
   Inventory,
   Pet,
@@ -297,7 +303,14 @@ export function toInventory(value: unknown, entityPath: string, nowMs = 0): Inve
   return {
     items: toInventoryItems(record.read('items'), `${entityPath}/items`, nowMs),
     storages,
+    favoritedItemIds: toFavoritedItemIds(record.read('favoritedItemIds')),
   };
+}
+
+/** The favourited ids, which the save states as an array of strings; anything else is not an id. */
+function toFavoritedItemIds(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((entry): entry is string => typeof entry === 'string');
 }
 
 /**
@@ -340,10 +353,12 @@ export function toActivityEntry(value: unknown, entityPath: string): ActivityEnt
  * One crop, typed from the game's grow-slot schema.
  *
  * The schema is `kindSchemas.crops` in the art bundle at the version this library is kept against
- * (`packages/art/data/<version>.json` — `ga` in that build, with its provenance in `docs/art-provenance.md`),
+ * (`packages/art/data/<version>.json` — `cd` in the 1650 build, with its provenance in
+ * `docs/art-provenance.md`),
  * and it declares:
  *
- *     ga = d({ species, startTime, endTime, size, mutations, x, y, rotation, flipped, preserved, slotId })
+ *     cd = u({ species, startTime, endTime, size, mutations, x, y, rotation, flipped, preserved,
+ *              locked, carving, carvingVerdict, slotId })
  *
  * `ready` and `remainingMs` are computed here against server time, which is what the game compares
  * against, because the server sends neither.
@@ -368,10 +383,16 @@ export function toCrops(value: unknown, nowMs: number, entityPath: string): Crop
   return crops;
 }
 
+/** The game's own carving-verdict union, or `null` when the crop states none this reader knows. */
+export function asCarvingVerdict(value: unknown): CarvingVerdict | null {
+  return value === 'approved' || value === 'hidden' ? value : null;
+}
+
 export function toCrop(value: unknown, nowMs: number, entityPath: string): Crop {
   const record = new StateRecord(value);
   const endTime = record.number('endTime');
   const remainingMs = endTime > 0 ? Math.max(0, endTime - nowMs) : 0;
+  const carving = record.string('carving');
 
   return {
     entityPath,
@@ -387,6 +408,9 @@ export function toCrop(value: unknown, nowMs: number, entityPath: string): Crop 
     positioned: record.has('x') || record.has('y'),
     flipped: record.boolean('flipped'),
     preserved: record.boolean('preserved'),
+    locked: record.boolean('locked'),
+    carving: carving === '' ? null : carving,
+    carvingVerdict: asCarvingVerdict(record.read('carvingVerdict')),
     ready: endTime > 0 && remainingMs === 0,
     remainingMs,
     record,
@@ -472,12 +496,61 @@ export function toMountedCrop(value: unknown, nowMs: number, entityPath: string)
   return toCrop(value, nowMs, entityPath);
 }
 
+/** The game's own edge key: `<h|v>:<x>:<y>`, each coordinate 0..999 with no leading zeros. */
+const EDGE_KEY = /^([hv]):(0|[1-9]\d{0,2}):(0|[1-9]\d{0,2})$/;
+
+/** An edge's parts, in the order the game's own schema declares them. */
+const EDGE_PARTS = ['line', 'hanging', 'backdrop'] as const satisfies readonly EdgePart[];
+
+/** One decoration on an edge, or `null` when the part states nothing that can be drawn. */
+function toEdgeDecor(
+  value: unknown,
+  part: EdgePart,
+  position: EdgePosition,
+  entityPath: string,
+): EdgeDecor | null {
+  if (value === null || typeof value !== 'object') return null;
+  const record = new StateRecord(value);
+  return {
+    ...position,
+    entityPath,
+    part,
+    decorId: record.string('decorId'),
+    mirrored: record.boolean('mirrored'),
+    record,
+  };
+}
+
+/**
+ * One edge, from a key and its record.
+ *
+ * A key the game's own pattern does not accept is not an address, so it is `null`. A key that does accept,
+ * but whose record states no part, is still an edge with `parts: []`: the alternative is silently dropping a
+ * save this reader does not understand, which is the failure the escape hatch exists to avoid.
+ */
+function toEdge(id: string, value: unknown, entityPath: string): EdgeObject | null {
+  const match = EDGE_KEY.exec(id);
+  if (match === null || value === null || typeof value !== 'object') return null;
+  const orientation = match[1] as EdgeOrientation;
+  const position: EdgePosition = { orientation, x: Number(match[2]), y: Number(match[3]) };
+  const record = new StateRecord(value);
+  const parts: EdgeDecor[] = [];
+  for (const part of EDGE_PARTS) {
+    const decor = toEdgeDecor(record.raw[part], part, position, `${entityPath}/${part}`);
+    if (decor !== null) parts.push(decor);
+  }
+  return { ...position, entityPath, id, parts, record };
+}
+
 /**
  * One garden, from `userSlots[i].data.garden`.
  *
  * The game's two tile maps are read as two, never merged: they are keyed independently, so the same number
  * can address a soil tile and a boardwalk tile at once and a merge would drop one of them. Each tile says
  * which ground it came from, so a caller that wants one list can join them without losing the distinction.
+ *
+ * The third map, `edgeObjects`, is read as edges rather than as tiles. Its keys are the game's own composite
+ * `h:x:y`/`v:x:y` addresses, not tile indices, and its values hold at most one decoration per edge part.
  *
  * @returns `null` when the value is not an object at all, which is how a failed slot join surfaces.
  */
@@ -504,10 +577,28 @@ export function toGarden(value: unknown, nowMs: number, entityPath: string): Gar
     return found.sort((left, right) => left.id - right.id);
   };
 
+  /** The edge map, read by the game's own key and ordered by orientation, x and y. */
+  const readEdges = (): EdgeObject[] => {
+    const map = record.raw['edgeObjects'];
+    if (map === null || typeof map !== 'object') return [];
+    const found: EdgeObject[] = [];
+    for (const [key, edge] of Object.entries(map as Record<string, unknown>)) {
+      const read = toEdge(key, edge, `${entityPath}/edgeObjects/${key}`);
+      if (read !== null) found.push(read);
+    }
+    return found.sort(
+      (left, right) =>
+        (left.orientation === right.orientation ? 0 : left.orientation === 'h' ? -1 : 1) ||
+        left.x - right.x ||
+        left.y - right.y,
+    );
+  };
+
   return {
     entityPath,
     tiles: readMap('tileObjects', 'Dirt'),
     boardwalkTiles: readMap('boardwalkTileObjects', 'Boardwalk'),
+    edges: readEdges(),
     record,
   };
 }

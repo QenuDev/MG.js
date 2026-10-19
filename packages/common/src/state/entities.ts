@@ -155,15 +155,19 @@ export interface StateView {
  * One crop planted on a tile: the game's grow-slot schema.
  *
  * The schema the art pipeline extracted at the version this library is kept against is `kindSchemas.crops`
- * in `packages/art/data/<version>.json` (`ga` in that build; `docs/art-provenance.md` records where it was
+ * in `packages/art/data/<version>.json` (`cd` in the 1650 build; `docs/art-provenance.md` records where it
  * read from), and it declares:
  *
- *     ga = d({ species, startTime, endTime, size, mutations, x, y, rotation, flipped, preserved, slotId })
+ *     cd = u({ species, startTime, endTime, size, mutations, x, y, rotation, flipped, preserved,
+ *              locked, carving, carvingVerdict, slotId })
  *
  * `startTime` and `endTime` are server milliseconds, and `remainingMs` and `ready` are derived from them
  * against {@link StateReader.now} rather than `Date.now()`, because that is the clock the game itself
  * compares against.
  */
+/** Whether a pumpkin's carving is shown to visitors. The game's own union: `approved` or `hidden`. */
+export type CarvingVerdict = 'approved' | 'hidden';
+
 export interface Crop extends StateView {
   /** The path of this crop: `.../garden/tileObjects/<tile>/slots/<n>`. */
   readonly entityPath: string;
@@ -203,6 +207,12 @@ export interface Crop extends StateView {
   readonly flipped: boolean;
   /** True when the crop was preserved, which is what the harvest prompt offers on it. */
   readonly preserved: boolean;
+  /** True when the plot is locked, so the crop cannot be picked up. Absent on the wire reads as false. */
+  readonly locked: boolean;
+  /** A pumpkin's carving, as the base64 the game states, or `null` when it has none. */
+  readonly carving: string | null;
+  /** Whether that carving is shown to visitors, or `null` when the crop states no verdict. */
+  readonly carvingVerdict: CarvingVerdict | null;
   /**
    * True when the crop is finished and can be harvested.
    *
@@ -388,7 +398,72 @@ export interface OtherTile extends TileBase {
 }
 
 /**
- * One garden: a player's tiles, as the game's two grounds.
+ * Which way an edge runs, as the game's own key states it.
+ *
+ * An edge is the seam between two tiles, not a tile of its own. The game addresses it by a composite key,
+ * `<orientation>:<x>:<y>`: a horizontal edge (`h`) runs along x at row y, and a vertical edge (`v`) runs
+ * down y at column x. The two coordinates are the garden's, not a tile slot's.
+ */
+export type EdgeOrientation = 'h' | 'v';
+
+/** One of the three parts an edge can hold, in the game's own schema order. */
+export type EdgePart = 'line' | 'hanging' | 'backdrop';
+
+/** Which side of a tile an edge is picked up from, in the game's own spelling. */
+export type EdgeSide = 'up' | 'down' | 'left' | 'right';
+
+/** An edge's address: the orientation and the two coordinates the game keys it by. */
+export interface EdgePosition {
+  readonly orientation: EdgeOrientation;
+  readonly x: number;
+  readonly y: number;
+}
+
+/**
+ * One decoration on an edge.
+ *
+ * A decoration occupies one of an edge's three independent parts — `line`, `hanging`, `backdrop` — and is
+ * drawn from the same decor table a tile decoration is. `mirrored` is the game's own flag for the sideways
+ * art; it turns the sprite rather than naming a second decoration.
+ */
+export interface EdgeDecor extends StateView, EdgePosition {
+  /** The path of this part: `.../garden/edgeObjects/<key>/<part>`. */
+  readonly entityPath: string;
+  /** Which of the edge's three parts this decoration occupies. */
+  readonly part: EdgePart;
+  /** The decoration's id, as the game's decor table spells it. */
+  readonly decorId: string;
+  /** True when the decoration is drawn mirrored. */
+  readonly mirrored: boolean;
+  /** Everything else the part carries, read by name. The escape hatch. */
+  readonly record: StateRecordLike;
+}
+
+/**
+ * One edge of the garden grid: the seam between two tiles and the decorations on its three parts.
+ *
+ * The game keeps these in `garden.edgeObjects`, beside the two tile maps and keyed by `h:x:y`/`v:x:y`. An
+ * edge holds no crop, egg, crystal or tile object; it holds at most one decoration per part. Its coordinates
+ * are the garden's rather than a tile slot's, which is why an edge is not addressed by a tile index.
+ *
+ * {@link parts} holds only the parts the save states, in the game's own schema order. The schema requires at
+ * least one part, and an edge that states none is still read with `parts: []` rather than dropped, so a
+ * malformed save is handed on. A key that is not the game's own shape is not an address and is skipped, the
+ * same reading a non-numeric tile key gets.
+ */
+export interface EdgeObject extends StateView, EdgePosition {
+  /** The path of this edge: `.../garden/edgeObjects/<id>`. */
+  readonly entityPath: string;
+  /** The edge's key in `edgeObjects`: `h:x:y` or `v:x:y`. */
+  readonly id: string;
+  /** The decorations on the edge's parts, in the game schema's order. */
+  readonly parts: EdgeDecor[];
+  /** Everything else the edge carries, read by name. The escape hatch. */
+  readonly record: StateRecordLike;
+}
+
+/**
+ * One garden: a player's tiles and the edges between them.
  *
  * The game sends two tile maps and they are read as two, never merged: they are keyed independently, so the
  * same key can name a soil tile and a boardwalk tile at once and a merge would drop whichever lost. Each tile
@@ -397,6 +472,9 @@ export interface OtherTile extends TileBase {
  *
  * What is on a tile does not say which ground it is on. Decoration can stand in the soil and a shard can be
  * charged on the boardwalk, so a caller classifying by `objectType` puts both in the wrong place.
+ *
+ * The third map, `edgeObjects`, holds decorations placed on the seams between tiles rather than on a tile.
+ * Those are read as {@link EdgeObject}, not as tiles: they have no tile index and no tile object.
  */
 export interface Garden extends StateView {
   /** The path of this garden: `.../userSlots/<slot>/data/garden`. */
@@ -412,6 +490,14 @@ export interface Garden extends StateView {
    * the ground that makes it a boardwalk tile, not the hutch: a shard charged there is a boardwalk tile too.
    */
   readonly boardwalkTiles: Tile[];
+  /**
+   * The garden's edges, from `edgeObjects`, ordered by orientation, then x, then y.
+   *
+   * An edge is the seam between two tiles, not a tile. It is keyed by the game's own `h:x:y`/`v:x:y` and
+   * carries at most one decoration per part, so it is kept apart from {@link tiles} and
+   * {@link boardwalkTiles}: an edge has no tile index and holds no tile object.
+   */
+  readonly edges: EdgeObject[];
   /** Everything else the garden carries, read by name. The escape hatch. */
   readonly record: StateRecordLike;
 }
@@ -567,6 +653,13 @@ export interface Inventory {
   readonly items: InventoryItem[];
   /** Every container the player has built, in the save's own order. */
   readonly storages: Storage[];
+  /**
+   * The item ids the player has favourited, which the game refuses to consume.
+   *
+   * A favourited watering can is the case the game names in its own refusal (`can_locked`), and the ids are
+   * the same `itemId` an inventory entry carries.
+   */
+  readonly favoritedItemIds: readonly string[];
 }
 
 /**

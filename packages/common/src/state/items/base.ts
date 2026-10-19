@@ -14,7 +14,7 @@
  * So every field below was read from the schema that declares it, and an arm carries exactly the fields its
  * kind declares. The tables in the game's bundle are:
  *
- *     produce  { id, species, itemType, size, mutations }
+ *     produce  { id, species, itemType, size, mutations, carving, carvingVerdict }
  *     seed     { species, itemType, quantity }
  *     tool     { toolId, itemType, quantity } or { id, toolId, itemType, quantity, remainingActiveSeconds }
  *     plant    { id, species, itemType, slots, plantedAt, maturedAt }
@@ -40,7 +40,7 @@
  * is still a save this reader can hand on, and the spelling it used is in the item's own `record`.
  */
 
-import type { Crop, Mutation, StateRecordLike, StateView } from '../entities.js';
+import type { CarvingVerdict, Crop, Mutation, StateRecordLike, StateView } from '../entities.js';
 import type { PetFields } from './pet.js';
 
 /**
@@ -111,14 +111,19 @@ export interface InventoryItemBase extends StateView {
  * This is the one map the union is derived from, so an arm cannot exist without its fields: adding a kind
  * here without a reader fails the registry's `satisfies`, and adding a reader for a kind that is not here
  * fails it too. A kind whose own fields are all base fields states `unknown`, which adds nothing — the
- * empty shape. Five of the seven are that today, and only two declare a reading the base does not carry:
- * the plant (`plantedAt`, `maturedAt`) and the pet ({@link PetFields}). That is the honest result rather
+ * empty shape. Four of the seven are that today, and three declare a reading the base does not carry:
+ * the plant (`plantedAt`, `maturedAt`), the pet ({@link PetFields}) and the produce (the two carving
+ * fields 1650 added). That is the honest result rather
  * than a defect: the map is what makes a missing kind a compile error and what gives the next game field a
  * home.
  */
 export interface ItemFields {
   readonly Seed: unknown;
-  readonly Produce: unknown;
+  /** 1650 states a produce the same two carving fields a crop has, because a harvest carries its carving. */
+  readonly Produce: {
+    readonly carving: string | null;
+    readonly carvingVerdict: CarvingVerdict | null;
+  };
   readonly Plant: { readonly plantedAt: number; readonly maturedAt: number };
   readonly Tool: unknown;
   readonly Pet: PetFields;

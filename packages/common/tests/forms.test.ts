@@ -38,18 +38,28 @@ function recordingSender(): {
 }
 
 describe('form registry', () => {
-  it('contains exactly 71 distinct wire strings', () => {
-    assert.equal(ACTION_NAMES.length, 71);
+  it('contains exactly 108 distinct wire strings', () => {
+    assert.equal(ACTION_NAMES.length, 108);
     const wires = new Set(ACTION_NAMES.map((name) => ACTION_SPECS[name].wire));
-    assert.equal(wires.size, 71, 'every wire string must be distinct');
+    assert.equal(wires.size, 108, 'every wire string must be distinct');
   });
 
-  it('splits 9 room / 15 flat / 47 wrapped', () => {
+  it('splits 9 room / 15 flat / 84 wrapped', () => {
     const counts = { room: 0, flat: 0, wrapped: 0 };
     for (const name of ACTION_NAMES) counts[ACTION_SPECS[name].form] += 1;
-    assert.deepEqual(counts, { room: 9, flat: 15, wrapped: 47 });
-    // 47 wrapped wire commands + fuseCrystal (which emits PlaceCrystal) = the reference's 48.
-    assert.equal(counts.wrapped + 1, 48);
+    assert.deepEqual(counts, { room: 9, flat: 15, wrapped: 84 });
+    // 84 wrapped wire commands + fuseCrystal (which emits PlaceCrystal) = the 85 wrapped methods.
+    assert.equal(counts.wrapped + 1, 85);
+  });
+
+  it('registers the three 1650 edge-decor commands as wrapped decor actions', () => {
+    for (const name of ['PlaceEdgeDecor', 'PickupEdgeDecor', 'RemoveGardenEdgeObject'] as const) {
+      assert.equal(ACTION_SPECS[name].form, 'wrapped', `${name} must be wrapped`);
+      assert.equal(ACTION_SPECS[name].category, 'decor', `${name} must be a decor action`);
+    }
+    assert.deepEqual(ACTION_SPECS.PlaceEdgeDecor.params, ['edge', 'decorId', 'mirrored']);
+    assert.deepEqual(ACTION_SPECS.PickupEdgeDecor.params, ['part', 'edge', 'side']);
+    assert.deepEqual(ACTION_SPECS.RemoveGardenEdgeObject.params, ['part', 'edge']);
   });
 
   it('agrees exactly with the documented 15-name flat allowlist', () => {
@@ -139,26 +149,27 @@ describe('form registry', () => {
 });
 
 describe('GameActions surface', () => {
-  it('exposes exactly 72 methods', () => {
-    // 71 wire strings + fuseCrystal, which the reference exposes alongside placeCrystal.
+  it('exposes exactly 109 methods', () => {
+    // 108 wire strings + fuseCrystal, which the reference exposes alongside placeCrystal.
     const methods = Object.getOwnPropertyNames(GameActions.prototype).filter(
       (name) => name !== 'constructor',
     );
     assert.equal(methods.length, GAME_ACTION_METHOD_COUNT);
-    assert.equal(methods.length, 72);
+    assert.equal(methods.length, 109);
   });
 
   it('sends fuseCrystal as PlaceCrystal with a merge intent', () => {
     const { sender, calls } = recordingSender();
     const actions = new GameActions(sender);
     actions.fuseCrystal({
-      shard: { itemId: 'shard-1', crystalType: 'ruby' },
+      item: { itemType: 'Tool', itemId: 'crystal-1' },
       tileType: 'Dirt',
       localTileIndex: 4,
       mergeGainSeconds: 120,
     });
     assert.equal(calls.length, 1);
     assert.equal(calls[0]?.action, 'PlaceCrystal');
+    assert.deepEqual(calls[0]?.params.item, { itemType: 'Tool', itemId: 'crystal-1' });
     assert.deepEqual(calls[0]?.params.intent, { type: 'merge', mergeGainSeconds: 120 });
   });
 
@@ -166,11 +177,55 @@ describe('GameActions surface', () => {
     const { sender, calls } = recordingSender();
     const actions = new GameActions(sender);
     actions.placeCrystal({
-      shard: { itemId: 'shard-1', crystalType: 'ruby' },
+      item: { itemType: 'Tool', toolId: 'CrystalShard' },
       tileType: 'Dirt',
       localTileIndex: 4,
     });
+    assert.deepEqual(calls[0]?.params.item, { itemType: 'Tool', toolId: 'CrystalShard' });
     assert.deepEqual(calls[0]?.params.intent, { type: 'place' });
+  });
+
+  it('sends placeEdgeDecor with the edge address and the mirrored flag', () => {
+    const { sender, calls } = recordingSender();
+    const actions = new GameActions(sender);
+    actions.placeEdgeDecor({
+      edge: { orientation: 'h', x: 10, y: 3 },
+      decorId: 'StringLights',
+      mirrored: true,
+    });
+    assert.equal(calls[0]?.action, 'PlaceEdgeDecor');
+    assert.deepEqual(calls[0]?.params, {
+      edge: { orientation: 'h', x: 10, y: 3 },
+      decorId: 'StringLights',
+      mirrored: true,
+    });
+  });
+
+  it('sends pickupEdgeDecor with the part, the edge and the side it is picked up from', () => {
+    const { sender, calls } = recordingSender();
+    const actions = new GameActions(sender);
+    actions.pickupEdgeDecor({
+      part: 'hanging',
+      edge: { orientation: 'v', x: 4, y: 7 },
+      side: 'right',
+    });
+    assert.equal(calls[0]?.action, 'PickupEdgeDecor');
+    assert.deepEqual(calls[0]?.params, {
+      part: 'hanging',
+      edge: { orientation: 'v', x: 4, y: 7 },
+      side: 'right',
+    });
+  });
+
+  it('sends removeGardenEdgeObject with only the part and the edge', () => {
+    const { sender, calls } = recordingSender();
+    const actions = new GameActions(sender);
+    actions.removeGardenEdgeObject({ part: 'line', edge: { orientation: 'h', x: 2, y: 9 } });
+    assert.equal(calls[0]?.action, 'RemoveGardenEdgeObject');
+    assert.deepEqual(calls[0]?.params, {
+      part: 'line',
+      edge: { orientation: 'h', x: 2, y: 9 },
+    });
   });
 
   it('sends restartGame with the wire field `name`, not `gameName`', () => {
@@ -214,7 +269,10 @@ describe('GameActions surface', () => {
     actions.dawnCapture({ petItemId: 'p', x: 5, y: 6 });
     actions.requestPetGreet({ x: 7, y: 8 });
     assert.deepEqual(calls[0]?.params, { position: { x: 1, y: 2 } });
-    assert.deepEqual(calls[1]?.params, { position: { x: 3, y: 4 } });
+    assert.deepEqual(calls[1]?.params, {
+      position: { x: 3, y: 4 },
+      tramArrivalStationIndex: undefined,
+    });
     assert.deepEqual(calls[2]?.params, { petItemId: 'p', position: { x: 5, y: 6 } });
     assert.deepEqual(calls[3]?.params, { position: { x: 7, y: 8 } });
   });
@@ -236,6 +294,82 @@ describe('GameActions surface', () => {
     const frame = buildFrame({ action: 'Wish', params: calls[0]?.params ?? {}, commandSequence: 1 });
     assert.ok(isWrappedFrame(frame), 'Wish is a wrapped action, so the params live under `command`');
     assert.ok(!('itemId' in frame.command), 'itemId must not appear in the frame at all');
+  });
+
+  it('sends MoveItem with the two locations and its optional placement fields', () => {
+    const { sender, calls } = recordingSender();
+    const actions = new GameActions(sender);
+    actions.moveItem({ from: 'inventory', to: 'silo', itemId: 'i1', quantity: 2, beforeItemId: 'i2' });
+    assert.equal(calls[0]?.action, 'MoveItem');
+    assert.deepEqual(calls[0]?.params, {
+      from: 'inventory',
+      to: 'silo',
+      itemId: 'i1',
+      quantity: 2,
+      beforeItemId: 'i2',
+      evictionItemId: undefined,
+    });
+  });
+
+  it('sends LogItem with the target the caller discriminated', () => {
+    const { sender, calls } = recordingSender();
+    const actions = new GameActions(sender);
+    actions.logItem({ target: { kind: 'displayedCrop', tileType: 'Dirt', localTileIndex: 4, cropId: 'c' } });
+    assert.equal(calls[0]?.action, 'LogItem');
+    assert.deepEqual(calls[0]?.params, {
+      target: { kind: 'displayedCrop', tileType: 'Dirt', localTileIndex: 4, cropId: 'c' },
+    });
+  });
+
+  it('sends every 1650 command under its own wire name', () => {
+    const cases: readonly (readonly [string, unknown, string])[] = [
+      ['moveItem', { from: 'inventory', to: 'silo', itemId: 'i' }, 'MoveItem'],
+      ['logItem', { target: { kind: 'petSlot', petId: 'p' } }, 'LogItem'],
+      ['setStatFavorite', { statId: 's', favorite: true }, 'SetStatFavorite'],
+      ['claimDailyQuestReward', {}, 'ClaimDailyQuestReward'],
+      ['claimDailyQuestBonus', {}, 'ClaimDailyQuestBonus'],
+      ['claimSpookyQuestReward', {}, 'ClaimSpookyQuestReward'],
+      ['refreshDailyQuest', {}, 'RefreshDailyQuest'],
+      ['requestNpcVisit', {}, 'RequestNpcVisit'],
+      ['acceptNpcVisitGift', undefined, 'AcceptNpcVisitGift'],
+      ['skipNpcVisitArrival', undefined, 'SkipNpcVisitArrival'],
+      ['npcVisitFarewellReady', undefined, 'NpcVisitFarewellReady'],
+      ['npcVisitFarewellSeen', undefined, 'NpcVisitFarewellSeen'],
+      ['watchedEdgarIntro', undefined, 'WatchedEdgarIntro'],
+      ['claimOneTimeReward', { rewardId: 'r' }, 'ClaimOneTimeReward'],
+      ['openDawnCapsule', undefined, 'OpenDawnCapsule'],
+      ['openAllDawnCapsules', undefined, 'OpenAllDawnCapsules'],
+      ['openAmberCapsule', undefined, 'OpenAmberCapsule'],
+      ['openAllAmberCapsules', undefined, 'OpenAllAmberCapsules'],
+      ['purchaseSeedWithCredits', { species: 'Clover', shop: 'seed' }, 'PurchaseSeedWithCredits'],
+      ['purchaseToolWithCredits', { toolId: 'Shovel', shop: 'tool' }, 'PurchaseToolWithCredits'],
+      ['purchaseEggWithCredits', { egg: 'SnowEgg', shop: 'egg' }, 'PurchaseEggWithCredits'],
+      ['purchaseDecorWithCredits', { decorId: 'Fence', shop: 'decor' }, 'PurchaseDecorWithCredits'],
+      ['purchasePetCosmeticWithCredits', { cosmeticId: 'hat' }, 'PurchasePetCosmeticWithCredits'],
+      ['purchaseAvatarCosmetic', { cosmeticFilename: 'a.png' }, 'PurchaseAvatarCosmetic'],
+      ['purchaseHalloweenBundleWithCredits', undefined, 'PurchaseHalloweenBundleWithCredits'],
+      ['upgradeStorageWithCredits', { decorId: 'SeedSilo' }, 'UpgradeStorageWithCredits'],
+      ['instaGrowWithCredits', { dirtTileIndex: 3 }, 'InstaGrowWithCredits'],
+      ['restockSeedsWithCredits', undefined, 'RestockSeedsWithCredits'],
+      ['restockEggsWithCredits', undefined, 'RestockEggsWithCredits'],
+      ['restockToolsWithCredits', undefined, 'RestockToolsWithCredits'],
+      ['restockDecorsWithCredits', undefined, 'RestockDecorsWithCredits'],
+      ['setGrowSlotLock', { slot: 1, growSlotId: 2, locked: true }, 'SetGrowSlotLock'],
+      ['carvePumpkin', { slot: 1, growSlotId: 2 }, 'CarvePumpkin'],
+      ['amberCapture', { petItemId: 'p', x: 1, y: 2 }, 'AmberCapture'],
+      ['takePhoto', undefined, 'TakePhoto'],
+      ['photographTutorialHaunt', undefined, 'PhotographTutorialHaunt'],
+      ['photographGhost', {}, 'PhotographGhost'],
+      ['tramBoarding', {}, 'TramBoarding'],
+      ['tramArrival', {}, 'TramArrival'],
+      ['spendApologyTicket', { use: 'pardon', cosmeticFilename: 'a.png' }, 'SpendApologyTicket'],
+    ];
+    for (const [method, arg, wire] of cases) {
+      const { sender, calls } = recordingSender();
+      const actions = new GameActions(sender) as unknown as Record<string, (value?: unknown) => unknown>;
+      actions[method]?.(arg);
+      assert.equal(calls[0]?.action, wire, `${method} sent ${String(calls[0]?.action)} rather than ${wire}`);
+    }
   });
 
   it('passes a pet team emblem through as an object', () => {

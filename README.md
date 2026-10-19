@@ -4,7 +4,7 @@ An all-purpose API wrapper for **Magic Garden**'s "Quinoa" layer, in two shapes 
 
 | Package | What it is | Owns a socket? | Has a renderer? |
 |---|---|---|---|
-| **`@mg.js/common`** | The shared core. Wire contract for all 71 wire actions, exposed as a 72-method typed surface. The 72nd method is `fuseCrystal`, which shares `PlaceCrystal`'s wire string rather than owning one. The package also carries the state engine, sequencer and catalogues. Zero dependencies, runtime-agnostic. | no | no |
+| **`@mg.js/common`** | The shared core. Wire contract for all 108 wire actions, exposed as a 109-method typed surface. The extra method is `fuseCrystal`, which shares `PlaceCrystal`'s wire string rather than owning one. The package also carries the state engine, sequencer and catalogues. Zero dependencies, runtime-agnostic. | no | no |
 | **`@mg.js/bootstrapped`** | The in-page client, as a library. Attaches to the game's own live connection and adds Pixi, Rive, world overlays and coexistence handling. The example userscript is built on it, in its own repository. | no, it rides the host's | yes |
 | **`@mg.js/headless`** | The standalone client. Opens its own WebSocket, authenticates, handshakes, stays alive, reconnects. | yes | no |
 
@@ -159,7 +159,7 @@ These are real and documented rather than papered over:
 mg.js/
   packages/common/        @mg.js/common
     src/protocol/         the wire: envelopes, codec, connect URL, close codes, ids
-    src/actions/          the commands we send: the action registry (71 wire actions → 72 methods),
+    src/actions/          the commands we send: the action registry (108 wire actions → 109 methods),
                           param types, command handles, sequencer, result codes
     src/state/            JSON Pointer, RFC 6902 applier, observable store, typed paths
     src/catalog/          the catalogue sources (static, platform, remote JSON) + live-fetching client

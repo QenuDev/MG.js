@@ -31,7 +31,7 @@ export type {
   ActionForm,
   CommandBody,
   ConnectOptions,
-  CrystalShard,
+  CrystalItem,
   FlatFrame,
   FullState,
   InboundMessage,

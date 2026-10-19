@@ -104,10 +104,16 @@ function minifiedNames(): readonly string[] {
  * and `docs/art-provenance.md` still record all three names verbatim for a reviewer.
  */
 const PROSE_COLLISIONS: Readonly<Record<string, { readonly measured: number; readonly floor: number }>> = {
+  // The indefinite article, and the commonest single-letter identifier a minifier can emit.
+  a: { measured: 326, floor: 300 },
+  // The loop variable of every `for` and a regular-expression flag; no code can avoid it.
+  i: { measured: 0, floor: 0 },
   // English's "as" and TypeScript's cast keyword.
   as: { measured: 53, floor: 48 },
   // English's commonest verb and TypeScript's type-predicate keyword.
   is: { measured: 254, floor: 240 },
+  // `.md` is the provenance document's extension, which every path to it in this package spells.
+  md: { measured: 3, floor: 2 },
   // `ts` shows up two ways in this package: eight whole-word comment-line hits, and far more `.ts` file
   // extensions and the `import ts from 'typescript'` alias, which the whole-word pattern does not count.
   ts: { measured: 8, floor: 6 },

@@ -44,6 +44,14 @@ export interface MutationArt {
   readonly groundSprite: SpritePath | null;
   readonly overlaySprite: SpritePath | null;
   readonly overlayFromBottom: boolean;
+  /**
+   * The z-index the build gives this mutation on a normal crop.
+   *
+   * Absent through 1192, where the game states one over-set and a constant; 1650 states a group ladder instead.
+   */
+  readonly zIndex?: number;
+  /** The z-index a tall plant gives it, where the build states a different one. */
+  readonly tallPlantZIndex?: number;
 }
 
 export interface MutationRecord {
@@ -60,9 +68,10 @@ export interface DisplayFlags {
 /**
  * How the game states one item kind's share of the **256x256** inventory icon box.
  *
- * `stated` is a `sizeRatio` the fit is called with (or the `256 * <const>` scale the plant path computes);
- * `fit-default` is the fit's own default of 1, because the kind reaches the icon builder with no `sizeRatio` at
- * all; `bake-frame` is the pet, which is the one kind the item-kind switch does not route -- the game renders a
+ * `stated` is a share the build states: a `sizeRatio` the fit is called with (through 1192), a
+ * `256 * <const>` scale the plant path computes, or the share the 1650 multiplier switch returns for the kind.
+ * `fit-default` is the implicit 1, because the kind reaches the icon builder with no stated share at all;
+ * `bake-frame` is the pet, which is the one kind the item-kind switch does not route -- the game renders a
  * pet's portrait through a separate bake service, and that service's own renderer reaches the same 256-frame
  * builder with no `sizeRatio`, so its share is the fit's default rather than a figure any branch states.
  *
@@ -75,7 +84,7 @@ export type IconFillSource = 'stated' | 'fit-default' | 'bake-frame';
 export interface IconFill {
   /** The share of the icon box the kind's art is fitted to, in `(0, 1]`. */
   readonly fill: number;
-  /** Where the share comes from: a stated `sizeRatio`, the fit's default, or the pet's route outside the switch. */
+  /** Where the share comes from: a stated share, the implicit 1, or the pet's route outside the switch. */
   readonly source: IconFillSource;
 }
 

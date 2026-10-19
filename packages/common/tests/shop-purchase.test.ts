@@ -119,7 +119,7 @@ describe('the shop purchase item union', () => {
 });
 
 describe('purchaseShopItem', () => {
-  it('sends the shop and the item, and nothing else', () => {
+  it('sends the shop, the item and the optional fields the 1650 schema states', () => {
     const { sender, calls } = recordingSender();
     new GameActions(sender).purchaseShopItem({
       shop: 'seed',
@@ -128,11 +128,26 @@ describe('purchaseShopItem', () => {
 
     assert.equal(calls.length, 1);
     assert.equal(calls[0]?.action, 'PurchaseShopItem');
-    // The two fields the wire takes. The item is the union's own arm, not this app's reading of a shop row.
+    // The item is the union's own arm, not this app's reading of a shop row; the two optionals are absent
+    // as undefined rather than as a value the caller did not state.
     assert.deepEqual(calls[0]?.params, {
       shop: 'seed',
       item: { itemType: 'Seed', species: 'Carrot' },
+      viewMode: undefined,
+      quantity: undefined,
     });
+  });
+
+  it('passes viewMode and quantity through when the caller states them', () => {
+    const { sender, calls } = recordingSender();
+    new GameActions(sender).purchaseShopItem({
+      shop: 'decor',
+      item: { itemType: 'Decor', decorId: 'Fence' },
+      viewMode: 'shop',
+      quantity: 3,
+    });
+    assert.equal(calls[0]?.params.viewMode, 'shop');
+    assert.equal(calls[0]?.params.quantity, 3);
   });
 
   it('refuses an item the game cannot parse instead of sending a command that will be ignored', () => {

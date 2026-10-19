@@ -6,9 +6,9 @@
  * The reference declares `GameActions` methods with **positional** arguments
  * (`harvestCrop(slot, slotsIndex?, cropItemId?)`, `placePet(itemId, x, y, tileType, localTileIndex)`).
  * Every method here takes a **single params object** instead. Three reasons, all of which matter at
- * 72 methods:
+ * 109 methods:
  *
- *   1. 44 of the 72 methods have optional parameters, and several have *two or three* adjacent
+ *   1. Many of the 109 methods have optional parameters, and several have *two or three* adjacent
  *      optionals. Positional calls with a trailing optional force callers to pass `undefined`
  *      placeholders, which are easy to get wrong and impossible to type-check meaningfully.
  *   2. The documented rule for several parameters is "omit it entirely, do not send null"
@@ -22,8 +22,8 @@
  * divergence is commented at the type.
  */
 
-import type { CrystalShard, PetTeamEmblem } from '../protocol/wire.js';
-import type { TileType } from '../state/entities.js';
+import type { CrystalItem, PetTeamEmblem } from '../protocol/wire.js';
+import type { EdgePart, EdgePosition, EdgeSide, TileType } from '../state/entities.js';
 
 // ---------------------------------------------------------------- session & heartbeat
 
@@ -85,6 +85,11 @@ export interface MarkChatReadParams {
 export interface MoveParams {
   x: number;
   y: number;
+}
+
+/** `Teleport` adds an optional tram-arrival station to the same position. */
+export interface TeleportParams extends MoveParams {
+  tramArrivalStationIndex?: number;
 }
 
 // --------------------------------------------------------------------------- shop
@@ -154,6 +159,10 @@ export interface PurchaseShopItemParams {
   shop: ShopKey;
   /** The item, as the game's own command states it. See {@link ShopPurchaseItem}. */
   item: ShopPurchaseItem;
+  /** The 1650 build states the view the purchase was made from; a string from its own union. */
+  viewMode?: string;
+  /** How many, for the kinds a shop sells in stacks. The game's own default is 1. */
+  quantity?: number;
 }
 
 // ---------------------------------------------------------------- garden & crops
@@ -221,8 +230,8 @@ export interface GrowSlotParams {
 export type CrystalIntent = { type: 'place' } | { type: 'merge'; mergeGainSeconds: number };
 
 export interface PlaceCrystalParams {
-  /** The inventory item reference. The reference method takes this first, as `shard`. */
-  shard: CrystalShard;
+  /** The shard tool, or the charged crystal being fused: the 1650 command's own two-arm tool union. */
+  item: CrystalItem;
   /**
    * Which ground the tile is on. Both grounds are numbered from zero and hold more than their usual
    * contents — a shard can be charged on the boardwalk and decoration can stand in the soil — so the index
@@ -273,6 +282,37 @@ export interface PlaceDecorParams {
   localTileIndex: number;
   /** Omit for the default orientation. */
   rotation?: number;
+}
+
+/**
+ * `PlaceEdgeDecor` params.
+ *
+ * An edge is the seam between two tiles, addressed by the game's own `{orientation, x, y}` rather than by a
+ * tile type and index. `mirrored` is required: the game's schema states it on every placement, and it is what
+ * turns the sideways art.
+ */
+export interface PlaceEdgeDecorParams {
+  edge: EdgePosition;
+  decorId: string;
+  mirrored: boolean;
+}
+
+/**
+ * `PickupEdgeDecor` params.
+ *
+ * `part` is which of the edge's three decorations is being taken, and `side` is the side of the tile the
+ * player reached it from; the game uses the side to decide which adjacent tile the item flies to.
+ */
+export interface PickupEdgeDecorParams {
+  part: EdgePart;
+  edge: EdgePosition;
+  side: EdgeSide;
+}
+
+/** `RemoveGardenEdgeObject` params: the edge and the one part to clear. */
+export interface RemoveGardenEdgeObjectParams {
+  part: EdgePart;
+  edge: EdgePosition;
 }
 
 // --------------------------------------------------------------- pets & pet teams
@@ -372,50 +412,155 @@ export interface SetPetTeamEmblemParams {
 
 // ---------------------------------------------------------- inventory & storage
 
-export interface MoveInventoryItemParams {
-  moveItemId: string;
-  toInventoryIndex: number;
+/** Where an item is: the player's hand (`inventory`) or one storage's own id. */
+export type ItemLocation = 'inventory' | (string & {});
+
+/**
+ * `MoveItem`: one move between the hand and a storage, or between two storages.
+ *
+ * The 1650 build replaced the six single-purpose storage commands with this one, whose `from`/`to` are the
+ * source and destination locations. `beforeItemId` inserts before that item; `evictionItemId` names what to
+ * push out when the destination is full.
+ */
+export interface MoveItemParams {
+  from: ItemLocation;
+  to: ItemLocation;
+  itemId: string;
+  /** Omit to move the whole stack. */
+  quantity?: number;
+  beforeItemId?: string;
+  evictionItemId?: string;
 }
 
+/** What `LogItem` asks the server to announce, discriminated by `kind`. */
+export type LogItemTarget =
+  | { kind: 'growSlot'; slot: number; slotsIndex: number }
+  | { kind: 'petSlot'; petId: string }
+  | { kind: 'inventoryItem'; itemId: string }
+  | { kind: 'displayedCrop'; tileType: TileType; localTileIndex: number; cropId: string };
+
+/** `LogItem`: announce one item's details to the room, the 1650 replacement for `LogItems`. */
+export interface LogItemParams {
+  target: LogItemTarget;
+}
+
+/**
+ * `SetSelectedItem`: the item the player now holds, and the rotation a decor is previewed at.
+ *
+ * The 1192 build sent `itemIndex`; the 1650 schema states `itemId` (optional) and `decorRotation`, so the
+ * index field the old wrapper sent is a field this build does not read.
+ */
 export interface SetSelectedItemParams {
-  itemIndex: number;
+  itemId?: string;
+  decorRotation?: number;
 }
 
 export interface ToggleLockItemParams {
   itemId: string;
 }
 
-export interface PutItemInStorageParams {
-  itemId: string;
-  storageId: string;
-  /** Omit to append at the end. */
-  toStorageIndex?: number;
-  /** Omit to move the whole stack. */
-  quantity?: number;
+// ------------------------------------------------------------ quests & npc visits
+
+/** How an NPC visit is triggered: by calling, or by harvesting a named crop. */
+export type NpcVisitTrigger = { kind: 'call' } | { kind: 'harvest'; crop: string };
+
+export interface RequestNpcVisitParams {
+  trigger?: NpcVisitTrigger;
 }
 
-export interface RetrieveItemFromStorageParams {
-  itemId: string;
-  storageId: string;
-  /** Omit to append at the end. */
-  toInventoryIndex?: number;
-  /** Omit to move the whole stack. */
-  quantity?: number;
+export interface ClaimOneTimeRewardParams {
+  rewardId: string;
 }
 
-export interface MoveStorageItemParams {
-  itemId: string;
-  storageId: string;
-  toStorageIndex: number;
+export interface ClaimDailyQuestRewardParams {
+  /** The quest instance id, a string on the wire (`S()`), not a number. */
+  instanceId?: string;
+  minimumQuantity?: number;
 }
 
-export interface SwapItemWithStorageParams {
-  storageId: string;
-  inventoryItemId: string;
-  storageItemId: string;
-  toStorageIndex?: number;
-  toInventoryIndex?: number;
-  /** Only send together with `draggedFromInventory`. */
-  draggedQuantity?: number;
-  draggedFromInventory?: boolean;
+export interface ClaimDailyQuestBonusParams {
+  minimumQuantity?: number;
+}
+
+export interface ClaimSpookyQuestRewardParams {
+  minimumQuantity?: number;
+}
+
+export interface RefreshDailyQuestParams {
+  instanceId?: string;
+}
+
+// ----------------------------------------------------- purchases with credits
+
+export interface PurchaseSeedWithCreditsParams {
+  species: string;
+  shop: ShopKey;
+}
+
+export interface PurchaseToolWithCreditsParams {
+  toolId: string;
+  shop: ShopKey;
+}
+
+export interface PurchaseEggWithCreditsParams {
+  egg: string;
+  shop: ShopKey;
+}
+
+export interface PurchaseDecorWithCreditsParams {
+  decorId: string;
+  shop: ShopKey;
+}
+
+export interface PurchasePetCosmeticWithCreditsParams {
+  cosmeticId: string;
+}
+
+export interface PurchaseAvatarCosmeticParams {
+  cosmeticFilename: string;
+  /** The price the caller saw; the game refuses a mismatch rather than silently charging the new one. */
+  expectedAmount?: number;
+}
+
+export interface UpgradeStorageWithCreditsParams {
+  decorId: string;
+}
+
+export interface InstaGrowWithCreditsParams {
+  dirtTileIndex: number;
+}
+
+// ---------------------------------------------------------------- garden & pets
+
+export interface SetGrowSlotLockParams {
+  slot: number;
+  growSlotId: number;
+  locked: boolean;
+}
+
+export interface CarvePumpkinParams {
+  slot: number;
+  growSlotId: number;
+  /** The base64 carving; omit to clear it. */
+  carving?: string;
+}
+
+export interface SetStatFavoriteParams {
+  statId: string;
+  favorite: boolean;
+}
+
+export interface PhotographGhostParams {
+  ghostIndex?: number;
+  ghostInstanceId?: string;
+}
+
+export interface TramParams {
+  stationIndex?: number;
+}
+
+export interface SpendApologyTicketParams {
+  /** The ticket use the game states; the current build spells it from its own union. */
+  use: string;
+  cosmeticFilename: string;
 }

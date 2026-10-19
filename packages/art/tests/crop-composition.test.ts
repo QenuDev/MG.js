@@ -196,6 +196,23 @@ void test('a tall plant’s mutation pools under the art instead of drawing over
   );
 });
 
+void test('a tall plant puts a Hydro mutation behind the body even when it states no decal', () => {
+  // Chilled states no ground art, so `decal` is false -- but the game's tall-plant rule is about the mutation's
+  // group, not its ground: every group except Lunar is drawn behind the body on a tall plant.
+  const recipe = required(
+    cropComposition('Bamboo', ['Chilled'], tables, frames),
+    'Bamboo and Chilled are both in the capture',
+  );
+  assert.deepEqual(
+    recipe.layers.map((layer) => [layer.kind, layer.mutation, layer.decal, layer.over]),
+    [
+      ['mutation', 'Chilled', false, false],
+      ['art', null, false, false],
+    ],
+    'the frost is drawn under the plant it cannot pool under',
+  );
+});
+
 void test('a patch is drawn from its species’ plant art, and a crop from its crop art', () => {
   // Carrot states two different pictures for its parts: `sprite/plant/Carrot` is what it is picked as and
   // `sprite/plant/BabyCarrot` is what stands on the tile, and a patch is what stands there.

@@ -145,3 +145,35 @@ reinstalling, is what records `https://registry.npmjs.org/...` and drops `link: 
 `package.json` cannot see this; only the lockfile's `resolved` fields can.
 
 
+
+
+---
+
+## 2026-10-19: build 1650, and the data the packages ship
+
+The game moved to build 1650. The art extractor, the state model and the action surface were brought to it,
+and the shipped artefacts were regenerated rather than hand-edited.
+
+```
+npm run verify            exit 0
+  lint                     323 files, no diagnostics
+  tsc -b + tests tsconfig  exit 0
+  tests                    1,237 / 0 fail
+                           art 228 · bootstrapped 238 · common 566 · headless 205
+  art:sync --check         1650 current (offline; fixture reproduces the committed data)
+  docs:check               866 symbols, 46 modules
+npm run verify:catalog    ALL LIVE CHECKS PASSED (11/11 shops, weather, restock)
+```
+
+What is committed for 1650:
+
+- `packages/art/data/1650.json` and `packages/art/fixtures/bundle-1650/`
+- 724 sprite names, 73 plants, 125 display flags, 23 anchors, 11 mutations, 7 item kinds, 4 tile kinds
+- the 1650 z-ladder on each mutation art record (`zIndex`, `tallPlantZIndex`), with Hydro at 2/-1 and Lunar at 4/4
+- 108 wire strings / 109 methods, including the 1650 `MoveItem`/`LogItem` pair, the quest/NPC/capsule/credits
+  commands, and `PlaceCrystal`'s tool-item payload (`{itemType:"Tool", toolId}` or `{itemType:"Tool", itemId}`)
+
+The protocol guide under `docs/sources/` is untouched. The vendored API reference was updated to the 1650
+surface (its `GameActions` table now mirrors the library's 108 wire strings / 109 methods), and
+`docs/provenance.md` records both the new hash and the original vendored hash so the rewrite is auditable.
+

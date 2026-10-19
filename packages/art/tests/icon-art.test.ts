@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 import { parseArtData } from '../src/bundle/data.ts';
 import { ICON_FILL, iconArt } from '../src/icon.ts';
 import { type FrameBox, frameBox } from '../src/model.ts';
-import { loadFixture } from './bundle/load-fixture.ts';
+import { loadFixture, shippedDataText, shippedVersions } from './bundle/load-fixture.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -42,6 +42,14 @@ void test('`ICON_FILL` is the page`s table, typed, and the extraction agrees wit
     Object.entries(tables.iconFills).map(([kind, entry]) => [kind, entry.fill]),
   );
   assert.deepEqual(extracted, ICON_FILL, 'the published table disagrees with the extraction');
+});
+
+void test('the published fills agree with every shipped build, not only the one this file pins', () => {
+  for (const version of shippedVersions()) {
+    const shipped = parseArtData(shippedDataText(version)).tables.iconFills;
+    const extracted = Object.fromEntries(Object.entries(shipped).map(([kind, entry]) => [kind, entry.fill]));
+    assert.deepEqual(extracted, ICON_FILL, `${version}'s extraction disagrees with ICON_FILL`);
+  }
 });
 
 void test('the table records how each share was stated, so four defaults do not read as four statements', () => {

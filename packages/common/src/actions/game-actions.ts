@@ -1,7 +1,7 @@
 /**
- * `GameActions`: every documented action as a typed method.
+ * `GameActions`: every action this release models, as a typed method.
  *
- * This is the surface that makes the wrapper "all-purpose": 72 methods covering all 71 distinct wire
+ * This is the surface that makes the wrapper "all-purpose": 109 methods covering all 108 distinct wire
  * strings, each one knowing which of the three forms it must use, so the documented silent-failure
  * mode (sending a `wrapped` action flat) cannot happen by accident.
  *
@@ -9,7 +9,7 @@
  * result to the {@link CommandSender}. Envelope construction, sequencing, and ack correlation live in
  * the client core, so the bootstrapped and headless clients share all of it.
  *
- * 72 methods for 71 wire strings, because `fuseCrystal()` is a documented convenience over
+ * 109 methods for 108 wire strings, because `fuseCrystal()` is a documented convenience over
  * `PlaceCrystal` with `intent:{type:"merge"}` rather than a distinct wire command. The field guide is
  * explicit that "there is no separate fuse command"; the reference exposes both methods anyway, and so
  * does this class.
@@ -18,7 +18,12 @@
 import { randomUuid } from '../protocol/id.js';
 import type { CommandHandle, CommandSender } from './handle.js';
 import type {
+  CarvePumpkinParams,
   ChatParams,
+  ClaimDailyQuestBonusParams,
+  ClaimDailyQuestRewardParams,
+  ClaimOneTimeRewardParams,
+  ClaimSpookyQuestRewardParams,
   DisplayCropParams,
   EmoteParams,
   EquipPetCosmeticParams,
@@ -28,45 +33,61 @@ import type {
   GrowEggParams,
   GrowSlotParams,
   HarvestCropParams,
+  InstaGrowWithCreditsParams,
   KickPlayerParams,
   LocalTileParams,
+  LogItemParams,
   MarkChatReadParams,
-  MoveInventoryItemParams,
+  MoveItemParams,
   MoveParams,
   MovePetSlotParams,
   MovePetTeamParams,
-  MoveStorageItemParams,
   MutationPotionParams,
   NamePetParams,
   PetAbilityParams,
   PetItemParams,
+  PhotographGhostParams,
   PickupCrystalParams,
+  PickupEdgeDecorParams,
   PickupPetParams,
   PingParams,
   PlaceCrystalParams,
   PlaceDecorParams,
+  PlaceEdgeDecorParams,
   PlacePetParams,
   PlantGardenPlantParams,
   PlantSeedParams,
   PotPlantParams,
   PreserveParams,
+  PurchaseAvatarCosmeticParams,
+  PurchaseDecorWithCreditsParams,
+  PurchaseEggWithCreditsParams,
+  PurchasePetCosmeticWithCreditsParams,
+  PurchaseSeedWithCreditsParams,
   PurchaseShopItemParams,
-  PutItemInStorageParams,
+  PurchaseToolWithCreditsParams,
+  RefreshDailyQuestParams,
+  RemoveGardenEdgeObjectParams,
   RemoveGardenObjectParams,
+  RequestNpcVisitParams,
   RequestPetGreetParams,
   RestartGameParams,
-  RetrieveItemFromStorageParams,
   SavePetTeamParams,
   SellPetParams,
+  SetGrowSlotLockParams,
   SetPetTeamEmblemParams,
   SetPlayerDataParams,
   SetSelectedItemParams,
+  SetStatFavoriteParams,
   SlotParams,
-  SwapItemWithStorageParams,
+  SpendApologyTicketParams,
   SwapPetFromStorageParams,
   SwapPetParams,
   TeamIdParams,
+  TeleportParams,
   ToggleLockItemParams,
+  TramParams,
+  UpgradeStorageWithCreditsParams,
   WishParams,
 } from './params.js';
 import { isShopPurchaseItem } from './params.js';
@@ -173,8 +194,11 @@ export class GameActions {
   }
 
   /** Instant position set, tile-grid coordinates. */
-  teleport(params: MoveParams): CommandHandle {
-    return this.sender.send('Teleport', { position: { x: params.x, y: params.y } });
+  teleport(params: TeleportParams): CommandHandle {
+    return this.sender.send('Teleport', {
+      position: { x: params.x, y: params.y },
+      tramArrivalStationIndex: params.tramArrivalStationIndex,
+    });
   }
 
   // --------------------------------------------------------------------------- shop
@@ -208,7 +232,12 @@ export class GameActions {
           'item it cannot parse rather than refusing it, so this is refused here instead.',
       );
     }
-    return this.sender.send('PurchaseShopItem', { shop: params.shop, item: params.item });
+    return this.sender.send('PurchaseShopItem', {
+      shop: params.shop,
+      item: params.item,
+      viewMode: params.viewMode,
+      quantity: params.quantity,
+    });
   }
 
   // ---------------------------------------------------------------- garden & crops
@@ -281,7 +310,7 @@ export class GameActions {
     return this.sender.send('PlaceCrystal', {
       tileType: params.tileType,
       localTileIndex: params.localTileIndex,
-      item: params.shard,
+      item: params.item,
       intent: { type: 'place' },
     });
   }
@@ -296,7 +325,7 @@ export class GameActions {
     return this.sender.send('PlaceCrystal', {
       tileType: params.tileType,
       localTileIndex: params.localTileIndex,
-      item: params.shard,
+      item: params.item,
       intent: { type: 'merge', mergeGainSeconds: params.mergeGainSeconds },
     });
   }
@@ -357,6 +386,44 @@ export class GameActions {
     return this.sender.send('PickupDecor', {
       tileType: params.tileType,
       localTileIndex: params.localTileIndex,
+    });
+  }
+
+  /** Places a decoration on an edge, at the orientation and coordinates the game addresses it by. */
+  placeEdgeDecor(params: PlaceEdgeDecorParams): CommandHandle {
+    return this.sender.send('PlaceEdgeDecor', {
+      edge: {
+        orientation: params.edge.orientation,
+        x: params.edge.x,
+        y: params.edge.y,
+      },
+      decorId: params.decorId,
+      mirrored: params.mirrored,
+    });
+  }
+
+  /** Picks one decoration off an edge part, naming the side the player reached it from. */
+  pickupEdgeDecor(params: PickupEdgeDecorParams): CommandHandle {
+    return this.sender.send('PickupEdgeDecor', {
+      part: params.part,
+      edge: {
+        orientation: params.edge.orientation,
+        x: params.edge.x,
+        y: params.edge.y,
+      },
+      side: params.side,
+    });
+  }
+
+  /** Removes one decoration part from an edge, without picking it up. */
+  removeGardenEdgeObject(params: RemoveGardenEdgeObjectParams): CommandHandle {
+    return this.sender.send('RemoveGardenEdgeObject', {
+      part: params.part,
+      edge: {
+        orientation: params.edge.orientation,
+        x: params.edge.x,
+        y: params.edge.y,
+      },
     });
   }
 
@@ -518,16 +585,29 @@ export class GameActions {
 
   // ---------------------------------------------------------- inventory & storage
 
-  moveInventoryItem(params: MoveInventoryItemParams): CommandHandle {
-    return this.sender.send('MoveInventoryItem', {
-      moveItemId: params.moveItemId,
-      toInventoryIndex: params.toInventoryIndex,
+  /** One move between the hand and a storage, or between two storages (the 1650 replacement). */
+  moveItem(params: MoveItemParams): CommandHandle {
+    return this.sender.send('MoveItem', {
+      from: params.from,
+      to: params.to,
+      itemId: params.itemId,
+      quantity: params.quantity,
+      beforeItemId: params.beforeItemId,
+      evictionItemId: params.evictionItemId,
     });
   }
 
+  /** Announce one item to the room, the 1650 replacement for `logItems`. */
+  logItem(params: LogItemParams): CommandHandle {
+    return this.sender.send('LogItem', { target: params.target });
+  }
+
   /** Flat. */
-  setSelectedItem(params: SetSelectedItemParams): CommandHandle {
-    return this.sender.send('SetSelectedItem', { itemIndex: params.itemIndex });
+  setSelectedItem(params: SetSelectedItemParams = {}): CommandHandle {
+    return this.sender.send('SetSelectedItem', {
+      itemId: params.itemId,
+      decorRotation: params.decorRotation,
+    });
   }
 
   toggleLockItem(params: ToggleLockItemParams): CommandHandle {
@@ -549,53 +629,205 @@ export class GameActions {
     return this.sender.send('PickupObject');
   }
 
-  /** Omit `toStorageIndex` to append at the end; omit `quantity` to move the whole stack. */
-  putItemInStorage(params: PutItemInStorageParams): CommandHandle {
-    return this.sender.send('PutItemInStorage', {
-      itemId: params.itemId,
-      storageId: params.storageId,
-      toStorageIndex: params.toStorageIndex,
-      quantity: params.quantity,
+  setStatFavorite(params: SetStatFavoriteParams): CommandHandle {
+    return this.sender.send('SetStatFavorite', {
+      statId: params.statId,
+      favorite: params.favorite,
     });
   }
 
-  /** Mirrored optional-field rules from {@link putItemInStorage}. */
-  retrieveItemFromStorage(params: RetrieveItemFromStorageParams): CommandHandle {
-    return this.sender.send('RetrieveItemFromStorage', {
-      itemId: params.itemId,
-      storageId: params.storageId,
-      toInventoryIndex: params.toInventoryIndex,
-      quantity: params.quantity,
+  // --------------------------------------------------- quests & npc visits (1650)
+
+  claimDailyQuestReward(params: ClaimDailyQuestRewardParams = {}): CommandHandle {
+    return this.sender.send('ClaimDailyQuestReward', {
+      instanceId: params.instanceId,
+      minimumQuantity: params.minimumQuantity,
     });
   }
 
-  moveStorageItem(params: MoveStorageItemParams): CommandHandle {
-    return this.sender.send('MoveStorageItem', {
-      itemId: params.itemId,
-      storageId: params.storageId,
-      toStorageIndex: params.toStorageIndex,
+  claimDailyQuestBonus(params: ClaimDailyQuestBonusParams = {}): CommandHandle {
+    return this.sender.send('ClaimDailyQuestBonus', {
+      minimumQuantity: params.minimumQuantity,
     });
   }
 
-  /**
-   * One atomic exchange rather than a retrieve+put pair, which keeps both capacities unchanged
-   * mid-swap. Only send `draggedQuantity`/`draggedFromInventory` together, when splitting part of a
-   * stack.
-   */
-  swapItemWithStorage(params: SwapItemWithStorageParams): CommandHandle {
-    return this.sender.send('SwapItemWithStorage', {
-      storageId: params.storageId,
-      inventoryItemId: params.inventoryItemId,
-      storageItemId: params.storageItemId,
-      toStorageIndex: params.toStorageIndex,
-      toInventoryIndex: params.toInventoryIndex,
-      draggedQuantity: params.draggedQuantity,
-      draggedFromInventory: params.draggedFromInventory,
+  claimSpookyQuestReward(params: ClaimSpookyQuestRewardParams = {}): CommandHandle {
+    return this.sender.send('ClaimSpookyQuestReward', {
+      minimumQuantity: params.minimumQuantity,
     });
   }
 
-  logItems(): CommandHandle {
-    return this.sender.send('LogItems');
+  refreshDailyQuest(params: RefreshDailyQuestParams = {}): CommandHandle {
+    return this.sender.send('RefreshDailyQuest', { instanceId: params.instanceId });
+  }
+
+  requestNpcVisit(params: RequestNpcVisitParams = {}): CommandHandle {
+    return this.sender.send('RequestNpcVisit', { trigger: params.trigger });
+  }
+
+  acceptNpcVisitGift(): CommandHandle {
+    return this.sender.send('AcceptNpcVisitGift');
+  }
+
+  skipNpcVisitArrival(): CommandHandle {
+    return this.sender.send('SkipNpcVisitArrival');
+  }
+
+  npcVisitFarewellReady(): CommandHandle {
+    return this.sender.send('NpcVisitFarewellReady');
+  }
+
+  npcVisitFarewellSeen(): CommandHandle {
+    return this.sender.send('NpcVisitFarewellSeen');
+  }
+
+  watchedEdgarIntro(): CommandHandle {
+    return this.sender.send('WatchedEdgarIntro');
+  }
+
+  claimOneTimeReward(params: ClaimOneTimeRewardParams): CommandHandle {
+    return this.sender.send('ClaimOneTimeReward', { rewardId: params.rewardId });
+  }
+
+  // --------------------------------------------------------------- capsules (1650)
+
+  openDawnCapsule(): CommandHandle {
+    return this.sender.send('OpenDawnCapsule');
+  }
+
+  openAllDawnCapsules(): CommandHandle {
+    return this.sender.send('OpenAllDawnCapsules');
+  }
+
+  openAmberCapsule(): CommandHandle {
+    return this.sender.send('OpenAmberCapsule');
+  }
+
+  openAllAmberCapsules(): CommandHandle {
+    return this.sender.send('OpenAllAmberCapsules');
+  }
+
+  // ----------------------------------------------- purchases with credits (1650)
+
+  purchaseSeedWithCredits(params: PurchaseSeedWithCreditsParams): CommandHandle {
+    return this.sender.send('PurchaseSeedWithCredits', {
+      species: params.species,
+      shop: params.shop,
+    });
+  }
+
+  purchaseToolWithCredits(params: PurchaseToolWithCreditsParams): CommandHandle {
+    return this.sender.send('PurchaseToolWithCredits', {
+      toolId: params.toolId,
+      shop: params.shop,
+    });
+  }
+
+  purchaseEggWithCredits(params: PurchaseEggWithCreditsParams): CommandHandle {
+    return this.sender.send('PurchaseEggWithCredits', { egg: params.egg, shop: params.shop });
+  }
+
+  purchaseDecorWithCredits(params: PurchaseDecorWithCreditsParams): CommandHandle {
+    return this.sender.send('PurchaseDecorWithCredits', {
+      decorId: params.decorId,
+      shop: params.shop,
+    });
+  }
+
+  purchasePetCosmeticWithCredits(params: PurchasePetCosmeticWithCreditsParams): CommandHandle {
+    return this.sender.send('PurchasePetCosmeticWithCredits', { cosmeticId: params.cosmeticId });
+  }
+
+  purchaseAvatarCosmetic(params: PurchaseAvatarCosmeticParams): CommandHandle {
+    return this.sender.send('PurchaseAvatarCosmetic', {
+      cosmeticFilename: params.cosmeticFilename,
+      expectedAmount: params.expectedAmount,
+    });
+  }
+
+  purchaseHalloweenBundleWithCredits(): CommandHandle {
+    return this.sender.send('PurchaseHalloweenBundleWithCredits');
+  }
+
+  upgradeStorageWithCredits(params: UpgradeStorageWithCreditsParams): CommandHandle {
+    return this.sender.send('UpgradeStorageWithCredits', { decorId: params.decorId });
+  }
+
+  instaGrowWithCredits(params: InstaGrowWithCreditsParams): CommandHandle {
+    return this.sender.send('InstaGrowWithCredits', { dirtTileIndex: params.dirtTileIndex });
+  }
+
+  restockSeedsWithCredits(): CommandHandle {
+    return this.sender.send('RestockSeedsWithCredits');
+  }
+
+  restockEggsWithCredits(): CommandHandle {
+    return this.sender.send('RestockEggsWithCredits');
+  }
+
+  restockToolsWithCredits(): CommandHandle {
+    return this.sender.send('RestockToolsWithCredits');
+  }
+
+  restockDecorsWithCredits(): CommandHandle {
+    return this.sender.send('RestockDecorsWithCredits');
+  }
+
+  // ------------------------------------------------------------- garden (1650)
+
+  setGrowSlotLock(params: SetGrowSlotLockParams): CommandHandle {
+    return this.sender.send('SetGrowSlotLock', {
+      slot: params.slot,
+      growSlotId: params.growSlotId,
+      locked: params.locked,
+    });
+  }
+
+  carvePumpkin(params: CarvePumpkinParams): CommandHandle {
+    return this.sender.send('CarvePumpkin', {
+      slot: params.slot,
+      growSlotId: params.growSlotId,
+      carving: params.carving,
+    });
+  }
+
+  // ---------------------------------------------------------------- misc (1650)
+
+  amberCapture(params: PetAbilityParams): CommandHandle {
+    return this.sender.send('AmberCapture', {
+      petItemId: params.petItemId,
+      position: { x: params.x, y: params.y },
+    });
+  }
+
+  takePhoto(): CommandHandle {
+    return this.sender.send('TakePhoto');
+  }
+
+  photographTutorialHaunt(): CommandHandle {
+    return this.sender.send('PhotographTutorialHaunt');
+  }
+
+  photographGhost(params: PhotographGhostParams = {}): CommandHandle {
+    return this.sender.send('PhotographGhost', {
+      ghostIndex: params.ghostIndex,
+      ghostInstanceId: params.ghostInstanceId,
+    });
+  }
+
+  tramBoarding(params: TramParams = {}): CommandHandle {
+    return this.sender.send('TramBoarding', { stationIndex: params.stationIndex });
+  }
+
+  tramArrival(params: TramParams = {}): CommandHandle {
+    return this.sender.send('TramArrival', { stationIndex: params.stationIndex });
+  }
+
+  spendApologyTicket(params: SpendApologyTicketParams): CommandHandle {
+    return this.sender.send('SpendApologyTicket', {
+      use: params.use,
+      cosmeticFilename: params.cosmeticFilename,
+    });
   }
 
   /** Flat. */
@@ -630,7 +862,7 @@ export class GameActions {
 }
 
 /** The method count, asserted by a test so the surface cannot silently shrink. */
-export const GAME_ACTION_METHOD_COUNT = 72;
+export const GAME_ACTION_METHOD_COUNT = 109;
 
 /**
  * What a caller handed over, for {@link GameActions.purchaseShopItem}'s refusal.

@@ -1,0 +1,3488 @@
+{
+  "artVersion": "1650",
+  "evidence": {
+    "anchors": {
+      "chunk": "weatherVisuals-BRVfy9sq.js",
+      "coverage": {
+        "counts": {
+          "keys": 23,
+          "keysThatAreNotSpecies": 0,
+          "keysThatAreSpecies": 23,
+          "numericValues": 0,
+          "recordValues": 23,
+          "valuesWithPerPartNumbers": 4
+        },
+        "notes": []
+      },
+      "declaration": "$r",
+      "end": 41163,
+      "invariant": "every key is a species the plant table states -- a table of fractions keyed by centreXFraction matches this shape and is refused -- and every value is a number shape, not an expression",
+      "looksFor": "an object literal with at least eight keys whose values are numbers, or objects of numbers under the names x, y, scale, plant and crop",
+      "predicate": "anchor-table",
+      "start": 40642,
+      "support": []
+    },
+    "displayFlags": {
+      "chunk": "getNormalizedScale-C6p31neC.js",
+      "coverage": {
+        "counts": {
+          "defaultReferences": 91,
+          "flagsStated": 250,
+          "isNarrowDisplayTrue": 30,
+          "isTallPlantTrue": 15,
+          "keys": 125,
+          "keysPointingAtTheDefault": 91,
+          "keysResolvedThroughTheNameTable": 125,
+          "keysUnresolved": 0,
+          "keysWithInlineFlags": 34
+        },
+        "notes": ["the default record is the declaration 91 keys point at"]
+      },
+      "declaration": "a",
+      "end": 4650,
+      "invariant": "every key resolves through the sprite-name table to a sprite path, at least one key states a true flag, and the default record is identified by how many keys point at it rather than by a name",
+      "looksFor": "an object literal with at least eight keys whose values are boolean display flags (`is*` names), directly or through a chunk-local declaration that holds the all-false default",
+      "predicate": "display-flag-table",
+      "start": 459,
+      "support": ["i"]
+    },
+    "harvestTypes": {
+      "chunk": "modalAtom-DGA9kfJh.js",
+      "coverage": {
+        "counts": {
+          "membersAssignedInThisChunk": 2,
+          "membersRequestedByThePlantTable": 2,
+          "membersWithConflictingLiterals": 0
+        },
+        "notes": []
+      },
+      "declaration": null,
+      "end": 115232,
+      "invariant": "every member the plant table names is assigned exactly one string literal, so the placement function can be run with the game's own enum rather than with strings this package guessed",
+      "looksFor": "the string-enum idiom the plant table names: `e.Single = 'Single'`-shaped assignments, read chunk-wide because the enum is built by a function that returns the object it fills",
+      "predicate": "harvest-type-enum",
+      "start": 115124,
+      "support": ["R", "Zr"]
+    },
+    "iconFills": {
+      "chunk": "SharedRiveSprite-DBOFo9EV.js",
+      "coverage": {
+        "counts": {
+          "bakeFrames": 1,
+          "bakeRoutes": 1,
+          "builderFunctions": 0,
+          "canvasLiteralCalls": 0,
+          "defaultShares": 4,
+          "fitFunctions": 0,
+          "itemTypes": 7,
+          "routerFunctions": 1,
+          "statedShares": 2
+        },
+        "notes": [
+          "share switch: ce",
+          "enum: lt",
+          "Pet is the one kind the switch does not state; the icon model draws it from the portrait bake",
+          "Seed: 1 (fit-default)",
+          "Produce: 0.4 (stated)",
+          "Plant: 0.6 (stated)",
+          "Tool: 1 (fit-default)",
+          "Pet: 1 (bake-frame)",
+          "Egg: 1 (fit-default)",
+          "Decor: 1 (fit-default)"
+        ]
+      },
+      "declaration": "ce",
+      "end": 8805,
+      "invariant": "exactly the game's seven item types, each accounted for once, with the two stated shares in (0, 1], the four defaulting to the whole box, and the pet baked through the portrait route",
+      "looksFor": "a share switch over an imported item-kind enum that returns the stated fraction per kind and 1 by default, multiplied into a size, with the pet routed to a 256-frame bake beside it",
+      "predicate": "icon-fill-table",
+      "start": 8707,
+      "support": ["H", "U", "W"]
+    },
+    "itemTypes": {
+      "chunk": "AsyncEpoch-uBidHipI.js",
+      "coverage": {
+        "counts": {
+          "membersAssignedInThisChunk": 7,
+          "membersRequestedByTheIconTable": 7,
+          "membersWithConflictingLiterals": 0
+        },
+        "notes": []
+      },
+      "declaration": "lt",
+      "end": 20432,
+      "invariant": "every item kind the icon-fill table names is a member of exactly one such enum, assigned one literal, so the table's keys are strings the game states rather than names this package made up",
+      "looksFor": "the game's own item-type string enum: the enum object whose members are exactly the item kinds the icon-fill table routes, each assigned a backtick literal",
+      "predicate": "item-type-enum",
+      "start": 20303,
+      "support": []
+    },
+    "kindSchemas": {
+      "chunk": "modalAtom-DGA9kfJh.js",
+      "coverage": {
+        "counts": {
+          "arms": 16,
+          "cropArms": 1,
+          "fields": 75,
+          "itemArms": 8,
+          "itemKinds": 7,
+          "optionalFields": 14,
+          "petVariants": 2,
+          "tileArms": 4,
+          "tileKinds": 4,
+          "tileTypes": 4
+        },
+        "notes": ["optional wrapper(s), read from the variants: C"]
+      },
+      "declaration": "_d",
+      "end": 1104118,
+      "invariant": "exactly the item kinds the item-type enum states, each with at least one arm; the largest union whose arms state an `objectType` through one enum, one arm per member; a crop read from the plant schema's own `slots` member; and a pet base reachable from both the item union's pet arm and the pet variants, one of which wraps the extras the other requires",
+      "looksFor": "the game's own kind schemas: the strict object each item kind's union arm names, the crop schema a plant's own `slots` member holds, the pet base whose two variants add the outfit extras, and the tile union whose arms discriminate on `objectType` through the other, lowercase enum",
+      "predicate": "kind-schema-table",
+      "reading": [
+        {
+          "declaration": "cd",
+          "end": 1103390,
+          "start": 1103203
+        },
+        {
+          "declaration": "Cd",
+          "end": 1104453,
+          "start": 1104386
+        },
+        {
+          "declaration": "dd",
+          "end": 1103719,
+          "start": 1103560
+        },
+        {
+          "declaration": "fd",
+          "end": 1103801,
+          "start": 1103723
+        },
+        {
+          "declaration": "gd",
+          "end": 1104035,
+          "start": 1103960
+        },
+        {
+          "declaration": "H",
+          "end": 180266,
+          "start": 180177
+        },
+        {
+          "declaration": "hd",
+          "end": 1103956,
+          "start": 1103890
+        },
+        {
+          "declaration": "ld",
+          "end": 1103497,
+          "start": 1103394
+        },
+        {
+          "declaration": "md",
+          "end": 1103886,
+          "start": 1103861
+        },
+        {
+          "declaration": "pd",
+          "end": 1103857,
+          "start": 1103805
+        },
+        {
+          "declaration": "Sd",
+          "end": 1104382,
+          "start": 1104325
+        },
+        {
+          "declaration": "Td",
+          "end": 1104565,
+          "start": 1104549
+        },
+        {
+          "declaration": "ud",
+          "end": 1103556,
+          "start": 1103501
+        },
+        {
+          "declaration": "wd",
+          "end": 1104545,
+          "start": 1104457
+        },
+        {
+          "declaration": "xd",
+          "end": 1104321,
+          "start": 1104248
+        },
+        {
+          "declaration": "Yu",
+          "end": 1102352,
+          "start": 1102227
+        }
+      ],
+      "start": 1104039,
+      "support": [
+        "Cd",
+        "H",
+        "Sd",
+        "Td",
+        "Yu",
+        "cd",
+        "dd",
+        "fd",
+        "gd",
+        "hd",
+        "ld",
+        "md",
+        "pd",
+        "ud",
+        "wd",
+        "xd"
+      ]
+    },
+    "mutationArt": {
+      "chunk": "weatherVisuals-BRVfy9sq.js",
+      "coverage": {
+        "counts": {
+          "coloursOutsideThePackedRange": 0,
+          "keys": 11,
+          "keysThatAreMutationRecords": 11,
+          "recordFieldReferences": 9,
+          "referencesUnresolved": 0,
+          "valuesCarryingAFilter": 9,
+          "valuesThatAreMaterials": 2,
+          "valuesWithATint": 9
+        },
+        "notes": [
+          "art fields seen: colorOverlay, iconGlowsAtNight, iconSprite, overlayFromBottom, overlaySprite, tallPlantGroundSprite"
+        ]
+      },
+      "declaration": "Hn",
+      "end": 13897,
+      "invariant": "every key is a mutation record this bundle states, every colour-bearing filter states both its colour and its alpha, every sprite reference resolves through the sprite-name table, and the keys that construct no colour filter at all are counted as materials rather than dropped",
+      "looksFor": "an object literal with at least eight keys whose values carry art fields (sprite, icon, overlay, ground) and state a crop wash, which the game spells `filters` through build 1176 and `colorOverlay` from 1192, at least one of them a wash",
+      "predicate": "mutation-art-table",
+      "start": 12585,
+      "support": ["J", "qi"]
+    },
+    "mutationRecords": {
+      "chunk": "modalAtom-DGA9kfJh.js",
+      "coverage": {
+        "counts": {
+          "distinctGroups": 3,
+          "keys": 11,
+          "spriteReferencesResolved": 9,
+          "spriteReferencesUnresolved": 0,
+          "valuesStatingAGroup": 11,
+          "valuesStatingAName": 11,
+          "valuesWithASprite": 9
+        }
+      },
+      "declaration": "wo",
+      "end": 218020,
+      "invariant": "every value states its group, every sprite reference resolves through the sprite-name table, and at least three keys are drawable, because a table of mutations that can all be drawn nowhere is a different table",
+      "looksFor": "an object literal with at least eight keys whose values each state a name, a group and (for everything that can be drawn on a crop) a sprite reference",
+      "predicate": "mutation-record-table",
+      "start": 216970,
+      "support": []
+    },
+    "overMutations": {
+      "chunk": "weatherVisuals-BRVfy9sq.js",
+      "coverage": {
+        "counts": {
+          "members": 9,
+          "membersThatAreMutationArtKeys": 9,
+          "setUsedBesideTheMutationArtTable": 1
+        },
+        "notes": [
+          "members: Wet, Chilled, Frozen, Thunderstruck, Dawnlit, Ambershine, Dawncharged, Ambercharged, Thundercharged",
+          "ladder: behindBody(-1), body(0), bodyOverlay(1), hydroBadge(2), carving(3), lunarBadge(4)",
+          "groups above the body: Hydro->hydroBadge(2), Lunar->lunarBadge(4)"
+        ]
+      },
+      "declaration": "qi",
+      "end": 51589,
+      "invariant": "every mutation whose group the routing badges above the body is a key of the mutation art table, and the routing is read in the code that places mutation icons",
+      "looksFor": "a group-to-badge routing beside a numeric z-ladder whose body is zero, which is how a build that states no explicit over-set still says which mutations draw above the crop body",
+      "predicate": "mutation-over-set",
+      "start": 51550,
+      "support": ["J"]
+    },
+    "placement": {
+      "chunk": "weatherVisuals-BRVfy9sq.js",
+      "coverage": {
+        "counts": {
+          "characters": 1015,
+          "chunkLocalDeclarationsInTheClosure": 4,
+          "closesOverTheAnchorsAndTheCap": 1,
+          "externals": 2,
+          "returnsAnOffsetAndAScaleFactor": 1,
+          "unresolvedExternals": 0
+        },
+        "notes": ["free names: $r, C, Math, Qr, ei, f", "externals: C=harvestTypes, Math=host"]
+      },
+      "declaration": "ti",
+      "end": 41532,
+      "invariant": "exactly one function divides by the tile and closes over the anchors and the cap; every other name it reads is a host global or a table this extractor found, with the role read from how the function uses the name; and it returns an offset and a scale factor, which is the game's own name for what a placement is",
+      "looksFor": "a function that divides by the reference tile and closes over the anchor table and the cap: every other function dividing by the tile is a candidate and this closure is what accepts one",
+      "predicate": "placement-function",
+      "start": 41171,
+      "support": ["$r", "Qr", "ei", "f"]
+    },
+    "plants": {
+      "chunk": "modalAtom-DGA9kfJh.js",
+      "coverage": {
+        "counts": {
+          "distinctHarvestTypes": 2,
+          "parts": 219,
+          "species": 73,
+          "spriteReferencesResolved": 219,
+          "spriteReferencesUnresolved": 0
+        },
+        "notes": ["harvest types named: Multiple, Single"]
+      },
+      "declaration": "ei",
+      "end": 152860,
+      "invariant": "every species states a plant block, every sprite reference in every part resolves through the sprite-name table, and the harvest types the table names are counted so a build that renames the enum is visible",
+      "looksFor": "an object literal with at least five keys whose values state a plant block carrying a harvest type and a sprite reference",
+      "predicate": "plant-table",
+      "start": 115465,
+      "support": []
+    },
+    "scale": {
+      "chunk": "weatherVisuals-BRVfy9sq.js",
+      "coverage": {
+        "counts": {
+          "capConstantDeclared": 1,
+          "capFormulaOccurrences": 1,
+          "tallDecalCandidates": 1
+        },
+        "notes": ["formula as written: Math.min(ei,g/256)", "cap constant: 0.75", "tall-decal multiplier: 2"]
+      },
+      "declaration": "ei",
+      "end": 41170,
+      "invariant": "the formula occurs exactly once in the chunk that declares the constant, the constant is a fraction, the divisor is the reference tile, and the tall-decal multiplier is found exactly once and is greater than one",
+      "looksFor": "the formula Math.min(<a declared constant>, <something> / <tile>), with the constant a fractional literal, and the tall-decal multiplier as the consequent of a `? <constant> : 1` inside the code that reads the mutation art table",
+      "predicate": "scale-cap",
+      "start": 41167,
+      "support": ["ni", "ri"]
+    },
+    "spriteNames": {
+      "chunk": "AsyncEpoch-uBidHipI.js",
+      "coverage": {
+        "counts": {
+          "categories": 13,
+          "leaves": 724,
+          "leavesThatAreNotSpritePaths": 0,
+          "quotedStrings": 0,
+          "spritePaths": 724,
+          "templateLiterals": 724
+        },
+        "notes": [
+          "backtick literals, not quoted strings: a reader that only projected quoted strings reads this as an empty table",
+          "sibling matches inside this literal: 3"
+        ]
+      },
+      "declaration": "dt",
+      "end": 50715,
+      "invariant": "every leaf is a sprite path, the table is at least two categories wide, and the leaves are counted by the syntax they were written in, because a reader that projects only quoted strings reports an empty table rather than a wrong one",
+      "looksFor": "an object literal with at least a hundred leaf strings of the form sprite/<category>/<Name>, taking the outermost match so a nested category is not mistaken for the table",
+      "predicate": "sprite-name-table",
+      "start": 20630,
+      "support": []
+    }
+  },
+  "gameVersion": "1650",
+  "tables": {
+    "anchors": {
+      "Banana": {
+        "x": 0.6,
+        "y": 0.68
+      },
+      "Beet": {
+        "y": 0.65
+      },
+      "BurrosTail": {
+        "y": 0.2
+      },
+      "Cardoon": {
+        "y": 0.8
+      },
+      "Carrot": {
+        "x": {
+          "crop": 0.5
+        },
+        "y": {
+          "crop": 0.42,
+          "plant": 0.6
+        }
+      },
+      "Clover": {
+        "y": 0.3
+      },
+      "Daisy": {
+        "y": 0.21
+      },
+      "Dawnbreaker": {
+        "y": {
+          "crop": 0.13,
+          "plant": 0.25
+        }
+      },
+      "Eggplant": {
+        "x": 0.57
+      },
+      "FavaBean": {
+        "y": 0.25
+      },
+      "FourLeafClover": {
+        "y": 0.3
+      },
+      "Leek": {
+        "scale": {
+          "plant": 0.7
+        },
+        "y": {
+          "plant": 0.55
+        }
+      },
+      "Milkcap": {
+        "y": 0.3
+      },
+      "Pepper": {
+        "x": 0.6
+      },
+      "PricklyPear": {
+        "scale": 1.29,
+        "x": 0.43,
+        "y": 0.4
+      },
+      "PurpleDaisy": {
+        "y": 0.21
+      },
+      "Rose": {
+        "y": 0.16
+      },
+      "Saffron": {
+        "x": 0.52,
+        "y": 0.22
+      },
+      "Snowdrop": {
+        "scale": 0.5,
+        "x": 0.3,
+        "y": 0.23
+      },
+      "SnowdropDouble": {
+        "scale": 0.5,
+        "x": 0.27,
+        "y": 0.21
+      },
+      "Starweaver": {
+        "y": 0.5
+      },
+      "Sunflower": {
+        "y": 0.5
+      },
+      "Ube": {
+        "scale": {
+          "crop": 1.2
+        },
+        "y": 0.5
+      }
+    },
+    "displayFlags": {
+      "sprite/plant/Aloe": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Apple": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/BabyBeet": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/BabyCarrot": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/BabyDawnbreaker": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/BabyLeek": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/BabyUbe": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Bamboo": {
+        "isNarrowDisplay": false,
+        "isTallPlant": true
+      },
+      "sprite/plant/Banana": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Beet": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Blueberry": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/BurrosTail": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/BushyTree": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Cabbage": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/CabbagePlant": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Cacao": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Cactus": {
+        "isNarrowDisplay": false,
+        "isTallPlant": true
+      },
+      "sprite/plant/Camellia": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Cardoon": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/Carrot": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Cattail": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/Chrysanthemum": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/CloverFourLeaf": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/CloverThreeLeaf": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Coconut": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Corn": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Daffodil": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Daisy": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/DaisyPurple": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/Date": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/DatePalm": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/DawnCelestialCrop": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/DawnCelestialCropLight": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/DawnCelestialPlant": {
+        "isNarrowDisplay": true,
+        "isTallPlant": true
+      },
+      "sprite/plant/DawnCelestialPlantActive": {
+        "isNarrowDisplay": true,
+        "isTallPlant": true
+      },
+      "sprite/plant/DawnCelestialPlatform": {
+        "isNarrowDisplay": true,
+        "isTallPlant": true
+      },
+      "sprite/plant/DawnCelestialPlatformTopmostLayer": {
+        "isNarrowDisplay": false,
+        "isTallPlant": true
+      },
+      "sprite/plant/Dawnbreaker": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Delphinium": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/DirtPatch": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/DragonFruit": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/DragonFruitTree": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Echeveria": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Eggplant": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Emberbloom": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/EmberbloomCrop": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/EmberbloomCropLight": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/EmberbloomLight": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Embercrown": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/EmbercrownCrop": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/EmbercrownCropLight": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/EmbercrownLight": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/FavaBean": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/FlowerBush": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Foxfire": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/FoxfireLight": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Gentian": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/GhostPlant": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Grape": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/HabaneroPepper": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Hedge": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Lavender": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/LeafyTree": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Leek": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/Lemon": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Lily": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Lychee": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/MarigoldCrop": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/MarigoldPlant": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Milkcap": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/MoonCelestialCrop": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/MoonCelestialCropLight": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/MoonCelestialPlant": {
+        "isNarrowDisplay": true,
+        "isTallPlant": true
+      },
+      "sprite/plant/MoonCelestialPlantActive": {
+        "isNarrowDisplay": true,
+        "isTallPlant": true
+      },
+      "sprite/plant/MoonCelestialPlatform": {
+        "isNarrowDisplay": true,
+        "isTallPlant": true
+      },
+      "sprite/plant/Mushroom": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/NightshadeBerry": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/NightshadePlant": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/PalmTree": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/PalmTreeTop": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/PassionFruit": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Peach": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Pear": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Pepper": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Persimmon": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/PineTree": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Poinsettia": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/PricklyPear": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/PricklyPearPlant": {
+        "isNarrowDisplay": false,
+        "isTallPlant": true
+      },
+      "sprite/plant/Pumpkin": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/RoseRed": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/Saffron": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/Shrub": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/ShrubBush": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Snowdrop": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/SnowdropDouble": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/SproutFlower": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/SproutFruit": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/SproutVegetable": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/SproutVine": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Squash": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Starweaver": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/StarweaverLight": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/StarweaverPlant": {
+        "isNarrowDisplay": true,
+        "isTallPlant": true
+      },
+      "sprite/plant/StarweaverPlatform": {
+        "isNarrowDisplay": true,
+        "isTallPlant": true
+      },
+      "sprite/plant/StemFlower": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Strawberry": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Sunflower": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/ThunderCelestialFruit": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/ThunderCelestialFruitLight": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/ThunderCelestialPlant": {
+        "isNarrowDisplay": true,
+        "isTallPlant": true
+      },
+      "sprite/plant/ThunderCelestialPlantActive": {
+        "isNarrowDisplay": true,
+        "isTallPlant": true
+      },
+      "sprite/plant/ThunderCelestialPlatform": {
+        "isNarrowDisplay": true,
+        "isTallPlant": true
+      },
+      "sprite/plant/ThunderCelestialShroom": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/ThunderCelestialShroomLight": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Tomato": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Tree": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/Trellis": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Tulip": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Ube": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/VariegatedCattail": {
+        "isNarrowDisplay": true,
+        "isTallPlant": false
+      },
+      "sprite/plant/VioletCort": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Watermelon": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/Witchfire": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      },
+      "sprite/plant/WitchfireLight": {
+        "isNarrowDisplay": false,
+        "isTallPlant": false
+      }
+    },
+    "harvestTypes": {
+      "Multiple": "Multiple",
+      "Single": "Single"
+    },
+    "iconFills": {
+      "Decor": {
+        "fill": 1,
+        "source": "fit-default"
+      },
+      "Egg": {
+        "fill": 1,
+        "source": "fit-default"
+      },
+      "Pet": {
+        "fill": 1,
+        "source": "bake-frame"
+      },
+      "Plant": {
+        "fill": 0.6,
+        "source": "stated"
+      },
+      "Produce": {
+        "fill": 0.4,
+        "source": "stated"
+      },
+      "Seed": {
+        "fill": 1,
+        "source": "fit-default"
+      },
+      "Tool": {
+        "fill": 1,
+        "source": "fit-default"
+      }
+    },
+    "itemTypes": {
+      "Decor": "Decor",
+      "Egg": "Egg",
+      "Pet": "Pet",
+      "Plant": "Plant",
+      "Produce": "Produce",
+      "Seed": "Seed",
+      "Tool": "Tool"
+    },
+    "kindSchemas": {
+      "arms": {
+        "Cd": {
+          "declaration": "Cd",
+          "fields": [
+            {
+              "name": "objectType",
+              "required": true
+            },
+            {
+              "name": "decorId",
+              "required": true
+            },
+            {
+              "name": "mountedCrop",
+              "required": false
+            },
+            {
+              "name": "rotation",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "Sd": {
+          "declaration": "Sd",
+          "fields": [
+            {
+              "name": "objectType",
+              "required": true
+            },
+            {
+              "name": "eggId",
+              "required": true
+            },
+            {
+              "name": "plantedAt",
+              "required": true
+            },
+            {
+              "name": "maturedAt",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "Yu": {
+          "declaration": "Yu",
+          "fields": [
+            {
+              "name": "id",
+              "required": true
+            },
+            {
+              "name": "petSpecies",
+              "required": true
+            },
+            {
+              "name": "name",
+              "required": true
+            },
+            {
+              "name": "xp",
+              "required": true
+            },
+            {
+              "name": "hunger",
+              "required": true
+            },
+            {
+              "name": "mutations",
+              "required": true
+            },
+            {
+              "name": "targetScale",
+              "required": true
+            },
+            {
+              "name": "abilities",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "_d#6": {
+          "declaration": "_d",
+          "fields": [
+            {
+              "name": "decorId",
+              "required": true
+            },
+            {
+              "name": "itemType",
+              "required": true
+            },
+            {
+              "name": "quantity",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "cd": {
+          "declaration": "cd",
+          "fields": [
+            {
+              "name": "species",
+              "required": true
+            },
+            {
+              "name": "startTime",
+              "required": true
+            },
+            {
+              "name": "endTime",
+              "required": true
+            },
+            {
+              "name": "size",
+              "required": true
+            },
+            {
+              "name": "mutations",
+              "required": true
+            },
+            {
+              "name": "x",
+              "required": false
+            },
+            {
+              "name": "y",
+              "required": false
+            },
+            {
+              "name": "rotation",
+              "required": false
+            },
+            {
+              "name": "flipped",
+              "required": false
+            },
+            {
+              "name": "preserved",
+              "required": false
+            },
+            {
+              "name": "locked",
+              "required": false
+            },
+            {
+              "name": "carving",
+              "required": false
+            },
+            {
+              "name": "carvingVerdict",
+              "required": false
+            },
+            {
+              "name": "slotId",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "dd#0": {
+          "declaration": "dd",
+          "fields": [
+            {
+              "name": "toolId",
+              "required": true
+            },
+            {
+              "name": "itemType",
+              "required": true
+            },
+            {
+              "name": "quantity",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "dd#1": {
+          "declaration": "dd",
+          "fields": [
+            {
+              "name": "id",
+              "required": true
+            },
+            {
+              "name": "toolId",
+              "required": true
+            },
+            {
+              "name": "itemType",
+              "required": true
+            },
+            {
+              "name": "quantity",
+              "required": true
+            },
+            {
+              "name": "remainingActiveSeconds",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "fd": {
+          "declaration": "fd",
+          "fields": [
+            {
+              "name": "id",
+              "required": true
+            },
+            {
+              "name": "species",
+              "required": true
+            },
+            {
+              "name": "itemType",
+              "required": true
+            },
+            {
+              "name": "slots",
+              "required": true
+            },
+            {
+              "name": "plantedAt",
+              "required": true
+            },
+            {
+              "name": "maturedAt",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "gd": {
+          "declaration": "gd",
+          "fields": [
+            {
+              "name": "sourceEggId",
+              "required": false
+            },
+            {
+              "name": "abilityCooldowns",
+              "required": false
+            },
+            {
+              "name": "equippedCosmetics",
+              "required": false
+            }
+          ],
+          "spreads": ["md"]
+        },
+        "hd": {
+          "declaration": "hd",
+          "fields": [
+            {
+              "name": "sourceEggId",
+              "required": true
+            },
+            {
+              "name": "abilityCooldowns",
+              "required": true
+            },
+            {
+              "name": "equippedCosmetics",
+              "required": true
+            }
+          ],
+          "spreads": ["md"]
+        },
+        "ld": {
+          "declaration": "ld",
+          "fields": [
+            {
+              "name": "id",
+              "required": true
+            },
+            {
+              "name": "species",
+              "required": true
+            },
+            {
+              "name": "itemType",
+              "required": true
+            },
+            {
+              "name": "size",
+              "required": true
+            },
+            {
+              "name": "mutations",
+              "required": true
+            },
+            {
+              "name": "carving",
+              "required": false
+            },
+            {
+              "name": "carvingVerdict",
+              "required": false
+            }
+          ],
+          "spreads": []
+        },
+        "md": {
+          "declaration": "md",
+          "fields": [
+            {
+              "name": "itemType",
+              "required": true
+            }
+          ],
+          "spreads": ["Yu"]
+        },
+        "pd": {
+          "declaration": "pd",
+          "fields": [
+            {
+              "name": "eggId",
+              "required": true
+            },
+            {
+              "name": "itemType",
+              "required": true
+            },
+            {
+              "name": "quantity",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "ud": {
+          "declaration": "ud",
+          "fields": [
+            {
+              "name": "species",
+              "required": true
+            },
+            {
+              "name": "itemType",
+              "required": true
+            },
+            {
+              "name": "quantity",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "wd": {
+          "declaration": "wd",
+          "fields": [
+            {
+              "name": "objectType",
+              "required": true
+            },
+            {
+              "name": "crystalType",
+              "required": true
+            },
+            {
+              "name": "remainingActiveSeconds",
+              "required": true
+            }
+          ],
+          "spreads": []
+        },
+        "xd": {
+          "declaration": "xd",
+          "fields": [
+            {
+              "name": "objectType",
+              "required": true
+            },
+            {
+              "name": "species",
+              "required": true
+            },
+            {
+              "name": "slots",
+              "required": true
+            },
+            {
+              "name": "plantedAt",
+              "required": true
+            },
+            {
+              "name": "maturedAt",
+              "required": true
+            }
+          ],
+          "spreads": []
+        }
+      },
+      "crops": ["cd"],
+      "items": {
+        "Decor": ["_d#6"],
+        "Egg": ["pd"],
+        "Pet": ["hd"],
+        "Plant": ["fd"],
+        "Produce": ["ld"],
+        "Seed": ["ud"],
+        "Tool": ["dd#0", "dd#1"]
+      },
+      "pets": {
+        "base": ["Yu"],
+        "variants": ["hd", "gd"]
+      },
+      "tileTypes": {
+        "Crystal": "crystal",
+        "Decor": "decor",
+        "Egg": "egg",
+        "Plant": "plant"
+      },
+      "tiles": {
+        "Crystal": ["wd"],
+        "Decor": ["Cd"],
+        "Egg": ["Sd"],
+        "Plant": ["xd"]
+      }
+    },
+    "mutationArt": {
+      "Ambercharged": {
+        "groundSprite": null,
+        "iconSprite": "sprite/mutation/Ambercharged",
+        "material": false,
+        "order": 9,
+        "overlayFromBottom": false,
+        "overlaySprite": null,
+        "tallPlantZIndex": 4,
+        "tint": {
+          "alpha": 0.5,
+          "color": "rgb(170, 60, 25)"
+        },
+        "zIndex": 4
+      },
+      "Ambershine": {
+        "groundSprite": null,
+        "iconSprite": "sprite/mutation/Amberlit",
+        "material": false,
+        "order": 7,
+        "overlayFromBottom": false,
+        "overlaySprite": null,
+        "tallPlantZIndex": 4,
+        "tint": {
+          "alpha": 0.5,
+          "color": "rgb(190, 100, 40)"
+        },
+        "zIndex": 4
+      },
+      "Chilled": {
+        "groundSprite": null,
+        "iconSprite": "sprite/mutation/Chilled",
+        "material": false,
+        "order": 3,
+        "overlayFromBottom": false,
+        "overlaySprite": "sprite/mutation-overlay/ChilledTallPlant",
+        "tallPlantZIndex": -1,
+        "tint": {
+          "alpha": 0.45,
+          "color": "rgb(100, 160, 210)"
+        },
+        "zIndex": 2
+      },
+      "Dawncharged": {
+        "groundSprite": null,
+        "iconSprite": "sprite/mutation/Dawncharged",
+        "material": false,
+        "order": 8,
+        "overlayFromBottom": false,
+        "overlaySprite": null,
+        "tallPlantZIndex": 4,
+        "tint": {
+          "alpha": 0.5,
+          "color": "rgb(140, 80, 200)"
+        },
+        "zIndex": 4
+      },
+      "Dawnlit": {
+        "groundSprite": null,
+        "iconSprite": "sprite/mutation/Dawnlit",
+        "material": false,
+        "order": 6,
+        "overlayFromBottom": false,
+        "overlaySprite": null,
+        "tallPlantZIndex": 4,
+        "tint": {
+          "alpha": 0.5,
+          "color": "rgb(209, 70, 231)"
+        },
+        "zIndex": 4
+      },
+      "Frozen": {
+        "groundSprite": null,
+        "iconSprite": "sprite/mutation/Frozen",
+        "material": false,
+        "order": 4,
+        "overlayFromBottom": false,
+        "overlaySprite": "sprite/mutation-overlay/FrozenTallPlant",
+        "tallPlantZIndex": -1,
+        "tint": {
+          "alpha": 0.5,
+          "color": "rgb(100, 130, 220)"
+        },
+        "zIndex": 2
+      },
+      "Gold": {
+        "groundSprite": null,
+        "iconSprite": null,
+        "material": true,
+        "order": 1,
+        "overlayFromBottom": false,
+        "overlaySprite": null,
+        "tallPlantZIndex": 0,
+        "tint": null,
+        "zIndex": 0
+      },
+      "Rainbow": {
+        "groundSprite": null,
+        "iconSprite": null,
+        "material": true,
+        "order": 0,
+        "overlayFromBottom": false,
+        "overlaySprite": null,
+        "tallPlantZIndex": 0,
+        "tint": null,
+        "zIndex": 0
+      },
+      "Thundercharged": {
+        "groundSprite": "sprite/mutation/ThunderchargedGround",
+        "iconSprite": "sprite/mutation/Thundercharged",
+        "material": false,
+        "order": 10,
+        "overlayFromBottom": true,
+        "overlaySprite": "sprite/mutation-overlay/ThunderchargedTallPlant",
+        "tallPlantZIndex": -1,
+        "tint": {
+          "alpha": 0.45,
+          "color": "rgb(60, 200, 165)"
+        },
+        "zIndex": 2
+      },
+      "Thunderstruck": {
+        "groundSprite": "sprite/mutation/ThunderstruckGround",
+        "iconSprite": "sprite/mutation/Thunderstruck",
+        "material": false,
+        "order": 5,
+        "overlayFromBottom": true,
+        "overlaySprite": "sprite/mutation-overlay/ThunderstruckTallPlant",
+        "tallPlantZIndex": -1,
+        "tint": {
+          "alpha": 0.4,
+          "color": "rgb(16, 141, 163)"
+        },
+        "zIndex": 2
+      },
+      "Wet": {
+        "groundSprite": "sprite/mutation/Puddle",
+        "iconSprite": "sprite/mutation/Wet",
+        "material": false,
+        "order": 2,
+        "overlayFromBottom": false,
+        "overlaySprite": "sprite/mutation-overlay/WetTallPlant",
+        "tallPlantZIndex": -1,
+        "tint": {
+          "alpha": 0.25,
+          "color": "rgb(50, 180, 200)"
+        },
+        "zIndex": 2
+      }
+    },
+    "mutationRecords": {
+      "Ambercharged": {
+        "group": "Lunar",
+        "name": "Amberbound",
+        "sprite": "sprite/mutation/Ambercharged"
+      },
+      "Ambershine": {
+        "group": "Lunar",
+        "name": "Amberlit",
+        "sprite": "sprite/mutation/Amberlit"
+      },
+      "Chilled": {
+        "group": "Hydro",
+        "name": "Chilled",
+        "sprite": "sprite/mutation/Chilled"
+      },
+      "Dawncharged": {
+        "group": "Lunar",
+        "name": "Dawnbound",
+        "sprite": "sprite/mutation/Dawncharged"
+      },
+      "Dawnlit": {
+        "group": "Lunar",
+        "name": "Dawnlit",
+        "sprite": "sprite/mutation/Dawnlit"
+      },
+      "Frozen": {
+        "group": "Hydro",
+        "name": "Frozen",
+        "sprite": "sprite/mutation/Frozen"
+      },
+      "Gold": {
+        "group": "Growth",
+        "name": "Gold",
+        "sprite": null
+      },
+      "Rainbow": {
+        "group": "Growth",
+        "name": "Rainbow",
+        "sprite": null
+      },
+      "Thundercharged": {
+        "group": "Hydro",
+        "name": "Thundercharged",
+        "sprite": "sprite/mutation/Thundercharged"
+      },
+      "Thunderstruck": {
+        "group": "Hydro",
+        "name": "Thunderstruck",
+        "sprite": "sprite/mutation/Thunderstruck"
+      },
+      "Wet": {
+        "group": "Hydro",
+        "name": "Wet",
+        "sprite": "sprite/mutation/Wet"
+      }
+    },
+    "overMutations": [
+      "Wet",
+      "Chilled",
+      "Frozen",
+      "Thunderstruck",
+      "Dawnlit",
+      "Ambershine",
+      "Dawncharged",
+      "Ambercharged",
+      "Thundercharged"
+    ],
+    "placement": {
+      "characters": 1015,
+      "declarations": {
+        "$r": "const $r = {Banana:{x:.6,y:.68},Beet:{y:.65},Carrot:{x:{crop:.5},y:{plant:.6,crop:.42}},Sunflower:{y:.5},Ube:{y:.5,scale:{crop:1.2}},PricklyPear:{x:.43,y:.4,scale:1.29},Starweaver:{y:.5},Clover:{y:.3},FourLeafClover:{y:.3},FavaBean:{y:.25},BurrosTail:{y:.2},Rose:{y:.16},Saffron:{x:.52,y:.22},Cardoon:{y:.8},Daisy:{y:.21},PurpleDaisy:{y:.21},Pepper:{x:.6},Eggplant:{x:.57},Milkcap:{y:.3},Snowdrop:{x:.3,y:.23,scale:.5},SnowdropDouble:{x:.27,y:.21,scale:.5},Dawnbreaker:{y:{plant:.25,crop:.13}},Leek:{y:{plant:.55},scale:{plant:.7}}};",
+        "Qr": "function Qr(e,t){if(e!==void 0)return typeof e==`number`?e:e[t]}",
+        "ei": "const ei = .75;",
+        "f": "const f = Math.max(c,Math.min(u,t.y));"
+      },
+      "externals": [
+        {
+          "from": "./modalAtom-DGA9kfJh.js",
+          "name": "C",
+          "role": "harvestTypes"
+        },
+        {
+          "from": null,
+          "name": "Math",
+          "role": "host"
+        }
+      ],
+      "name": "ti",
+      "source": "function ti(e,t,n){let r=f[t].plant.harvestType,i=e.width,a=e.height,o=e.defaultAnchor?.x??0,s=e.defaultAnchor?.y??0,c=$r[t],l=o,u=Qr(c?.x,n);u!==void 0&&(l=u);let d=a>i*1.5,p=r===C.Single&&d?s:.4,m=Qr(c?.y,n);m!==void 0&&(p=m);let h={x:(l-o)*i,y:(p-s)*a},g=Math.min(i,a)/e.sourcePixelRatio,_=Qr(c?.scale,n)??1;return{offset:h,scaleFactor:Math.min(ei,g/256)*_}}"
+    },
+    "plants": {
+      "Aloe": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Aloe"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Aloe"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Aloe"
+        }
+      },
+      "Apple": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Apple"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/Tree"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Apple"
+        }
+      },
+      "Bamboo": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Bamboo"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Bamboo"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Bamboo"
+        }
+      },
+      "Banana": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Banana"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/PalmTree"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Banana"
+        }
+      },
+      "Beet": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Beet"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/BabyBeet"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Beet"
+        }
+      },
+      "Blueberry": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Blueberry"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/SproutFruit"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Blueberry"
+        }
+      },
+      "BurrosTail": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/BurrosTail"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/Trellis"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/BurrosTail"
+        }
+      },
+      "Cabbage": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Cabbage"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/CabbagePlant"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Cabbage"
+        }
+      },
+      "Cacao": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Cacao"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/LeafyTree"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Cacao"
+        }
+      },
+      "Cactus": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Cactus"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Cactus"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Cactus"
+        }
+      },
+      "Camellia": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Camellia"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/Hedge"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Camellia"
+        }
+      },
+      "Cardoon": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Cardoon"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Cardoon"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Cardoon"
+        }
+      },
+      "Carrot": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Carrot"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/BabyCarrot"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Carrot"
+        }
+      },
+      "Cattail": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Cattail"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Cattail"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Cattail"
+        }
+      },
+      "Chrysanthemum": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Chrysanthemum"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/FlowerBush"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Chrysanthemum"
+        }
+      },
+      "Clover": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/CloverThreeLeaf"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/CloverThreeLeaf"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Clover"
+        }
+      },
+      "Coconut": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Coconut"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/PalmTree"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Coconut"
+        }
+      },
+      "Corn": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Corn"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/StemFlower"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Corn"
+        }
+      },
+      "Daffodil": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Daffodil"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Daffodil"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Daffodil"
+        }
+      },
+      "Daisy": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Daisy"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Daisy"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Daisy"
+        }
+      },
+      "Date": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Date"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/DatePalm"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Date"
+        }
+      },
+      "DawnCelestial": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/DawnCelestialCrop"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/DawnCelestialPlant"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/DawnCelestial"
+        }
+      },
+      "Dawnbreaker": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Dawnbreaker"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/BabyDawnbreaker"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Dawnbreaker"
+        }
+      },
+      "DeadlyNightshade": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/NightshadeBerry"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/NightshadePlant"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/DeadlyNightshade"
+        }
+      },
+      "Delphinium": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Delphinium"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Delphinium"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Delphinium"
+        }
+      },
+      "DragonFruit": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/DragonFruit"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/DragonFruitTree"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/DragonFruit"
+        }
+      },
+      "Echeveria": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Echeveria"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Echeveria"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Echeveria"
+        }
+      },
+      "Eggplant": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Eggplant"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/ShrubBush"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Eggplant"
+        }
+      },
+      "Emberbloom": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/EmberbloomCrop"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Emberbloom"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Emberbloom"
+        }
+      },
+      "Embercrown": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/EmbercrownCrop"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Embercrown"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Emberbloom"
+        }
+      },
+      "FavaBean": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/FavaBean"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/SproutFlower"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/FavaBean"
+        }
+      },
+      "FourLeafClover": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/CloverFourLeaf"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/CloverFourLeaf"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Clover"
+        }
+      },
+      "Foxfire": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Foxfire"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Foxfire"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Foxfire"
+        }
+      },
+      "Gentian": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Gentian"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Gentian"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Gentian"
+        }
+      },
+      "GhostPlant": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/GhostPlant"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/GhostPlant"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/GhostPlant"
+        }
+      },
+      "Grape": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Grape"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/SproutVine"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Grape"
+        }
+      },
+      "Habanero": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/HabaneroPepper"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/ShrubBush"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Habanero"
+        }
+      },
+      "Lavender": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Lavender"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Lavender"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Lavender"
+        }
+      },
+      "Leek": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Leek"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/BabyLeek"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Leek"
+        }
+      },
+      "Lemon": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Lemon"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/Tree"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Lemon"
+        }
+      },
+      "Lily": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Lily"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Lily"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Lily"
+        }
+      },
+      "Lychee": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Lychee"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/BushyTree"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Lychee"
+        }
+      },
+      "Marigold": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/MarigoldCrop"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/MarigoldPlant"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Marigold"
+        }
+      },
+      "Milkcap": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Milkcap"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Milkcap"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Milkcap"
+        }
+      },
+      "MoonCelestial": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/MoonCelestialCrop"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/MoonCelestialPlant"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/MoonCelestial"
+        }
+      },
+      "Mushroom": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Mushroom"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Mushroom"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Mushroom"
+        }
+      },
+      "OrangeTulip": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Tulip"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Tulip"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Tulip"
+        }
+      },
+      "PassionFruit": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/PassionFruit"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/SproutVine"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/PassionFruit"
+        }
+      },
+      "Peach": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Peach"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/Tree"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Peach"
+        }
+      },
+      "Pear": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Pear"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/Tree"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Pear"
+        }
+      },
+      "Pepper": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Pepper"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/SproutVine"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Pepper"
+        }
+      },
+      "Persimmon": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Persimmon"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/LeafyTree"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Persimmon"
+        }
+      },
+      "PineTree": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/PineTree"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/PineTree"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Pinecone"
+        }
+      },
+      "Poinsettia": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Poinsettia"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/Shrub"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Poinsettia"
+        }
+      },
+      "PricklyPear": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/PricklyPear"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/PricklyPearPlant"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/PricklyPear"
+        }
+      },
+      "Pumpkin": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Pumpkin"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Pumpkin"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Pumpkin"
+        }
+      },
+      "PurpleDaisy": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/DaisyPurple"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/DaisyPurple"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Daisy"
+        }
+      },
+      "Rose": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/RoseRed"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/RoseRed"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Rose"
+        }
+      },
+      "Saffron": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Saffron"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Saffron"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Saffron"
+        }
+      },
+      "Snowdrop": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Snowdrop"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Snowdrop"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Snowdrop"
+        }
+      },
+      "SnowdropDouble": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/SnowdropDouble"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/SnowdropDouble"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Snowdrop"
+        }
+      },
+      "Squash": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Squash"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/SproutFlower"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Squash"
+        }
+      },
+      "Starweaver": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Starweaver"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/StarweaverPlant"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Starweaver"
+        }
+      },
+      "Strawberry": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Strawberry"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/SproutFruit"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Strawberry"
+        }
+      },
+      "Sunflower": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Sunflower"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/StemFlower"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Sunflower"
+        }
+      },
+      "ThunderCelestial": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/ThunderCelestialFruit"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/ThunderCelestialPlant"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/ThunderCelestial"
+        }
+      },
+      "ThunderCelestialShroomPlant": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/ThunderCelestialShroom"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/ThunderCelestialPlant"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/ThunderCelestial"
+        }
+      },
+      "Tomato": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Tomato"
+        },
+        "plant": {
+          "harvestType": "Multiple",
+          "sprite": "sprite/plant/SproutVine"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Tomato"
+        }
+      },
+      "Ube": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Ube"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/BabyUbe"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Ube"
+        }
+      },
+      "VariegatedCattail": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/VariegatedCattail"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/VariegatedCattail"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Cattail"
+        }
+      },
+      "VioletCort": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/VioletCort"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/VioletCort"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/VioletCort"
+        }
+      },
+      "Watermelon": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Watermelon"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Watermelon"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Watermelon"
+        }
+      },
+      "Witchfire": {
+        "crop": {
+          "harvestType": null,
+          "sprite": "sprite/plant/Witchfire"
+        },
+        "plant": {
+          "harvestType": "Single",
+          "sprite": "sprite/plant/Witchfire"
+        },
+        "seed": {
+          "harvestType": null,
+          "sprite": "sprite/seed/Mushroom"
+        }
+      }
+    },
+    "scale": {
+      "cap": 0.75,
+      "referenceTilePx": 256,
+      "tallDecalMultiplier": 2
+    },
+    "spriteNames": {
+      "Animation": {
+        "ActivationTile": "sprite/animation/ActivationTile",
+        "CelestialActive-0": "sprite/animation/CelestialActive-0",
+        "CelestialActive-1": "sprite/animation/CelestialActive-1",
+        "CelestialActive-2": "sprite/animation/CelestialActive-2",
+        "CelestialActive-3": "sprite/animation/CelestialActive-3",
+        "CelestialActive-4": "sprite/animation/CelestialActive-4",
+        "CelestialActive-5": "sprite/animation/CelestialActive-5",
+        "CelestialActive-6": "sprite/animation/CelestialActive-6",
+        "CelestialActive-7": "sprite/animation/CelestialActive-7",
+        "CelestialActive-8": "sprite/animation/CelestialActive-8",
+        "CelestialActive-9": "sprite/animation/CelestialActive-9",
+        "CelestialGrowing-0": "sprite/animation/CelestialGrowing-0",
+        "CelestialGrowing-1": "sprite/animation/CelestialGrowing-1",
+        "CelestialGrowing-2": "sprite/animation/CelestialGrowing-2",
+        "CelestialGrowing-3": "sprite/animation/CelestialGrowing-3",
+        "CelestialGrowing-4": "sprite/animation/CelestialGrowing-4",
+        "CelestialGrowing-5": "sprite/animation/CelestialGrowing-5",
+        "CelestialGrowing-6": "sprite/animation/CelestialGrowing-6",
+        "CelestialGrowing-7": "sprite/animation/CelestialGrowing-7",
+        "CelestialGrowing-8": "sprite/animation/CelestialGrowing-8",
+        "CelestialGrowing-9": "sprite/animation/CelestialGrowing-9",
+        "NotifyFlag-0": "sprite/animation/NotifyFlag-0",
+        "NotifyFlag-1": "sprite/animation/NotifyFlag-1",
+        "NotifyFlag-2": "sprite/animation/NotifyFlag-2",
+        "NotifyFlag-3": "sprite/animation/NotifyFlag-3",
+        "NotifyFlag-4": "sprite/animation/NotifyFlag-4",
+        "RainWardActivationTile": "sprite/animation/RainWardActivationTile",
+        "SnowWardActivationTile": "sprite/animation/SnowWardActivationTile",
+        "ThunderActivationTile": "sprite/animation/ThunderActivationTile",
+        "ThunderWardActivationTile": "sprite/animation/ThunderWardActivationTile"
+      },
+      "Decor": {
+        "Birdhouse": "sprite/decor/Birdhouse",
+        "BoobooBooth": "sprite/decor/BoobooBooth",
+        "Cauldron": "sprite/decor/Cauldron",
+        "ColoredStringLights": "sprite/decor/ColoredStringLights",
+        "ColoredStringLightsLight": "sprite/decor/ColoredStringLightsLight",
+        "ColoredStringLightsSideways": "sprite/decor/ColoredStringLightsSideways",
+        "ColoredStringLightsSidewaysLight": "sprite/decor/ColoredStringLightsSidewaysLight",
+        "CroakwardenLamp": "sprite/decor/CroakwardenLamp",
+        "DecorShed": "sprite/decor/DecorShed",
+        "DecorShed_1": "sprite/decor/DecorShed_1",
+        "DecorShed_2": "sprite/decor/DecorShed_2",
+        "FanousLantern": "sprite/decor/FanousLantern",
+        "FanousLanternLight": "sprite/decor/FanousLanternLight",
+        "FanousLanternLit": "sprite/decor/FanousLanternLit",
+        "FanousLanternSideways": "sprite/decor/FanousLanternSideways",
+        "FanousLanternSidewaysLight": "sprite/decor/FanousLanternSidewaysLight",
+        "FanousLanternSidewaysLit": "sprite/decor/FanousLanternSidewaysLit",
+        "FeedingTrough": "sprite/decor/FeedingTrough",
+        "FeedingTroughCover": "sprite/decor/FeedingTroughCover",
+        "FeedingTroughCover2": "sprite/decor/FeedingTroughCover2",
+        "FeedingTroughCover3": "sprite/decor/FeedingTroughCover3",
+        "HauntLamp": "sprite/decor/HauntLamp",
+        "HauntLampLight": "sprite/decor/HauntLampLight",
+        "HayBale": "sprite/decor/HayBale",
+        "HayBaleSideways": "sprite/decor/HayBaleSideways",
+        "HaySheave": "sprite/decor/HaySheave",
+        "JournalLectern": "sprite/decor/JournalLectern",
+        "JournalLectern_1": "sprite/decor/JournalLectern_1",
+        "JournalLectern_2": "sprite/decor/JournalLectern_2",
+        "JournalLectern_3": "sprite/decor/JournalLectern_3",
+        "JournalLectern_4": "sprite/decor/JournalLectern_4",
+        "JournalLectern_5": "sprite/decor/JournalLectern_5",
+        "LargeGravestone": "sprite/decor/LargeGravestone",
+        "LargeGravestoneSideways": "sprite/decor/LargeGravestoneSideways",
+        "LargeRock": "sprite/decor/LargeRock",
+        "MarbleArch": "sprite/decor/MarbleArch",
+        "MarbleArchSideways": "sprite/decor/MarbleArchSideways",
+        "MarbleBench": "sprite/decor/MarbleBench",
+        "MarbleBenchBackwards": "sprite/decor/MarbleBenchBackwards",
+        "MarbleBenchSideways": "sprite/decor/MarbleBenchSideways",
+        "MarbleBlobling": "sprite/decor/MarbleBlobling",
+        "MarbleBridge": "sprite/decor/MarbleBridge",
+        "MarbleBridgeSideways": "sprite/decor/MarbleBridgeSideways",
+        "MarbleCaribou": "sprite/decor/MarbleCaribou",
+        "MarbleFountain": "sprite/decor/MarbleFountain",
+        "MarbleKnight": "sprite/decor/MarbleKnight",
+        "MarbleLampPost": "sprite/decor/MarbleLampPost",
+        "MarbleLampPostLight": "sprite/decor/MarbleLampPostLight",
+        "MarblePedestal": "sprite/decor/MarblePedestal",
+        "MediumGravestone": "sprite/decor/MediumGravestone",
+        "MediumGravestoneSideways": "sprite/decor/MediumGravestoneSideways",
+        "MediumRock": "sprite/decor/MediumRock",
+        "MiniFairyCastle": "sprite/decor/MiniFairyCastle",
+        "MiniFairyCastleLit": "sprite/decor/MiniFairyCastleLit",
+        "MiniFairyCottage": "sprite/decor/MiniFairyCottage",
+        "MiniFairyCottageLight": "sprite/decor/MiniFairyCottageLight",
+        "MiniFairyForge": "sprite/decor/MiniFairyForge",
+        "MiniFairyForgeLight": "sprite/decor/MiniFairyForgeLight",
+        "MiniFairyKeep": "sprite/decor/MiniFairyKeep",
+        "MiniFairyKeepLight": "sprite/decor/MiniFairyKeepLight",
+        "MiniWizardTower": "sprite/decor/MiniWizardTower",
+        "MiniWizardTowerLight": "sprite/decor/MiniWizardTowerLight",
+        "MiniWizardTowerOrnamentAmberMoon": "sprite/decor/MiniWizardTowerOrnamentAmberMoon",
+        "MiniWizardTowerOrnamentDawn": "sprite/decor/MiniWizardTowerOrnamentDawn",
+        "PaperLantern": "sprite/decor/PaperLantern",
+        "PaperLanternLight": "sprite/decor/PaperLanternLight",
+        "PaperLanternLit": "sprite/decor/PaperLanternLit",
+        "PaperLanternSideways": "sprite/decor/PaperLanternSideways",
+        "PaperLanternSidewaysLight": "sprite/decor/PaperLanternSidewaysLight",
+        "PaperLanternSidewaysLit": "sprite/decor/PaperLanternSidewaysLit",
+        "PetHutch": "sprite/decor/PetHutch",
+        "PetHutch_1": "sprite/decor/PetHutch_1",
+        "PetHutch_2": "sprite/decor/PetHutch_2",
+        "PetHutch_3": "sprite/decor/PetHutch_3",
+        "PetHutch_3Light": "sprite/decor/PetHutch_3Light",
+        "SeedSilo": "sprite/decor/SeedSilo",
+        "SeedSilo_1": "sprite/decor/SeedSilo_1",
+        "SeedSilo_2": "sprite/decor/SeedSilo_2",
+        "SeedSilo_3": "sprite/decor/SeedSilo_3",
+        "SmallGravestone": "sprite/decor/SmallGravestone",
+        "SmallGravestoneSideways": "sprite/decor/SmallGravestoneSideways",
+        "SmallRock": "sprite/decor/SmallRock",
+        "Spiderweb": "sprite/decor/Spiderweb",
+        "SpiderwebSideways": "sprite/decor/SpiderwebSideways",
+        "StoneArch": "sprite/decor/StoneArch",
+        "StoneArchSideways": "sprite/decor/StoneArchSideways",
+        "StoneBench": "sprite/decor/StoneBench",
+        "StoneBenchSideways": "sprite/decor/StoneBenchSideways",
+        "StoneBirdBath": "sprite/decor/StoneBirdBath",
+        "StoneBridge": "sprite/decor/StoneBridge",
+        "StoneBridgeSideways": "sprite/decor/StoneBridgeSideways",
+        "StoneCaribou": "sprite/decor/StoneCaribou",
+        "StoneFirepit": "sprite/decor/StoneFirepit",
+        "StoneGargoyle": "sprite/decor/StoneGargoyle",
+        "StoneGnome": "sprite/decor/StoneGnome",
+        "StoneGnomess": "sprite/decor/StoneGnomess",
+        "StoneLampPost": "sprite/decor/StoneLampPost",
+        "StoneLampPostLight": "sprite/decor/StoneLampPostLight",
+        "StoneMoonGate": "sprite/decor/StoneMoonGate",
+        "StoneMoonGateSideways": "sprite/decor/StoneMoonGateSideways",
+        "StonePedestal": "sprite/decor/StonePedestal",
+        "StoneTorch": "sprite/decor/StoneTorch",
+        "StrawScarecrow": "sprite/decor/StrawScarecrow",
+        "StringLights": "sprite/decor/StringLights",
+        "StringLightsLight": "sprite/decor/StringLightsLight",
+        "StringLightsSideways": "sprite/decor/StringLightsSideways",
+        "StringLightsSidewaysLight": "sprite/decor/StringLightsSidewaysLight",
+        "ToolShack": "sprite/decor/ToolShack",
+        "ToolShack_1": "sprite/decor/ToolShack_1",
+        "WeatherStation": "sprite/decor/WeatherStation",
+        "WindSpinner": "sprite/decor/WindSpinner",
+        "WindTurner": "sprite/decor/WindTurner",
+        "WindchimeMoon": "sprite/decor/WindchimeMoon",
+        "WindchimeMoonSideways": "sprite/decor/WindchimeMoonSideways",
+        "WindchimeStar": "sprite/decor/WindchimeStar",
+        "WindchimeStarSideways": "sprite/decor/WindchimeStarSideways",
+        "WoodArch": "sprite/decor/WoodArch",
+        "WoodArchSide": "sprite/decor/WoodArchSide",
+        "WoodBench": "sprite/decor/WoodBench",
+        "WoodBenchBackwards": "sprite/decor/WoodBenchBackwards",
+        "WoodBenchSideways": "sprite/decor/WoodBenchSideways",
+        "WoodBridge": "sprite/decor/WoodBridge",
+        "WoodBridgeSideways": "sprite/decor/WoodBridgeSideways",
+        "WoodCaribou": "sprite/decor/WoodCaribou",
+        "WoodFrog": "sprite/decor/WoodFrog",
+        "WoodLampPost": "sprite/decor/WoodLampPost",
+        "WoodLampPostLight": "sprite/decor/WoodLampPostLight",
+        "WoodOwl": "sprite/decor/WoodOwl",
+        "WoodPergola": "sprite/decor/WoodPergola",
+        "WoodStool": "sprite/decor/WoodStool",
+        "WoodStoolShort": "sprite/decor/WoodStoolShort",
+        "WoodWindmill": "sprite/decor/WoodWindmill"
+      },
+      "Effect": {
+        "CrystalGlint": "sprite/effect/CrystalGlint",
+        "Firefly": "sprite/effect/Firefly",
+        "FullMoon": "sprite/effect/FullMoon",
+        "HauntGlow_01": "sprite/effect/HauntGlow_01",
+        "HauntGlow_02": "sprite/effect/HauntGlow_02",
+        "HauntGlow_03": "sprite/effect/HauntGlow_03",
+        "Leaf": "sprite/effect/Leaf",
+        "PumpkinChunk": "sprite/effect/PumpkinChunk"
+      },
+      "Item": {
+        "AmberCapsule": "sprite/item/AmberCapsule",
+        "AmberlitPotion": "sprite/item/AmberlitPotion",
+        "Camera": "sprite/item/Camera",
+        "CarvingKnife": "sprite/item/CarvingKnife",
+        "ChilledPotion": "sprite/item/ChilledPotion",
+        "CropCleanser": "sprite/item/CropCleanser",
+        "DawnCapsule": "sprite/item/DawnCapsule",
+        "DawnlitPotion": "sprite/item/DawnlitPotion",
+        "FrozenPotion": "sprite/item/FrozenPotion",
+        "GoldPotion": "sprite/item/GoldPotion",
+        "HauntPolaroid": "sprite/item/HauntPolaroid",
+        "HungerCrystal": "sprite/item/HungerCrystal",
+        "HungerCrystalShard": "sprite/item/HungerCrystalShard",
+        "MagicDust": "sprite/item/MagicDust",
+        "PlanterPot": "sprite/item/PlanterPot",
+        "RainWardCrystal": "sprite/item/RainWardCrystal",
+        "RainWardShard": "sprite/item/RainWardShard",
+        "RainbowPotion": "sprite/item/RainbowPotion",
+        "ReplenishPotion": "sprite/item/ReplenishPotion",
+        "Shovel": "sprite/item/Shovel",
+        "SnowBall": "sprite/item/SnowBall",
+        "SnowSplat": "sprite/item/SnowSplat",
+        "SnowWardCrystal": "sprite/item/SnowWardCrystal",
+        "SnowWardShard": "sprite/item/SnowWardShard",
+        "StrengthCrystal": "sprite/item/StrengthCrystal",
+        "StrengthCrystalShard": "sprite/item/StrengthCrystalShard",
+        "ThunderWardCrystal": "sprite/item/ThunderWardCrystal",
+        "ThunderWardShard": "sprite/item/ThunderWardShard",
+        "WateringCan": "sprite/item/WateringCan",
+        "WetPotion": "sprite/item/WetPotion",
+        "XPCrystal": "sprite/item/XPCrystal",
+        "XPCrystalShard": "sprite/item/XPCrystalShard",
+        "XPPotion": "sprite/item/XPPotion"
+      },
+      "Mutation": {
+        "Ambercharged": "sprite/mutation/Ambercharged",
+        "Amberlit": "sprite/mutation/Amberlit",
+        "Chilled": "sprite/mutation/Chilled",
+        "Dawncharged": "sprite/mutation/Dawncharged",
+        "Dawnlit": "sprite/mutation/Dawnlit",
+        "Frozen": "sprite/mutation/Frozen",
+        "Puddle": "sprite/mutation/Puddle",
+        "Thundercharged": "sprite/mutation/Thundercharged",
+        "ThunderchargedGround": "sprite/mutation/ThunderchargedGround",
+        "Thunderstruck": "sprite/mutation/Thunderstruck",
+        "ThunderstruckGround": "sprite/mutation/ThunderstruckGround",
+        "Wet": "sprite/mutation/Wet"
+      },
+      "MutationOverlay": {
+        "ChilledTallPlant": "sprite/mutation-overlay/ChilledTallPlant",
+        "FrozenTallPlant": "sprite/mutation-overlay/FrozenTallPlant",
+        "ThunderchargedTallPlant": "sprite/mutation-overlay/ThunderchargedTallPlant",
+        "ThunderstruckTallPlant": "sprite/mutation-overlay/ThunderstruckTallPlant",
+        "WetTallPlant": "sprite/mutation-overlay/WetTallPlant"
+      },
+      "Object": {
+        "AmberMoonShopBody": "sprite/object/AmberMoonShopBody",
+        "AmberMoonShopRug": "sprite/object/AmberMoonShopRug",
+        "AmberMoonShopTop": "sprite/object/AmberMoonShopTop",
+        "Billboard": "sprite/object/Billboard",
+        "BoobooBooth": "sprite/object/BoobooBooth",
+        "CollectorsClub": "sprite/object/CollectorsClub",
+        "DawnRug": "sprite/object/DawnRug",
+        "DawnShopBody": "sprite/object/DawnShopBody",
+        "DawnShopTop": "sprite/object/DawnShopTop",
+        "DecorShop": "sprite/object/DecorShop",
+        "GazeboBody": "sprite/object/GazeboBody",
+        "GazeboTop": "sprite/object/GazeboTop",
+        "LampPost": "sprite/object/LampPost",
+        "LampPostLight": "sprite/object/LampPostLight",
+        "Newsstand": "sprite/object/Newsstand",
+        "OutfitStation": "sprite/object/OutfitStation",
+        "Paperstack": "sprite/object/Paperstack",
+        "PetOutfitter": "sprite/object/PetOutfitter",
+        "PetSeller": "sprite/object/PetSeller",
+        "Petstore": "sprite/object/Petstore",
+        "PreservationStation": "sprite/object/PreservationStation",
+        "QuestBooth": "sprite/object/QuestBooth",
+        "RainShopBody": "sprite/object/RainShopBody",
+        "RainShopRug": "sprite/object/RainShopRug",
+        "RainShopTop": "sprite/object/RainShopTop",
+        "SnowShopBody": "sprite/object/SnowShopBody",
+        "SnowShopRug": "sprite/object/SnowShopRug",
+        "SnowShopTop": "sprite/object/SnowShopTop",
+        "ThunderShopBody": "sprite/object/ThunderShopBody",
+        "ThunderShopRug": "sprite/object/ThunderShopRug",
+        "ThunderShopTop": "sprite/object/ThunderShopTop",
+        "Tile_SeedShop": "sprite/object/Tile_SeedShop",
+        "Tile_SellShop": "sprite/object/Tile_SellShop",
+        "ToolShop": "sprite/object/ToolShop",
+        "TrainStation": "sprite/object/TrainStation",
+        "TrainStationLight": "sprite/object/TrainStationLight",
+        "Tram": "sprite/object/Tram",
+        "TramDoors": "sprite/object/TramDoors",
+        "TramFloors": "sprite/object/TramFloors",
+        "WeatherStation": "sprite/object/WeatherStation",
+        "Well": "sprite/object/Well",
+        "WellShop": "sprite/object/WellShop",
+        "WellShopLight": "sprite/object/WellShopLight"
+      },
+      "Pet": {
+        "AmberEgg": "sprite/pet/AmberEgg",
+        "CommonEgg": "sprite/pet/CommonEgg",
+        "DawnEgg": "sprite/pet/DawnEgg",
+        "HorseEgg": "sprite/pet/HorseEgg",
+        "LegendaryEgg": "sprite/pet/LegendaryEgg",
+        "MythicalEgg": "sprite/pet/MythicalEgg",
+        "RareEgg": "sprite/pet/RareEgg",
+        "SnowEgg": "sprite/pet/SnowEgg",
+        "SpookyEgg": "sprite/pet/SpookyEgg",
+        "ThunderEgg": "sprite/pet/ThunderEgg",
+        "UncommonEgg": "sprite/pet/UncommonEgg",
+        "WinterEgg": "sprite/pet/WinterEgg"
+      },
+      "PetCosmetic": {
+        "Ascot": "sprite/pet-cosmetic/Ascot",
+        "Badge": "sprite/pet-cosmetic/Badge",
+        "Ballcap": "sprite/pet-cosmetic/Ballcap",
+        "Bamboo": "sprite/pet-cosmetic/Bamboo",
+        "Beret": "sprite/pet-cosmetic/Beret",
+        "Bolo": "sprite/pet-cosmetic/Bolo",
+        "BowTie": "sprite/pet-cosmetic/BowTie",
+        "Bowler": "sprite/pet-cosmetic/Bowler",
+        "Cattleman": "sprite/pet-cosmetic/Cattleman",
+        "Cloche": "sprite/pet-cosmetic/Cloche",
+        "Deerstalker": "sprite/pet-cosmetic/Deerstalker",
+        "Fedora": "sprite/pet-cosmetic/Fedora",
+        "Fez": "sprite/pet-cosmetic/Fez",
+        "Mariner": "sprite/pet-cosmetic/Mariner",
+        "Mortarboard": "sprite/pet-cosmetic/Mortarboard",
+        "Neck": "sprite/pet-cosmetic/Neck",
+        "Newsboy": "sprite/pet-cosmetic/Newsboy",
+        "Pillbox": "sprite/pet-cosmetic/Pillbox",
+        "Sailor": "sprite/pet-cosmetic/Sailor",
+        "SailorTie": "sprite/pet-cosmetic/SailorTie",
+        "Stock": "sprite/pet-cosmetic/Stock",
+        "Stovepipe": "sprite/pet-cosmetic/Stovepipe",
+        "Sun": "sprite/pet-cosmetic/Sun",
+        "Western": "sprite/pet-cosmetic/Western",
+        "Witch": "sprite/pet-cosmetic/Witch",
+        "Wizard": "sprite/pet-cosmetic/Wizard"
+      },
+      "Plant": {
+        "Aloe": "sprite/plant/Aloe",
+        "Apple": "sprite/plant/Apple",
+        "BabyBeet": "sprite/plant/BabyBeet",
+        "BabyCarrot": "sprite/plant/BabyCarrot",
+        "BabyDawnbreaker": "sprite/plant/BabyDawnbreaker",
+        "BabyLeek": "sprite/plant/BabyLeek",
+        "BabyUbe": "sprite/plant/BabyUbe",
+        "Bamboo": "sprite/plant/Bamboo",
+        "Banana": "sprite/plant/Banana",
+        "Beet": "sprite/plant/Beet",
+        "Blueberry": "sprite/plant/Blueberry",
+        "BurrosTail": "sprite/plant/BurrosTail",
+        "BushyTree": "sprite/plant/BushyTree",
+        "Cabbage": "sprite/plant/Cabbage",
+        "CabbagePlant": "sprite/plant/CabbagePlant",
+        "Cacao": "sprite/plant/Cacao",
+        "Cactus": "sprite/plant/Cactus",
+        "Camellia": "sprite/plant/Camellia",
+        "Cardoon": "sprite/plant/Cardoon",
+        "Carrot": "sprite/plant/Carrot",
+        "Cattail": "sprite/plant/Cattail",
+        "Chrysanthemum": "sprite/plant/Chrysanthemum",
+        "CloverFourLeaf": "sprite/plant/CloverFourLeaf",
+        "CloverThreeLeaf": "sprite/plant/CloverThreeLeaf",
+        "Coconut": "sprite/plant/Coconut",
+        "Corn": "sprite/plant/Corn",
+        "Daffodil": "sprite/plant/Daffodil",
+        "Daisy": "sprite/plant/Daisy",
+        "DaisyPurple": "sprite/plant/DaisyPurple",
+        "Date": "sprite/plant/Date",
+        "DatePalm": "sprite/plant/DatePalm",
+        "DawnCelestialCrop": "sprite/plant/DawnCelestialCrop",
+        "DawnCelestialCropLight": "sprite/plant/DawnCelestialCropLight",
+        "DawnCelestialPlant": "sprite/plant/DawnCelestialPlant",
+        "DawnCelestialPlantActive": "sprite/plant/DawnCelestialPlantActive",
+        "DawnCelestialPlatform": "sprite/plant/DawnCelestialPlatform",
+        "DawnCelestialPlatformTopmostLayer": "sprite/plant/DawnCelestialPlatformTopmostLayer",
+        "Dawnbreaker": "sprite/plant/Dawnbreaker",
+        "Delphinium": "sprite/plant/Delphinium",
+        "DirtPatch": "sprite/plant/DirtPatch",
+        "DragonFruit": "sprite/plant/DragonFruit",
+        "DragonFruitTree": "sprite/plant/DragonFruitTree",
+        "Echeveria": "sprite/plant/Echeveria",
+        "Eggplant": "sprite/plant/Eggplant",
+        "Emberbloom": "sprite/plant/Emberbloom",
+        "EmberbloomCrop": "sprite/plant/EmberbloomCrop",
+        "EmberbloomCropLight": "sprite/plant/EmberbloomCropLight",
+        "EmberbloomLight": "sprite/plant/EmberbloomLight",
+        "Embercrown": "sprite/plant/Embercrown",
+        "EmbercrownCrop": "sprite/plant/EmbercrownCrop",
+        "EmbercrownCropLight": "sprite/plant/EmbercrownCropLight",
+        "EmbercrownLight": "sprite/plant/EmbercrownLight",
+        "FavaBean": "sprite/plant/FavaBean",
+        "FlowerBush": "sprite/plant/FlowerBush",
+        "Foxfire": "sprite/plant/Foxfire",
+        "FoxfireLight": "sprite/plant/FoxfireLight",
+        "Gentian": "sprite/plant/Gentian",
+        "GhostPlant": "sprite/plant/GhostPlant",
+        "Grape": "sprite/plant/Grape",
+        "HabaneroPepper": "sprite/plant/HabaneroPepper",
+        "Hedge": "sprite/plant/Hedge",
+        "Lavender": "sprite/plant/Lavender",
+        "LeafyTree": "sprite/plant/LeafyTree",
+        "Leek": "sprite/plant/Leek",
+        "Lemon": "sprite/plant/Lemon",
+        "Lily": "sprite/plant/Lily",
+        "Lychee": "sprite/plant/Lychee",
+        "MarigoldCrop": "sprite/plant/MarigoldCrop",
+        "MarigoldPlant": "sprite/plant/MarigoldPlant",
+        "Milkcap": "sprite/plant/Milkcap",
+        "MoonCelestialCrop": "sprite/plant/MoonCelestialCrop",
+        "MoonCelestialCropLight": "sprite/plant/MoonCelestialCropLight",
+        "MoonCelestialPlant": "sprite/plant/MoonCelestialPlant",
+        "MoonCelestialPlantActive": "sprite/plant/MoonCelestialPlantActive",
+        "MoonCelestialPlatform": "sprite/plant/MoonCelestialPlatform",
+        "Mushroom": "sprite/plant/Mushroom",
+        "NightshadeBerry": "sprite/plant/NightshadeBerry",
+        "NightshadePlant": "sprite/plant/NightshadePlant",
+        "PalmTree": "sprite/plant/PalmTree",
+        "PalmTreeTop": "sprite/plant/PalmTreeTop",
+        "PassionFruit": "sprite/plant/PassionFruit",
+        "Peach": "sprite/plant/Peach",
+        "Pear": "sprite/plant/Pear",
+        "Pepper": "sprite/plant/Pepper",
+        "Persimmon": "sprite/plant/Persimmon",
+        "PineTree": "sprite/plant/PineTree",
+        "Poinsettia": "sprite/plant/Poinsettia",
+        "PricklyPear": "sprite/plant/PricklyPear",
+        "PricklyPearPlant": "sprite/plant/PricklyPearPlant",
+        "Pumpkin": "sprite/plant/Pumpkin",
+        "RoseRed": "sprite/plant/RoseRed",
+        "Saffron": "sprite/plant/Saffron",
+        "Shrub": "sprite/plant/Shrub",
+        "ShrubBush": "sprite/plant/ShrubBush",
+        "Snowdrop": "sprite/plant/Snowdrop",
+        "SnowdropDouble": "sprite/plant/SnowdropDouble",
+        "SproutFlower": "sprite/plant/SproutFlower",
+        "SproutFruit": "sprite/plant/SproutFruit",
+        "SproutVegetable": "sprite/plant/SproutVegetable",
+        "SproutVine": "sprite/plant/SproutVine",
+        "Squash": "sprite/plant/Squash",
+        "Starweaver": "sprite/plant/Starweaver",
+        "StarweaverLight": "sprite/plant/StarweaverLight",
+        "StarweaverPlant": "sprite/plant/StarweaverPlant",
+        "StarweaverPlatform": "sprite/plant/StarweaverPlatform",
+        "StemFlower": "sprite/plant/StemFlower",
+        "Strawberry": "sprite/plant/Strawberry",
+        "Sunflower": "sprite/plant/Sunflower",
+        "ThunderCelestialFruit": "sprite/plant/ThunderCelestialFruit",
+        "ThunderCelestialFruitLight": "sprite/plant/ThunderCelestialFruitLight",
+        "ThunderCelestialPlant": "sprite/plant/ThunderCelestialPlant",
+        "ThunderCelestialPlantActive": "sprite/plant/ThunderCelestialPlantActive",
+        "ThunderCelestialPlatform": "sprite/plant/ThunderCelestialPlatform",
+        "ThunderCelestialShroom": "sprite/plant/ThunderCelestialShroom",
+        "ThunderCelestialShroomLight": "sprite/plant/ThunderCelestialShroomLight",
+        "Tomato": "sprite/plant/Tomato",
+        "Tree": "sprite/plant/Tree",
+        "Trellis": "sprite/plant/Trellis",
+        "Tulip": "sprite/plant/Tulip",
+        "Ube": "sprite/plant/Ube",
+        "VariegatedCattail": "sprite/plant/VariegatedCattail",
+        "VioletCort": "sprite/plant/VioletCort",
+        "Watermelon": "sprite/plant/Watermelon",
+        "Witchfire": "sprite/plant/Witchfire",
+        "WitchfireLight": "sprite/plant/WitchfireLight"
+      },
+      "Seed": {
+        "Aloe": "sprite/seed/Aloe",
+        "Apple": "sprite/seed/Apple",
+        "Bamboo": "sprite/seed/Bamboo",
+        "Banana": "sprite/seed/Banana",
+        "Beet": "sprite/seed/Beet",
+        "Blueberry": "sprite/seed/Blueberry",
+        "BurrosTail": "sprite/seed/BurrosTail",
+        "Cabbage": "sprite/seed/Cabbage",
+        "Cacao": "sprite/seed/Cacao",
+        "Cactus": "sprite/seed/Cactus",
+        "Camellia": "sprite/seed/Camellia",
+        "Cardoon": "sprite/seed/Cardoon",
+        "Carrot": "sprite/seed/Carrot",
+        "Cattail": "sprite/seed/Cattail",
+        "Chrysanthemum": "sprite/seed/Chrysanthemum",
+        "Clover": "sprite/seed/Clover",
+        "Coconut": "sprite/seed/Coconut",
+        "Corn": "sprite/seed/Corn",
+        "Daffodil": "sprite/seed/Daffodil",
+        "Daisy": "sprite/seed/Daisy",
+        "Date": "sprite/seed/Date",
+        "DawnCelestial": "sprite/seed/DawnCelestial",
+        "Dawnbreaker": "sprite/seed/Dawnbreaker",
+        "DeadlyNightshade": "sprite/seed/DeadlyNightshade",
+        "Delphinium": "sprite/seed/Delphinium",
+        "DragonFruit": "sprite/seed/DragonFruit",
+        "Echeveria": "sprite/seed/Echeveria",
+        "Eggplant": "sprite/seed/Eggplant",
+        "Emberbloom": "sprite/seed/Emberbloom",
+        "FavaBean": "sprite/seed/FavaBean",
+        "Foxfire": "sprite/seed/Foxfire",
+        "Gentian": "sprite/seed/Gentian",
+        "GhostPlant": "sprite/seed/GhostPlant",
+        "Grape": "sprite/seed/Grape",
+        "Habanero": "sprite/seed/Habanero",
+        "Lavender": "sprite/seed/Lavender",
+        "Leek": "sprite/seed/Leek",
+        "Lemon": "sprite/seed/Lemon",
+        "Lily": "sprite/seed/Lily",
+        "Lychee": "sprite/seed/Lychee",
+        "Marigold": "sprite/seed/Marigold",
+        "Milkcap": "sprite/seed/Milkcap",
+        "MoonCelestial": "sprite/seed/MoonCelestial",
+        "Mushroom": "sprite/seed/Mushroom",
+        "PassionFruit": "sprite/seed/PassionFruit",
+        "Peach": "sprite/seed/Peach",
+        "Pear": "sprite/seed/Pear",
+        "Pepper": "sprite/seed/Pepper",
+        "Persimmon": "sprite/seed/Persimmon",
+        "Pinecone": "sprite/seed/Pinecone",
+        "Poinsettia": "sprite/seed/Poinsettia",
+        "PricklyPear": "sprite/seed/PricklyPear",
+        "Pumpkin": "sprite/seed/Pumpkin",
+        "Rose": "sprite/seed/Rose",
+        "Saffron": "sprite/seed/Saffron",
+        "Snowdrop": "sprite/seed/Snowdrop",
+        "Squash": "sprite/seed/Squash",
+        "Starweaver": "sprite/seed/Starweaver",
+        "Strawberry": "sprite/seed/Strawberry",
+        "Sunflower": "sprite/seed/Sunflower",
+        "ThunderCelestial": "sprite/seed/ThunderCelestial",
+        "Tomato": "sprite/seed/Tomato",
+        "Tulip": "sprite/seed/Tulip",
+        "Ube": "sprite/seed/Ube",
+        "VioletCort": "sprite/seed/VioletCort",
+        "Watermelon": "sprite/seed/Watermelon"
+      },
+      "Ui": {
+        "ActivityLog": "sprite/ui/ActivityLog",
+        "Age": "sprite/ui/Age",
+        "AmberMoonIcon": "sprite/ui/AmberMoonIcon",
+        "AppIcon_AppStore": "sprite/ui/AppIcon_AppStore",
+        "AppIcon_Discord": "sprite/ui/AppIcon_Discord",
+        "AppIcon_GooglePlay": "sprite/ui/AppIcon_GooglePlay",
+        "AppIcon_Instagram": "sprite/ui/AppIcon_Instagram",
+        "AppIcon_Reddit": "sprite/ui/AppIcon_Reddit",
+        "AppIcon_TikTok": "sprite/ui/AppIcon_TikTok",
+        "AppIcon_X": "sprite/ui/AppIcon_X",
+        "AppIcon_YouTube": "sprite/ui/AppIcon_YouTube",
+        "ArrowKeys": "sprite/ui/ArrowKeys",
+        "AvatarCardBottom": "sprite/ui/AvatarCardBottom",
+        "AvatarCardMiddle": "sprite/ui/AvatarCardMiddle",
+        "BigButton9Slice": "sprite/ui/BigButton9Slice",
+        "BloblingIcon": "sprite/ui/BloblingIcon",
+        "BlueStitchedBackground": "sprite/ui/BlueStitchedBackground",
+        "BooBooCoupon": "sprite/ui/BooBooCoupon",
+        "CameraHudBottom": "sprite/ui/CameraHudBottom",
+        "CameraHudCenter": "sprite/ui/CameraHudCenter",
+        "CameraHudCornerBottomLeft": "sprite/ui/CameraHudCornerBottomLeft",
+        "CameraHudCornerBottomRight": "sprite/ui/CameraHudCornerBottomRight",
+        "CameraHudCornerTopLeft": "sprite/ui/CameraHudCornerTopLeft",
+        "CameraHudCornerTopRight": "sprite/ui/CameraHudCornerTopRight",
+        "CameraHudTop": "sprite/ui/CameraHudTop",
+        "CameraOff": "sprite/ui/CameraOff",
+        "CameraOn": "sprite/ui/CameraOn",
+        "CameraPhoto": "sprite/ui/CameraPhoto",
+        "CardBanner": "sprite/ui/CardBanner",
+        "CardTop": "sprite/ui/CardTop",
+        "ChangingRoomAvatars": "sprite/ui/ChangingRoomAvatars",
+        "ChangingRoomPets": "sprite/ui/ChangingRoomPets",
+        "ChangingRoomPetsMirror": "sprite/ui/ChangingRoomPetsMirror",
+        "Chat_Read": "sprite/ui/Chat_Read",
+        "Chat_Unread": "sprite/ui/Chat_Unread",
+        "CheckboxChecked": "sprite/ui/CheckboxChecked",
+        "CheckboxUnchecked": "sprite/ui/CheckboxUnchecked",
+        "Checkmark": "sprite/ui/Checkmark",
+        "ClearIcon": "sprite/ui/ClearIcon",
+        "CloseButton": "sprite/ui/CloseButton",
+        "Coin": "sprite/ui/Coin",
+        "CosmeticTabHat": "sprite/ui/CosmeticTabHat",
+        "CosmeticTabInventory": "sprite/ui/CosmeticTabInventory",
+        "CosmeticTabTie": "sprite/ui/CosmeticTabTie",
+        "CropCardBottom": "sprite/ui/CropCardBottom",
+        "CropCardMiddle": "sprite/ui/CropCardMiddle",
+        "CropIcon": "sprite/ui/CropIcon",
+        "CropIconColor": "sprite/ui/CropIconColor",
+        "DawnIcon": "sprite/ui/DawnIcon",
+        "DecorCardBottom": "sprite/ui/DecorCardBottom",
+        "DecorCardMiddle": "sprite/ui/DecorCardMiddle",
+        "DecorIcon": "sprite/ui/DecorIcon",
+        "DecorIconColor": "sprite/ui/DecorIconColor",
+        "DecorRestocked": "sprite/ui/DecorRestocked",
+        "DevTools": "sprite/ui/DevTools",
+        "DialogueBox": "sprite/ui/DialogueBox",
+        "DialogueBoxTail": "sprite/ui/DialogueBoxTail",
+        "Dirt": "sprite/ui/Dirt",
+        "DismountPin": "sprite/ui/DismountPin",
+        "Donut": "sprite/ui/Donut",
+        "DustParticle": "sprite/ui/DustParticle",
+        "EditIcon": "sprite/ui/EditIcon",
+        "EggCardBottom": "sprite/ui/EggCardBottom",
+        "EggCardMiddle": "sprite/ui/EggCardMiddle",
+        "EggIcon": "sprite/ui/EggIcon",
+        "EggIconColor": "sprite/ui/EggIconColor",
+        "EggsRestocked": "sprite/ui/EggsRestocked",
+        "FeedPin": "sprite/ui/FeedPin",
+        "FeedbackBox": "sprite/ui/FeedbackBox",
+        "FlameIcon": "sprite/ui/FlameIcon",
+        "ForecastDay1": "sprite/ui/ForecastDay1",
+        "ForecastDay2": "sprite/ui/ForecastDay2",
+        "ForecastDay3": "sprite/ui/ForecastDay3",
+        "FriendBonus_1": "sprite/ui/FriendBonus_1",
+        "FriendBonus_2": "sprite/ui/FriendBonus_2",
+        "FriendBonus_3": "sprite/ui/FriendBonus_3",
+        "FriendBonus_4": "sprite/ui/FriendBonus_4",
+        "FriendBonus_5": "sprite/ui/FriendBonus_5",
+        "FriendBonus_6": "sprite/ui/FriendBonus_6",
+        "FrostIcon": "sprite/ui/FrostIcon",
+        "GhostIcon": "sprite/ui/GhostIcon",
+        "Hourglass": "sprite/ui/Hourglass",
+        "IconGarden": "sprite/ui/IconGarden",
+        "IconSell": "sprite/ui/IconSell",
+        "IconShop": "sprite/ui/IconShop",
+        "IconTooltip": "sprite/ui/IconTooltip",
+        "InventoryBag": "sprite/ui/InventoryBag",
+        "InventoryFilter": "sprite/ui/InventoryFilter",
+        "InventoryModal": "sprite/ui/InventoryModal",
+        "JoinDiscord": "sprite/ui/JoinDiscord",
+        "JournalPolaroid": "sprite/ui/JournalPolaroid",
+        "JournalPolaroidShadow": "sprite/ui/JournalPolaroidShadow",
+        "JournalTabGreen": "sprite/ui/JournalTabGreen",
+        "JournalTabRed": "sprite/ui/JournalTabRed",
+        "JournalTagPolaroid": "sprite/ui/JournalTagPolaroid",
+        "Locked": "sprite/ui/Locked",
+        "LunarIcon": "sprite/ui/LunarIcon",
+        "MidnightIcon": "sprite/ui/MidnightIcon",
+        "ModalFrameTopPetOutfitter": "sprite/ui/ModalFrameTopPetOutfitter",
+        "ModalFrameTopTravel": "sprite/ui/ModalFrameTopTravel",
+        "MoneyBag": "sprite/ui/MoneyBag",
+        "MoonyIcon": "sprite/ui/MoonyIcon",
+        "MountPin": "sprite/ui/MountPin",
+        "MultiHarvest": "sprite/ui/MultiHarvest",
+        "MutationAmbercharged": "sprite/ui/MutationAmbercharged",
+        "MutationAmberlit": "sprite/ui/MutationAmberlit",
+        "MutationChilled": "sprite/ui/MutationChilled",
+        "MutationDawncharged": "sprite/ui/MutationDawncharged",
+        "MutationDawnlit": "sprite/ui/MutationDawnlit",
+        "MutationFrame": "sprite/ui/MutationFrame",
+        "MutationFrozen": "sprite/ui/MutationFrozen",
+        "MutationGold": "sprite/ui/MutationGold",
+        "MutationRainbow": "sprite/ui/MutationRainbow",
+        "MutationThundercharged": "sprite/ui/MutationThundercharged",
+        "MutationThunderstruck": "sprite/ui/MutationThunderstruck",
+        "MutationWet": "sprite/ui/MutationWet",
+        "Newspaper": "sprite/ui/Newspaper",
+        "NotifierBellOff": "sprite/ui/NotifierBellOff",
+        "NotifierBellOn": "sprite/ui/NotifierBellOn",
+        "OutfitStationFrameTop": "sprite/ui/OutfitStationFrameTop",
+        "OutfitTabBottom": "sprite/ui/OutfitTabBottom",
+        "OutfitTabBottomDark": "sprite/ui/OutfitTabBottomDark",
+        "OutfitTabColor": "sprite/ui/OutfitTabColor",
+        "OutfitTabColorDark": "sprite/ui/OutfitTabColorDark",
+        "OutfitTabExpression": "sprite/ui/OutfitTabExpression",
+        "OutfitTabExpressionDark": "sprite/ui/OutfitTabExpressionDark",
+        "OutfitTabMid": "sprite/ui/OutfitTabMid",
+        "OutfitTabMidDark": "sprite/ui/OutfitTabMidDark",
+        "OutfitTabTop": "sprite/ui/OutfitTabTop",
+        "OutfitTabTopDark": "sprite/ui/OutfitTabTopDark",
+        "PatchHarvest": "sprite/ui/PatchHarvest",
+        "PetCardBottom": "sprite/ui/PetCardBottom",
+        "PetCardMiddle": "sprite/ui/PetCardMiddle",
+        "PetIcon": "sprite/ui/PetIcon",
+        "PetIconColor": "sprite/ui/PetIconColor",
+        "PetTeamsModal": "sprite/ui/PetTeamsModal",
+        "PickupPin": "sprite/ui/PickupPin",
+        "Pin_Discord": "sprite/ui/Pin_Discord",
+        "Pin_Insta": "sprite/ui/Pin_Insta",
+        "Pin_Reddit": "sprite/ui/Pin_Reddit",
+        "Pin_Tiktok": "sprite/ui/Pin_Tiktok",
+        "PlantCardBottom": "sprite/ui/PlantCardBottom",
+        "PlantCardMiddle": "sprite/ui/PlantCardMiddle",
+        "PlantIcon": "sprite/ui/PlantIcon",
+        "PlantIconColor": "sprite/ui/PlantIconColor",
+        "PlanterIconColor": "sprite/ui/PlanterIconColor",
+        "Polaroid": "sprite/ui/Polaroid",
+        "Postcard": "sprite/ui/Postcard",
+        "PreservationIcon": "sprite/ui/PreservationIcon",
+        "PreservationStar": "sprite/ui/PreservationStar",
+        "PreservationStationIcon": "sprite/ui/PreservationStationIcon",
+        "ProgressStar": "sprite/ui/ProgressStar",
+        "QuestIcon": "sprite/ui/QuestIcon",
+        "RainIcon": "sprite/ui/RainIcon",
+        "RandomIcon": "sprite/ui/RandomIcon",
+        "RarityCelestial": "sprite/ui/RarityCelestial",
+        "RarityCommon": "sprite/ui/RarityCommon",
+        "RarityDivine": "sprite/ui/RarityDivine",
+        "RarityLegendary": "sprite/ui/RarityLegendary",
+        "RarityMythic": "sprite/ui/RarityMythic",
+        "RarityRare": "sprite/ui/RarityRare",
+        "RarityUncommon": "sprite/ui/RarityUncommon",
+        "ResetFilter": "sprite/ui/ResetFilter",
+        "SadRose": "sprite/ui/SadRose",
+        "SeedCardBottom": "sprite/ui/SeedCardBottom",
+        "SeedCardMiddle": "sprite/ui/SeedCardMiddle",
+        "SeedIcon": "sprite/ui/SeedIcon",
+        "SeedIconColor": "sprite/ui/SeedIconColor",
+        "SeedsRestocked": "sprite/ui/SeedsRestocked",
+        "ShopShelfPlank": "sprite/ui/ShopShelfPlank",
+        "SingleHarvest": "sprite/ui/SingleHarvest",
+        "Size": "sprite/ui/Size",
+        "SliderThumb": "sprite/ui/SliderThumb",
+        "SmallCard": "sprite/ui/SmallCard",
+        "SortDefault": "sprite/ui/SortDefault",
+        "SortName": "sprite/ui/SortName",
+        "SortPrice": "sprite/ui/SortPrice",
+        "SortQuantity": "sprite/ui/SortQuantity",
+        "SortRarity": "sprite/ui/SortRarity",
+        "SortType": "sprite/ui/SortType",
+        "Stats": "sprite/ui/Stats",
+        "Sticky_Mobile": "sprite/ui/Sticky_Mobile",
+        "Sticky_Web": "sprite/ui/Sticky_Web",
+        "Sticky_Wiki": "sprite/ui/Sticky_Wiki",
+        "StorageButton": "sprite/ui/StorageButton",
+        "StorageFilter": "sprite/ui/StorageFilter",
+        "StorageModal": "sprite/ui/StorageModal",
+        "Strap": "sprite/ui/Strap",
+        "StrengthStar": "sprite/ui/StrengthStar",
+        "SunnyIcon": "sprite/ui/SunnyIcon",
+        "SunriseIcon": "sprite/ui/SunriseIcon",
+        "SunsetIcon": "sprite/ui/SunsetIcon",
+        "SystemHeaderMenuIcon": "sprite/ui/SystemHeaderMenuIcon",
+        "SystemHeaderMusicIcon": "sprite/ui/SystemHeaderMusicIcon",
+        "Thumbtack": "sprite/ui/Thumbtack",
+        "ThunderstormIcon": "sprite/ui/ThunderstormIcon",
+        "ToastBoardAccent9Slice": "sprite/ui/ToastBoardAccent9Slice",
+        "ToastBoardBase9Slice": "sprite/ui/ToastBoardBase9Slice",
+        "ToastBoardRainShop": "sprite/ui/ToastBoardRainShop",
+        "ToastIllustrationAllShops": "sprite/ui/ToastIllustrationAllShops",
+        "ToastIllustrationAmberShop": "sprite/ui/ToastIllustrationAmberShop",
+        "ToastIllustrationDawnShop": "sprite/ui/ToastIllustrationDawnShop",
+        "ToastIllustrationEggs": "sprite/ui/ToastIllustrationEggs",
+        "ToastIllustrationSeeds": "sprite/ui/ToastIllustrationSeeds",
+        "ToastIllustrationSnowShop": "sprite/ui/ToastIllustrationSnowShop",
+        "ToastIllustrationSpookyShop": "sprite/ui/ToastIllustrationSpookyShop",
+        "ToastIllustrationThunderShop": "sprite/ui/ToastIllustrationThunderShop",
+        "ToastIllustrationTools": "sprite/ui/ToastIllustrationTools",
+        "ToastStatusAlertIcon": "sprite/ui/ToastStatusAlertIcon",
+        "ToastStatusInfoIcon": "sprite/ui/ToastStatusInfoIcon",
+        "ToastStatusSuccessIcon": "sprite/ui/ToastStatusSuccessIcon",
+        "ToolCardBottom": "sprite/ui/ToolCardBottom",
+        "ToolCardMiddle": "sprite/ui/ToolCardMiddle",
+        "ToolIcon": "sprite/ui/ToolIcon",
+        "ToolIconColor": "sprite/ui/ToolIconColor",
+        "ToolMultiUse": "sprite/ui/ToolMultiUse",
+        "ToolOneTimeUse": "sprite/ui/ToolOneTimeUse",
+        "ToolsRestocked": "sprite/ui/ToolsRestocked",
+        "Touchpad": "sprite/ui/Touchpad",
+        "TrainTicket": "sprite/ui/TrainTicket",
+        "TroughButton": "sprite/ui/TroughButton",
+        "TroughModal": "sprite/ui/TroughModal",
+        "Undo": "sprite/ui/Undo",
+        "Unlocked": "sprite/ui/Unlocked",
+        "WeatherStation9Slice": "sprite/ui/WeatherStation9Slice",
+        "WeatherStationIcon": "sprite/ui/WeatherStationIcon",
+        "WeatherStationTopper": "sprite/ui/WeatherStationTopper",
+        "Weight": "sprite/ui/Weight"
+      },
+      "Winter": {
+        "SnowFootprints_1": "sprite/winter/SnowFootprints_1",
+        "SnowFootprints_2": "sprite/winter/SnowFootprints_2",
+        "SnowFootprints_3": "sprite/winter/SnowFootprints_3",
+        "SnowFootprints_4": "sprite/winter/SnowFootprints_4"
+      }
+    }
+  }
+}

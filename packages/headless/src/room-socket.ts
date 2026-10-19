@@ -294,7 +294,7 @@ export class RoomSocket {
     return this.client?.sequencer ?? null;
   }
 
-  /** The typed 72-method action surface the reference models separately as `GameActions`. */
+  /** The typed 109-method action surface the reference models separately as `GameActions`. */
   get actions(): HeadlessClient['actions'] {
     return this.requireClient('actions').actions;
   }

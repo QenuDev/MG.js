@@ -57,6 +57,10 @@ export interface MutationArtRecord {
   readonly overlaySprite?: string | null;
   /** Whether that overlay is drawn from the bottom of the plant up rather than from the top down. */
   readonly overlayFromBottom?: boolean;
+  /** The normal-crop z-index the build states for this mutation's group, where it states one. */
+  readonly zIndex?: number | null;
+  /** The tall-plant z-index the build states, where it differs from the normal-crop one. */
+  readonly tallPlantZIndex?: number | null;
 }
 
 /** A mutation's wash and the name of the art it draws over the crop. */
@@ -124,20 +128,29 @@ export function mutationArt(mutation: MutationArtRecord): MutationDrawing {
 export interface MutationStack {
   /** The position the game's own table states for it, which is the order the game stacks them in. */
   readonly order: number;
-  /** Whether it is one of the game's over-mutations, drawn above the crop rather than with the rest. */
+  /**
+   * Whether the game draws it above the crop body on a normal crop.
+   *
+   * On a tall plant the stated `tallPlantZIndex` decides instead, and a Hydro mutation that is `over` here is
+   * drawn behind the body there.
+   */
   readonly over: boolean;
-  /** The z-index the game gives its art: `10` for an over-mutation, `0` for one that keeps the order. */
+  /** The z-index the game gives its art on a normal crop. */
   readonly zIndex: number;
+  /** The z-index the game gives it on a tall plant, which is `-1` for the groups that go behind the body. */
+  readonly tallPlantZIndex: number;
   /** The art it pools under a tall plant with, or `null` when it lays no ground. */
   readonly ground: string | null;
 }
 
 /**
- * The z-index the game draws an over-mutation's art at.
+ * The marker z-index this model gives an over-mutation.
  *
- * `LayoutMotionController`: `a = Ko.has(e) ... a && (o.zIndex = 10)` inside `Jo`, and the z-ladder's own label
- * for that site is "over-mutation icons 10" (`.logs/art-sync-spike/analysis/motion-tables.json`, `zLadder`).
- * Every other mutation keeps the container's own order, which is `0`.
+ * Through 1192 the game states one over-set and draws those icons at 10 (`LayoutMotionController`:
+ * `a = Ko.has(e) ... a && (o.zIndex = 10)`). The 1650 build replaced the set with group badges -- Hydro at 2
+ * and Lunar at 4 above the body at 0 -- and also draws Hydro behind a tall plant. The number here is therefore
+ * the model's "above the body" marker rather than a figure every build states; `over` is the band a consumer
+ * should switch on, and `mutationRecords[name].group` says which 1650 badge applies.
  */
 const OVER_Z_INDEX = 10;
 
@@ -147,9 +160,10 @@ const UNSTATED_ORDER = 0;
 /**
  * Where a mutation sits in the draw order, and whether it paints over the crop or pools under it.
  *
- * `overMutations` is the game's own over-set, passed rather than written down: `Ko = new Set(['Dawnlit',
- * 'Ambershine', 'Dawncharged', 'Ambercharged'])` in `LayoutMotionController`, which is the four the consumer
- * holds as `OVER_MUTATIONS` (`server.mjs:813`). An over-mutation is drawn at z-index 10 rather than in the
+ * `overMutations` is the table's own list, passed rather than written down. Through 1192 the game states it as
+ * `Ko = new Set(['Dawnlit', 'Ambershine', 'Dawncharged', 'Ambercharged'])` in `LayoutMotionController`, the
+ * four the consumer holds as `OVER_MUTATIONS` (`server.mjs:813`); in 1650 the extractor derives the nine names
+ * whose group the z-ladder badges above the body. An over-mutation is drawn above the crop rather than in the
  * container's order, which is what makes "a moonlit clover lit over the frost it also carries" true.
  *
  * The order is the table's own position, not a sort over coin multipliers: the game's table stacks them in
@@ -162,10 +176,15 @@ const UNSTATED_ORDER = 0;
  */
 export function mutationStack(mutation: MutationArtRecord, overMutations: readonly string[]): MutationStack {
   const over = overMutations.includes(mutation.name);
+  // A build that states the ladder (1650) puts the two numbers on the art record; 1176 and 1192 state only the
+  // over-set, so the old marker and the tall-plant split are the fallback rather than the definition.
+  const statedZ = typeof mutation.zIndex === 'number' ? mutation.zIndex : null;
+  const statedTall = typeof mutation.tallPlantZIndex === 'number' ? mutation.tallPlantZIndex : null;
   return {
     order: typeof mutation.order === 'number' ? mutation.order : UNSTATED_ORDER,
     over,
-    zIndex: over ? OVER_Z_INDEX : 0,
+    zIndex: statedZ ?? (over ? OVER_Z_INDEX : 0),
+    tallPlantZIndex: statedTall ?? (over ? OVER_Z_INDEX : -1),
     ground: mutation.groundSprite ?? null,
   };
 }
@@ -193,7 +212,7 @@ export interface OverlayArt {
  * Three mutations state a ground art (`Wet`'s `Puddle`, `Thunderstruck`'s and `Thundercharged`'s own grounds)
  * and five state an overlay (`WetTallPlant`, `ChilledTallPlant`, `FrozenTallPlant`, `ThunderstruckTallPlant`,
  * `ThunderchargedTallPlant`); the two weather ones state `overlayFromBottom`, so their overlay climbs the
- * plant rather than hanging down it. The four over-mutations and the two shader materials state neither, and
+ * plant rather than hanging down it. The four Lunar over-mutations and the two shader materials state neither, and
  * `null` is the answer for them rather than an empty string.
  */
 export function mutationOverlayArt(mutation: MutationArtRecord): OverlayArt {

@@ -199,14 +199,14 @@ void test('a build whose tile enum assigns a member no arm states is refused by 
   // table (it does not require the arms and the enum to agree), and the witness is what refuses the result. A
   // check the predicate enforced would never reach this point.
   const mutated = textsOf(fixture).map((chunk) =>
-    chunk.file === 'worldDepthSortKey-BXUHHrP0.js'
+    chunk.file === fixture.evidence.kindSchemas.chunk
       ? {
           ...chunk,
           text: chunk.text.replace('e.Crystal=`crystal`,e}({})', 'e.Crystal=`crystal`,e.Bush=`bush`,e}({})'),
         }
       : chunk,
   );
-  const { tables } = extractTexts(mutated);
+  const { tables } = extractTexts(mutated, fixture.manifest);
   assert.ok(tables.kindSchemas !== undefined, 'the predicate refused a table it can still read');
   const failure = tileFailure(tables);
   assert.ok(failure !== undefined, 'the arms and the enum were allowed to disagree');

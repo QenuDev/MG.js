@@ -118,9 +118,56 @@ export function fixtureFiles(
     const cuts: FixtureCut[] = [];
     const lines: string[] = [];
     let offset = 0;
+    // A minified name is unique per scope, not per chunk, so a name can be declared more than once. The
+    // evidence's own byte range says which declaration it read; without that, the first match is a different
+    // declaration with the same name and the fixture silently extracts a different table.
+    const ranges = new Map<string, { readonly start: number; readonly end: number }>();
+    for (const entry of Object.values(evidence)) {
+      if (entry.chunk !== chunkName) continue;
+      const range = { start: entry.start, end: entry.end };
+      if (entry.declaration !== null) {
+        ranges.set(entry.declaration, range);
+        continue;
+      }
+      // A chunk-wide table (the enum built by several functions) has no single declaration, so its range is
+      // the span across the assignments and each support name gets that span to disambiguate by overlap.
+      for (const support of entry.support) {
+        if (!ranges.has(support)) ranges.set(support, range);
+      }
+    }
     const declarations = [...names]
       .map((name) => {
-        const declaration = chunk.declarations.find((candidate) => candidate.name === name);
+        const named = chunk.declarations.filter((candidate) => candidate.name === name);
+        const range = ranges.get(name);
+        const declaration =
+          (range === undefined
+            ? undefined
+            : (named.find(
+                (candidate) =>
+                  (candidate.valueStart === range.start && candidate.valueEnd === range.end) ||
+                  (candidate.start === range.start && candidate.end === range.end),
+              ) ??
+              // A chunk-wide table has no single declaration, so the evidence range is a span across several.
+              // A support declaration that contains or overlaps that span is the one the predicate read.
+              named.find(
+                (candidate) =>
+                  range !== undefined && candidate.start <= range.start && candidate.end >= range.end,
+              ) ??
+              named.find(
+                (candidate) =>
+                  range !== undefined && candidate.start < range.end && candidate.end > range.start,
+              ))) ??
+          // A minified name can be reused in another scope. A schema is a call over an object or a union, so
+          // that shape is preferred over the function or local that happens to share the name. The enum is a
+          // call over a builder function, which is the next preference; the first match is the last resort.
+          named.find((candidate) => {
+            const value = candidate.value;
+            if (value?.kind !== 'call' || value.args.length !== 1) return false;
+            return value.args[0]?.kind === 'object' || value.args[0]?.kind === 'array';
+          }) ??
+          named.find((candidate) => candidate.value?.kind === 'object') ??
+          named.find((candidate) => candidate.value?.kind === 'call') ??
+          named[0];
         if (declaration === undefined) {
           throw new Error(
             `fixture: the extraction read ${name} in ${chunkName}, which that chunk does not declare`,

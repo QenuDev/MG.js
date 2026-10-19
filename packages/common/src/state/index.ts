@@ -5,8 +5,15 @@ export type { ServerClockState } from './clock.js';
 export { asFiniteMs, ServerClock } from './clock.js';
 export type {
   ActivityEntry,
+  CarvingVerdict,
   Crop,
   Currency,
+  EdgeDecor,
+  EdgeObject,
+  EdgeOrientation,
+  EdgePart,
+  EdgePosition,
+  EdgeSide,
   Garden,
   Inventory,
   Mutation,

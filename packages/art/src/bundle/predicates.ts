@@ -518,7 +518,10 @@ const mutationArtTable: TablePredicate<ArtTables['mutationArt']> = {
     'every key is a mutation record this bundle states, every colour-bearing filter states both its colour and its alpha, every sprite reference resolves through the sprite-name table, and the keys that construct no colour filter at all are counted as materials rather than dropped',
   candidates(context) {
     const found: TableCandidate<ArtTables['mutationArt']>[] = [];
-    const records: Readonly<Record<string, { sprite: string | null }>> = context.tables.mutationRecords ?? {};
+    const records: ArtTables['mutationRecords'] = context.tables.mutationRecords ?? {};
+    // The same ladder the over-set reads: 1650 states a z per group, so each art record can carry the two
+    // numbers the game would draw it at instead of the model guessing one.
+    const zLadder = mutationZLadder(context);
     for (const chunk of context.chunks) {
       for (const object of chunk.objects) {
         if (object.members.length < MIN_KEYS) continue;
@@ -559,7 +562,7 @@ const mutationArtTable: TablePredicate<ArtTables['mutationArt']> = {
               unresolvedRefs += 1;
               return null;
             }
-            // `R.Wet.sprite` is a mutation record's own sprite, already resolved by its own predicate.
+            // A mutation record's own sprite, already resolved by its own predicate.
             if (chain.length === 3 && chain[2] === 'sprite' && records[chain[1] ?? ''] !== undefined) {
               iconRefs += 1;
               return records[chain[1] ?? '']?.sprite ?? null;
@@ -569,6 +572,7 @@ const mutationArtTable: TablePredicate<ArtTables['mutationArt']> = {
             return path;
           };
           const bottom = memberValue(value ?? EMPTY_OBJECT, 'overlayFromBottom');
+          const z = zLadder === null ? null : mutationZOf(zLadder, records[member.key]?.group);
           art[member.key] = {
             order,
             tint: material || wash.color === null ? null : { color: wash.color, alpha: wash.alpha },
@@ -577,11 +581,15 @@ const mutationArtTable: TablePredicate<ArtTables['mutationArt']> = {
             groundSprite: resolveRef('tallPlantGroundSprite'),
             overlaySprite: resolveRef('overlaySprite'),
             overlayFromBottom: bottom !== null && bottom.kind === 'boolean' && bottom.value,
+            ...(z === null ? {} : { zIndex: z.zIndex, tallPlantZIndex: z.tallPlantZIndex }),
           };
         }
         found.push({
           id: 'mutationArt',
-          support: [],
+          support:
+            zLadder !== null && zLadder.chunk.file === chunk.file
+              ? [zLadder.ladder.name, zLadder.routing.name].sort()
+              : [],
           predicate: mutationArtTable.predicate,
           looksFor: mutationArtTable.looksFor,
           invariant: mutationArtTable.invariant,
@@ -1109,6 +1117,155 @@ const scaleCap: TablePredicate<ArtTables['scale']> = {
   },
 };
 
+/**
+ * The z-ladder a build states, and the group routing that reads it.
+ *
+ * 1650 deleted the four-name over-set the earlier builds wrote and moved the decision onto each mutation's
+ * group: a ladder of named rungs (`behindBody:-1, body:0, bodyOverlay:1, hydroBadge:2, carving:3,
+ * lunarBadge:4`) and a routing object (`{Hydro: ladder.hydroBadge, Lunar: ladder.lunarBadge}`). The same two
+ * objects say both which mutations draw above the body (`overMutations`) and what z each one gets.
+ */
+interface MutationZLadder {
+  readonly chunk: ParsedChunk;
+  readonly ladder: ShapeDeclaration;
+  readonly routing: ShapeDeclaration;
+  readonly rungs: Readonly<Record<string, number>>;
+  readonly groups: Readonly<Record<string, string>>;
+  readonly body: string;
+  readonly behind: string;
+  /** The group whose rung is the highest, when exactly one group holds it. */
+  readonly top: string | null;
+}
+
+function mutationZLadder(context: PredicateContext): MutationZLadder | null {
+  for (const chunk of context.chunks) {
+    for (const ladder of chunk.declarations) {
+      const object = asObject(ladder.value);
+      if (object === null) continue;
+      const body = memberValue(object, 'body');
+      if (body === null || body.kind !== 'number' || body.value !== 0) continue;
+      const rungs: Record<string, number> = {};
+      for (const member of object.members) {
+        if (member.value.kind === 'number') rungs[member.key] = member.value.value;
+      }
+      const behind = Object.entries(rungs)
+        .filter(([, z]) => z < 0)
+        .sort((left, right) => left[1] - right[1])[0]?.[0];
+      if (behind === undefined || Object.keys(rungs).length < 4) continue;
+      for (const routing of chunk.declarations) {
+        if (routing === ladder) continue;
+        const routed = asObject(routing.value);
+        if (routed === null || routed.members.length < 2) continue;
+        const groups: Record<string, string> = {};
+        let ok = true;
+        for (const member of routed.members) {
+          const value = member.value;
+          if (value.kind !== 'reference' || value.path[0] !== ladder.name) {
+            ok = false;
+            break;
+          }
+          const rung = value.path[1] ?? '';
+          if (rungs[rung] === undefined) {
+            ok = false;
+            break;
+          }
+          groups[member.key] = rung;
+        }
+        if (!ok) continue;
+        const highest = Math.max(...Object.values(groups).map((rung) => rungs[rung] ?? 0));
+        const tops = Object.entries(groups).filter(([, rung]) => rungs[rung] === highest);
+        return {
+          chunk,
+          ladder,
+          routing,
+          rungs,
+          groups,
+          body: 'body',
+          behind,
+          top: tops.length === 1 ? (tops[0]?.[0] ?? null) : null,
+        };
+      }
+    }
+  }
+  return null;
+}
+
+/** The z a mutation's group gets, on a normal crop and on a tall plant. */
+function mutationZOf(
+  ladder: MutationZLadder,
+  group: string | undefined,
+): { readonly zIndex: number; readonly tallPlantZIndex: number } | null {
+  const rung = group === undefined ? undefined : ladder.groups[group];
+  const zIndex = rung === undefined ? ladder.rungs[ladder.body] : ladder.rungs[rung];
+  if (zIndex === undefined) return null;
+  const behind = ladder.rungs[ladder.behind];
+  const tallPlantZIndex =
+    behind !== undefined && group !== undefined && group !== ladder.top && rung !== undefined
+      ? behind
+      : zIndex;
+  return { zIndex, tallPlantZIndex };
+}
+
+/**
+ * The over-set a build states as group badges rather than as a set of names: every mutation whose group the
+ * ladder badges above `body`.
+ */
+function overSetFromGroups(context: PredicateContext): readonly TableCandidate<ArtTables['overMutations']>[] {
+  const ladder = mutationZLadder(context);
+  if (ladder === null) return [];
+  const art = context.tables.mutationArt ?? {};
+  const records = context.tables.mutationRecords ?? {};
+  const artName = context.declarations.mutationArt ?? null;
+  const bodyZ = ladder.rungs[ladder.body] ?? 0;
+  const members = Object.entries(records)
+    .filter(([name, record]) => {
+      const rung = ladder.groups[record.group];
+      const z = rung === undefined ? undefined : ladder.rungs[rung];
+      return z !== undefined && z > bodyZ && Object.hasOwn(art, name);
+    })
+    .map(([name]) => name);
+  if (members.length === 0) return [];
+  return [
+    {
+      id: 'overMutations',
+      support: [
+        ladder.ladder.name,
+        ...ladder.chunk.functions
+          .filter((fn) => artName !== null && fn.text.includes(artName) && fn.text.includes('.zIndex'))
+          .map((fn) => fn.name)
+          .filter((name): name is string => name !== null),
+      ].sort(),
+      predicate: 'mutation-over-set',
+      looksFor:
+        'a group-to-badge routing beside a numeric z-ladder whose body is zero, which is how a build that states no explicit over-set still says which mutations draw above the crop body',
+      invariant:
+        'every mutation whose group the routing badges above the body is a key of the mutation art table, and the routing is read in the code that places mutation icons',
+      chunk: ladder.chunk.file,
+      declaration: ladder.routing.name,
+      start: ladder.routing.valueStart,
+      end: ladder.routing.valueEnd,
+      coverage: {
+        counts: {
+          members: members.length,
+          membersThatAreMutationArtKeys: members.length,
+          setUsedBesideTheMutationArtTable: artName !== null && ladder.chunk.text.includes(artName) ? 1 : 0,
+        },
+        notes: [
+          `members: ${members.join(', ')}`,
+          `ladder: ${Object.entries(ladder.rungs)
+            .map(([rung, z]) => `${rung}(${z})`)
+            .join(', ')}`,
+          `groups above the body: ${Object.entries(ladder.groups)
+            .filter(([, rung]) => (ladder.rungs[rung] ?? 0) > bodyZ)
+            .map(([group, rung]) => `${group}->${rung}(${ladder.rungs[rung]})`)
+            .join(', ')}`,
+        ],
+      },
+      value: members,
+    },
+  ];
+}
+
 const mutationOverSet: TablePredicate<ArtTables['overMutations']> = {
   id: 'overMutations',
   predicate: 'mutation-over-set',
@@ -1158,7 +1315,8 @@ const mutationOverSet: TablePredicate<ArtTables['overMutations']> = {
         });
       }
     }
-    return found;
+    // The two spellings are alternatives, not a choice: a build that states one does not state the other.
+    return [...found, ...overSetFromGroups(context)];
   },
   violations(candidate) {
     const problems: string[] = [];
@@ -1583,6 +1741,125 @@ function iconFillCandidate(chunk: ParsedChunk): TableCandidate<ArtTables['iconFi
   };
 }
 
+/** The number a case returns: a literal, or a constant declared in the same chunk. */
+function numericReturn(chunk: ParsedChunk, text: string): number | null {
+  const literal = /^-?\d+(?:\.\d+)?$/.test(text) ? Number(text) : null;
+  if (literal !== null) return Number.isFinite(literal) ? literal : null;
+  const declaration = chunk.declarations.find((candidate) => candidate.name === text)?.value;
+  return declaration?.kind === 'number' ? declaration.value : null;
+}
+
+/**
+ * The icon shares a build states as a multiplier switch, which is how 1650 spelled what the earlier builds
+ * spelled as a `sizeRatio` default.
+ *
+ * The switch returns the share itself for the two kinds that state one and 1 for the default; the enum it names
+ * is imported, so the target chunk is resolved through the import rather than guessed at. The pet is still the
+ * one kind the switch does not name: it is baked to a 256 frame through the portrait route beside it, and that
+ * route is what makes its share `bake-frame`.
+ */
+function iconFillMultiplierCandidate(
+  context: PredicateContext,
+): TableCandidate<ArtTables['iconFills']> | null {
+  for (const chunk of context.chunks) {
+    for (const fn of chunk.functions) {
+      if (fn.name === null) continue;
+      if (!/switch\s*\(\s*[A-Za-z_$][\w$]*\.itemType\s*\)/.test(fn.text)) continue;
+      const cases: { kind: string; value: number; alias: string; ref: string }[] = [];
+      const casePattern =
+        /case\s+([A-Za-z_$][\w$]*)\.([A-Za-z_$][\w$]*)\s*:\s*return\s+([A-Za-z_$][\w$]*|\d+(?:\.\d+)?)/g;
+      for (const match of fn.text.matchAll(casePattern)) {
+        const kind = match[2];
+        const ref = match[3] ?? '';
+        const value = numericReturn(chunk, ref);
+        if (kind !== undefined && value !== null) {
+          cases.push({ kind, value, alias: match[1] ?? '', ref });
+        }
+      }
+      if (cases.length < 2) continue;
+      const aliases = new Set(cases.map((entry) => entry.alias));
+      if (aliases.size !== 1) continue;
+      const alias = [...aliases][0] ?? '';
+      if (cases.some((entry) => !(entry.value > 0 && entry.value <= 1))) continue;
+      if (!/default\s*:\s*return\s+1\b/.test(fn.text)) continue;
+      const multiplier = chunk.functions.find(
+        (other) =>
+          other !== fn && new RegExp(`\\*\\s*${escapeForRegExp(fn.name ?? '')}\\s*\\(`).test(other.text),
+      );
+      if (multiplier === undefined) continue;
+      const imported = chunk.imports.find((entry) => entry.local === alias);
+      // A fixture cut into single declarations keeps its imports in the manifest, not in the text, so the
+      // import target may not be resolvable here. The enum's own member set is still unique enough to find
+      // without it: exactly seven members, the stated kinds among them.
+      const target =
+        imported === undefined
+          ? undefined
+          : context.chunks.find((candidate) => imported.from.endsWith(candidate.file));
+      const enums = (target === undefined ? context.chunks : [target])
+        .flatMap((candidate) => candidate.declarations)
+        .map((declaration) => ({ declaration, members: enumMembers(declaration.text) }))
+        .filter(
+          (entry) =>
+            entry.members !== null &&
+            Object.keys(entry.members).length === ICON_ITEM_TYPES &&
+            cases.every((entry_) => Object.hasOwn(entry.members ?? {}, entry_.kind)),
+        );
+      if (enums.length !== 1) continue;
+      const enumEntry = enums[0];
+      if (enumEntry === undefined || enumEntry.members === null) continue;
+
+      const fills: Record<string, IconFill> = {};
+      for (const kind of Object.keys(enumEntry.members)) {
+        const stated = cases.find((entry) => entry.kind === kind);
+        if (stated !== undefined) fills[kind] = { fill: stated.value, source: 'stated' };
+        else if (kind === 'Pet') fills[kind] = { fill: 1, source: 'bake-frame' };
+        else fills[kind] = { fill: 1, source: 'fit-default' };
+      }
+      const sources = Object.values(fills);
+      const count = (source: IconFill['source']): number =>
+        sources.filter((entry) => entry.source === source).length;
+      return {
+        id: 'iconFills',
+        predicate: iconFillTable.predicate,
+        looksFor:
+          'a share switch over an imported item-kind enum that returns the stated fraction per kind and 1 by default, multiplied into a size, with the pet routed to a 256-frame bake beside it',
+        invariant:
+          "exactly the game's seven item types, each accounted for once, with the two stated shares in (0, 1], the four defaulting to the whole box, and the pet baked through the portrait route",
+        chunk: chunk.file,
+        declaration: fn.name,
+        start: fn.start,
+        end: fn.end,
+        // Only names this chunk declares: the enum is another chunk's declaration, and the fixture cuts one
+        // chunk at a time. The item-kind table's own evidence keeps it from that chunk.
+        support: [...new Set([...cases.map((entry) => entry.ref), multiplier.name ?? ''])]
+          .filter((name) => name !== '' && declarationNamed(chunk, name) !== null)
+          .sort(),
+        coverage: {
+          counts: {
+            itemTypes: sources.length,
+            statedShares: count('stated'),
+            defaultShares: count('fit-default'),
+            bakeFrames: count('bake-frame'),
+            fitFunctions: 0,
+            builderFunctions: 0,
+            canvasLiteralCalls: 0,
+            routerFunctions: 1,
+            bakeRoutes: count('bake-frame'),
+          },
+          notes: [
+            `share switch: ${fn.name}`,
+            `enum: ${enumEntry.declaration.name}`,
+            'Pet is the one kind the switch does not state; the icon model draws it from the portrait bake',
+            ...Object.entries(fills).map(([kind, entry]) => `${kind}: ${entry.fill} (${entry.source})`),
+          ],
+        },
+        value: fills,
+      };
+    }
+  }
+  return null;
+}
+
 const iconFillTable: TablePredicate<ArtTables['iconFills']> = {
   id: 'iconFills',
   predicate: 'icon-fill-table',
@@ -1596,6 +1873,10 @@ const iconFillTable: TablePredicate<ArtTables['iconFills']> = {
       const candidate = iconFillCandidate(chunk);
       if (candidate !== null) found.push(candidate);
     }
+    if (found.length === 0) {
+      const multiplier = iconFillMultiplierCandidate(context);
+      if (multiplier !== null) found.push(multiplier);
+    }
     return found;
   },
   violations(candidate) {
@@ -1604,17 +1885,22 @@ const iconFillTable: TablePredicate<ArtTables['iconFills']> = {
     if ((counts['itemTypes'] ?? 0) !== ICON_ITEM_TYPES) {
       problems.push(`${counts['itemTypes'] ?? 0} of ${ICON_ITEM_TYPES} item types are routed`);
     }
-    if ((counts['fitFunctions'] ?? 0) !== 1) {
+    // A multiplier switch states the share without a fit function, so zero fits is the new shape rather than a
+    // missing table; the router count below still has to be one.
+    const multiplierShape = (counts['fitFunctions'] ?? 0) === 0 && (counts['routerFunctions'] ?? 0) === 1;
+    if (!multiplierShape && (counts['fitFunctions'] ?? 0) !== 1) {
       problems.push(`${counts['fitFunctions'] ?? 0} fit functions, not one`);
     }
-    if ((counts['builderFunctions'] ?? 0) !== 1) {
-      problems.push(`${counts['builderFunctions'] ?? 0} icon builders, not one`);
-    }
-    if ((counts['canvasLiteralCalls'] ?? 0) !== 1) {
-      problems.push(`${counts['canvasLiteralCalls'] ?? 0} calls pass the 256 canvas, not one`);
-    }
-    if ((counts['routerFunctions'] ?? 0) !== 1) {
-      problems.push(`${counts['routerFunctions'] ?? 0} item-type routers reach the icon builder, not one`);
+    if (!multiplierShape) {
+      if ((counts['builderFunctions'] ?? 0) !== 1) {
+        problems.push(`${counts['builderFunctions'] ?? 0} icon builders, not one`);
+      }
+      if ((counts['canvasLiteralCalls'] ?? 0) !== 1) {
+        problems.push(`${counts['canvasLiteralCalls'] ?? 0} calls pass the 256 canvas, not one`);
+      }
+      if ((counts['routerFunctions'] ?? 0) !== 1) {
+        problems.push(`${counts['routerFunctions'] ?? 0} item-type routers reach the icon builder, not one`);
+      }
     }
     if ((counts['bakeRoutes'] ?? 0) !== 1) {
       problems.push(`${counts['bakeRoutes'] ?? 0} branches outside the switch bake a portrait, not one`);
@@ -1773,8 +2059,24 @@ function armOfDeclaration(declaration: ShapeDeclaration): SchemaShape | null {
 }
 
 /** The declaration named `name` read as one schema arm, or `null`. */
+/**
+ * The declaration a schema reference names, preferring the one that is a schema.
+ *
+ * A minified name is unique per scope, not per chunk: 1650 declares the Produce schema's name twice, once as
+ * and once as a local. `declarationNamed` answers the first, which is how a union arm silently became a function
+ * call. This prefers a declaration that projects as a schema or a union, and falls back to the first only when
+ * none does -- the caller still checks what it got.
+ */
+function schemaDeclarationNamed(chunk: ParsedChunk, name: string): ShapeDeclaration | null {
+  const named = chunk.declarations.filter((declaration) => declaration.name === name);
+  const schema = named.find(
+    (declaration) => schemaObject(declaration.value) !== null || unionMembers(declaration.value) !== null,
+  );
+  return schema ?? named[0] ?? null;
+}
+
 function armNamed(chunk: ParsedChunk, name: string): SchemaShape | null {
-  const declaration = declarationNamed(chunk, name);
+  const declaration = schemaDeclarationNamed(chunk, name);
   return declaration === null ? null : armOfDeclaration(declaration);
 }
 
@@ -1805,7 +2107,7 @@ function unionArms(chunk: ParsedChunk, union: ShapeDeclaration): readonly Schema
     }
     const name = member.path.at(-1);
     if (name === undefined) return;
-    const declaration = declarationNamed(chunk, name);
+    const declaration = schemaDeclarationNamed(chunk, name);
     if (declaration === null) return;
     const nested = unionMembers(declaration.value);
     if (nested === null) {
@@ -1852,7 +2154,7 @@ function discriminatorOf(
 /** The union that names every kind the game's item-type enum states, and no kind it does not. */
 function itemUnionOf(
   chunk: ParsedChunk,
-  enumName: string,
+  enumNames: ReadonlySet<string>,
   kinds: ReadonlySet<string>,
 ): { readonly declaration: ShapeDeclaration; readonly arms: readonly SchemaShape[] } | null {
   for (const declaration of chunk.declarations) {
@@ -1863,7 +2165,7 @@ function itemUnionOf(
     let ok = true;
     for (const arm of arms) {
       const discriminator = discriminatorOf(chunk, arm, 'itemType');
-      if (discriminator === null || discriminator.enumName !== enumName) {
+      if (discriminator === null || !enumNames.has(discriminator.enumName)) {
         ok = false;
         break;
       }
@@ -1989,10 +2291,13 @@ function enumNamed(
   chunk: ParsedChunk,
   name: string,
 ): { readonly declaration: ShapeDeclaration; readonly literals: Readonly<Record<string, string>> } | null {
-  const declaration = declarationNamed(chunk, name);
-  if (declaration === null) return null;
-  const literals = enumMembers(declaration.text);
-  return literals === null ? null : { declaration, literals };
+  // A minified name can be declared in more than one scope; the enum is the declaration that reads as one.
+  for (const declaration of chunk.declarations) {
+    if (declaration.name !== name) continue;
+    const literals = enumMembers(declaration.text);
+    if (literals !== null) return { declaration, literals };
+  }
+  return null;
 }
 
 /**
@@ -2062,7 +2367,18 @@ function kindSchemaCandidate(
   const kinds = new Set(Object.keys(context.tables.itemTypes ?? {}));
   if (enumName === undefined || kinds.size === 0) return null;
 
-  const union = itemUnionOf(chunk, enumName, kinds);
+  // The enum can live in another chunk: 1650 moved the item kinds into a shared module, so the union names
+  // them through an import alias. Any local name this chunk imports from the enum's own chunk is accepted,
+  // because the exported name need not equal the declaration's (the reader sees the local name, not the map).
+  const enumChunk = context.chunks.find((candidate) => declarationNamed(candidate, enumName) !== null);
+  const enumNames = new Set<string>([enumName]);
+  if (enumChunk !== null && enumChunk !== undefined) {
+    const target = `./${enumChunk.file}`;
+    for (const imported of chunk.imports) {
+      if (imported.from === target) enumNames.add(imported.local);
+    }
+  }
+  const union = itemUnionOf(chunk, enumNames, kinds);
   if (union === null) return null;
 
   const items: Record<string, string[]> = {};

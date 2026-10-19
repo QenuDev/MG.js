@@ -14,11 +14,12 @@
  *     art is what it is picked as -- and every other species is drawn as its crop's.
  *   - where a mutation's picture lands and how large it is, from `mutationPlacement`, which is arithmetic
  *     over the game's own anchor table, scale cap, reference tile and tall-decal multiplier.
- *   - the band each layer is drawn in, from `mutationStack`: a tall plant's decal pools under the art (the
- *     game's own `zIndex = -1`), an over-mutation's picture is drawn above every other (`zIndex = 10`), and
- *     the rest keep the mutation table's own order. The three numbers this file states are the consumer's
- *     raster bands for a flat canvas -- `-1`, `20 + order`, `30 + order` (`server.mjs:922-924`) -- and they
- *     are not published: the recipe is an ordered list, and the order is the whole answer.
+ *   - the band each layer is drawn in, from `mutationStack`'s stated z: a negative one pools under the art,
+ *     a positive one is drawn above it, and zero keeps the mutation table's own order. A tall plant uses the
+ *     record's tall-plant z, which is why a Hydro mutation goes behind the body even when it states no ground
+ *     decal. The three numbers this file states are the consumer's raster bands for a flat canvas -- `-1`,
+ *     `20 + order`, `30 + order` (`server.mjs:922-924`) -- and they are not published: the recipe is an
+ *     ordered list, and the order is the whole answer.
  *   - the washes the art is drawn through, from `mutationArt` and the mutation records: the game washes a
  *     crop through every mutation of the group that washes last, and the group order is the mutation table's
  *     own -- where each group first appears. `[]` when the crop wears nothing that washes, or wears a
@@ -116,7 +117,7 @@ export interface CropLayer {
   readonly height: number;
   /** True when the layer is the decal that pools under a tall plant rather than a picture over the art. */
   readonly decal: boolean;
-  /** True when it is one of the game's over-mutations, drawn above every other mutation picture. */
+  /** True for a mutation the game draws above the body on a normal crop; a tall plant may draw it under. */
   readonly over: boolean;
   /** The mutation's own name, or `null` on the art layer. */
   readonly mutation: string | null;
@@ -174,12 +175,16 @@ function artworkOf(record: MutationArtRecord, frames: SpriteFrames): MutationArt
  * The band a mutation's picture is drawn in, as the consumer rasterises it.
  *
  * Not published, because the recipe is an ordered list and its order is the answer. It is stated so the sort
- * has a name: a decal pools under the art, an over-mutation is drawn above the rest whatever the table says,
- * and everything else keeps the mutation table's own order.
+ * has a name: the game's stated z decides the band, a negative one pools under the art, and everything above
+ * the body keeps the mutation table's own order.
  */
-function bandOf(placed: { decal: boolean }, stack: { over: boolean; order: number }): number {
-  if (stack.over) return 30 + stack.order;
-  return placed.decal ? -1 : 20 + stack.order;
+function bandOf(
+  stack: { zIndex: number; tallPlantZIndex: number; order: number },
+  tallPlant: boolean,
+): number {
+  const z = tallPlant ? stack.tallPlantZIndex : stack.zIndex;
+  if (z < 0) return -1;
+  return z > 0 ? 30 + stack.order : 20 + stack.order;
 }
 
 /**
@@ -273,6 +278,7 @@ export function cropComposition(
   const part = harvestType === tables.harvestTypes[PATCH_MEMBER] ? record?.plant : record?.crop;
   const artPath = part?.sprite ?? null;
   if (artPath === null) return null;
+  const tallPlant = tables.displayFlags[artPath]?.isTallPlant === true;
   const art = resolveSprite(frames, artPath);
   if (art === null) return null;
 
@@ -324,7 +330,7 @@ export function cropComposition(
   const under: CropLayer[] = [];
   const above: CropLayer[] = [];
   const banded = worn
-    .map((pair) => ({ ...pair, band: bandOf(pair.one.placed, pair.one.stack) }))
+    .map((pair) => ({ ...pair, band: bandOf(pair.one.stack, tallPlant) }))
     .sort((left, right) => left.band - right.band);
   for (const { name, one, band } of banded) {
     if (one.placed.sprite === null) continue;

@@ -52,6 +52,9 @@ export const EXIT_NO_CONNECT = 2;
 /** The command was asked for something it does not do. */
 export const EXIT_USAGE = 3;
 
+/** How many complete frames a committed fixture keeps beyond the key list. */
+const FIXTURE_FRAME_EXAMPLES = 16;
+
 const DEFAULT_ORIGIN = 'https://magicgarden.gg';
 const DEFAULT_PAGE = 'https://magicgarden.gg/r/test';
 const CRAWL_DEPTH = 6;
@@ -666,10 +669,14 @@ export function applySync(
   const written = [names.dataFile, names.provenanceDoc];
   if (options.fixtures && plan.fixtureSources !== null && plan.source !== 'url') {
     const chunks = plan.chunks.map((chunk) => projectChunk(chunk.file, chunk.text));
+    // The fixture keeps every frame *key* -- that is what the extractor validates sprite paths against -- and
+    // a handful of complete frames as shape examples. Writing all 854 would make the committed capture a copy
+    // of the atlas rather than evidence a reviewer can read.
+    const frames = Object.fromEntries(Object.entries(plan.frames).slice(0, FIXTURE_FRAME_EXAMPLES));
     writeFixtures(names.fixtureDir, chunks, plan.data.evidence, plan.fixtureSources, {
       artVersion: plan.artVersion,
       frameKeys: plan.frameKeys,
-      frames: plan.frames,
+      frames,
     });
     written.push(names.fixtureDir);
   }

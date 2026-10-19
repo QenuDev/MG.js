@@ -223,11 +223,17 @@ export interface Position {
   y: number;
 }
 
-/** An inventory item reference passed to `placeCrystal()` / `fuseCrystal()`. */
-export interface CrystalShard {
-  itemId: string;
-  crystalType: string;
-}
+/**
+ * The item `placeCrystal()` / `fuseCrystal()` carries, as the 1650 schema states it.
+ *
+ * The command's own union has two arms, both `itemType: "Tool"`: a fresh shard is named by `toolId`, and a
+ * crystal already in the garden is named by its client-minted `itemId`. The earlier `{itemId, crystalType}`
+ * shape is not one the 1650 server reads -- `crystalType` is a property of the crystal on the tile, not of
+ * the inventory item being placed.
+ */
+export type CrystalItem =
+  | { readonly itemType: 'Tool'; readonly toolId: string }
+  | { readonly itemType: 'Tool'; readonly itemId: string };
 
 /**
  * Discriminated-union badge payload for `setPetTeamEmblem()`.

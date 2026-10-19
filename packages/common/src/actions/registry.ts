@@ -48,8 +48,10 @@ export type ActionCategory =
 /**
  * The complete outbound action registry.
  *
- * 71 distinct wire strings across 8 categories: 9 `room`, 15 `flat`, 47 `wrapped`.
- * Derived from the protocol field guide's action reference tables (§4.1-§4.8).
+ * 108 distinct wire strings across 8 categories: 9 `room`, 15 `flat`, 84 `wrapped`.
+ * Derived from the protocol field guide's action reference tables (§4.1-§4.8), plus the 1650 build's own
+ * command union: three edge-decor commands, the item `MoveItem`/`LogItem` pair that replaced the six storage
+ * commands, and the quest, NPC, capsule and credits commands the build declares.
  */
 export const ACTION_SPECS = {
   // ---------------------------------------------------------------- session & heartbeat (§4.1)
@@ -134,8 +136,8 @@ export const ACTION_SPECS = {
     wire: 'Teleport',
     form: 'flat',
     category: 'movement',
-    params: ['position'],
-    note: 'Instant position set, tile-grid coordinates.',
+    params: ['position', 'tramArrivalStationIndex?'],
+    note: 'Instant position set, tile-grid coordinates; 1650 adds an optional tram-arrival station.',
   },
 
   // --------------------------------------------------------------------------- shop (§4.4)
@@ -143,8 +145,8 @@ export const ACTION_SPECS = {
     wire: 'PurchaseShopItem',
     form: 'wrapped',
     category: 'shop',
-    params: ['shop', 'item'],
-    note: 'Replaces older per-category purchase messages.',
+    params: ['shop', 'item', 'viewMode?', 'quantity?'],
+    note: 'Replaces older per-category purchase messages; 1650 adds optional viewMode and quantity.',
   },
 
   // ---------------------------------------------------------------- garden & crops (§4.5)
@@ -190,7 +192,7 @@ export const ACTION_SPECS = {
     form: 'wrapped',
     category: 'garden',
     params: ['tileType', 'localTileIndex', 'item', 'intent'],
-    note: 'Also used to fuse a shard into an existing crystal, with intent {type:"merge", mergeGainSeconds}. There is no separate fuse wire command.',
+    note: 'item is the 1650 tool union: {itemType:"Tool", toolId} for a fresh shard, {itemType:"Tool", itemId} for an existing crystal. Fusing uses intent {type:"merge", mergeGainSeconds}; there is no separate fuse wire command.',
   },
   PickupCrystal: {
     wire: 'PickupCrystal',
@@ -238,6 +240,27 @@ export const ACTION_SPECS = {
     form: 'wrapped',
     category: 'decor',
     params: ['tileType', 'localTileIndex'],
+  },
+  PlaceEdgeDecor: {
+    wire: 'PlaceEdgeDecor',
+    form: 'wrapped',
+    category: 'decor',
+    params: ['edge', 'decorId', 'mirrored'],
+    note: "The 1650 build's edge placement: edge is {orientation,x,y}, and mirrored is required.",
+  },
+  PickupEdgeDecor: {
+    wire: 'PickupEdgeDecor',
+    form: 'wrapped',
+    category: 'decor',
+    params: ['part', 'edge', 'side'],
+    note: 'part is line, hanging or backdrop; side is up, down, left or right.',
+  },
+  RemoveGardenEdgeObject: {
+    wire: 'RemoveGardenEdgeObject',
+    form: 'wrapped',
+    category: 'decor',
+    params: ['part', 'edge'],
+    note: 'Removes one part of one edge; the edge itself is kept while another part remains.',
   },
 
   // --------------------------------------------------------------- pets & pet teams (§4.7)
@@ -328,13 +351,27 @@ export const ACTION_SPECS = {
   },
 
   // ---------------------------------------------------------- inventory & storage (§4.8)
-  MoveInventoryItem: {
-    wire: 'MoveInventoryItem',
+  MoveItem: {
+    wire: 'MoveItem',
     form: 'wrapped',
     category: 'inventory',
-    params: ['moveItemId', 'toInventoryIndex'],
+    params: ['from', 'to', 'itemId', 'quantity?', 'beforeItemId?', 'evictionItemId?'],
+    note: 'The 1650 replacement for the six single-purpose storage commands: from/to are "inventory" or a storage id.',
   },
-  SetSelectedItem: { wire: 'SetSelectedItem', form: 'flat', category: 'inventory', params: ['itemIndex'] },
+  LogItem: {
+    wire: 'LogItem',
+    form: 'wrapped',
+    category: 'inventory',
+    params: ['target'],
+    note: 'The 1650 replacement for LogItems; target.kind is growSlot, petSlot, inventoryItem or displayedCrop.',
+  },
+  SetSelectedItem: {
+    wire: 'SetSelectedItem',
+    form: 'flat',
+    category: 'inventory',
+    params: ['itemId?', 'decorRotation?'],
+    note: 'The 1650 schema states itemId and decorRotation; the earlier build stated itemIndex.',
+  },
   ToggleLockItem: { wire: 'ToggleLockItem', form: 'wrapped', category: 'inventory', params: ['itemId'] },
   DropObject: {
     wire: 'DropObject',
@@ -350,41 +387,194 @@ export const ACTION_SPECS = {
     params: [],
     note: 'Same as DropObject: sending any params gets it rejected as malformed.',
   },
-  PutItemInStorage: {
-    wire: 'PutItemInStorage',
+  SetStatFavorite: {
+    wire: 'SetStatFavorite',
     form: 'wrapped',
     category: 'inventory',
-    params: ['itemId', 'storageId', 'toStorageIndex?', 'quantity?'],
-    note: 'Omit toStorageIndex to append at the end; omit quantity to move the whole stack.',
+    params: ['statId', 'favorite'],
   },
-  RetrieveItemFromStorage: {
-    wire: 'RetrieveItemFromStorage',
+
+  // ------------------------------------------------------- quests & npc visits (1650)
+  ClaimDailyQuestReward: {
+    wire: 'ClaimDailyQuestReward',
     form: 'wrapped',
     category: 'inventory',
-    params: ['itemId', 'storageId', 'toInventoryIndex?', 'quantity?'],
+    params: ['instanceId?', 'minimumQuantity?'],
   },
-  MoveStorageItem: {
-    wire: 'MoveStorageItem',
+  ClaimDailyQuestBonus: {
+    wire: 'ClaimDailyQuestBonus',
     form: 'wrapped',
     category: 'inventory',
-    params: ['itemId', 'storageId', 'toStorageIndex'],
+    params: ['minimumQuantity?'],
   },
-  SwapItemWithStorage: {
-    wire: 'SwapItemWithStorage',
+  ClaimSpookyQuestReward: {
+    wire: 'ClaimSpookyQuestReward',
     form: 'wrapped',
     category: 'inventory',
-    params: [
-      'storageId',
-      'inventoryItemId',
-      'storageItemId',
-      'toStorageIndex?',
-      'toInventoryIndex?',
-      'draggedQuantity?',
-      'draggedFromInventory?',
-    ],
-    note: 'One atomic exchange rather than a retrieve+put pair; keeps both capacities unchanged mid-swap. Only send draggedQuantity/draggedFromInventory together.',
+    params: ['minimumQuantity?'],
   },
-  LogItems: { wire: 'LogItems', form: 'wrapped', category: 'inventory', params: [] },
+  RefreshDailyQuest: {
+    wire: 'RefreshDailyQuest',
+    form: 'wrapped',
+    category: 'inventory',
+    params: ['instanceId?'],
+  },
+  ClaimOneTimeReward: {
+    wire: 'ClaimOneTimeReward',
+    form: 'wrapped',
+    category: 'inventory',
+    params: ['rewardId'],
+  },
+  RequestNpcVisit: {
+    wire: 'RequestNpcVisit',
+    form: 'wrapped',
+    category: 'inventory',
+    params: ['trigger?'],
+  },
+  AcceptNpcVisitGift: { wire: 'AcceptNpcVisitGift', form: 'wrapped', category: 'inventory', params: [] },
+  SkipNpcVisitArrival: { wire: 'SkipNpcVisitArrival', form: 'wrapped', category: 'inventory', params: [] },
+  NpcVisitFarewellReady: {
+    wire: 'NpcVisitFarewellReady',
+    form: 'wrapped',
+    category: 'inventory',
+    params: [],
+  },
+  NpcVisitFarewellSeen: { wire: 'NpcVisitFarewellSeen', form: 'wrapped', category: 'inventory', params: [] },
+  WatchedEdgarIntro: { wire: 'WatchedEdgarIntro', form: 'wrapped', category: 'inventory', params: [] },
+
+  // ----------------------------------------------------------------- capsules (1650)
+  OpenDawnCapsule: { wire: 'OpenDawnCapsule', form: 'wrapped', category: 'shop', params: [] },
+  OpenAllDawnCapsules: { wire: 'OpenAllDawnCapsules', form: 'wrapped', category: 'shop', params: [] },
+  OpenAmberCapsule: { wire: 'OpenAmberCapsule', form: 'wrapped', category: 'shop', params: [] },
+  OpenAllAmberCapsules: { wire: 'OpenAllAmberCapsules', form: 'wrapped', category: 'shop', params: [] },
+
+  // --------------------------------------------------- purchases with credits (1650)
+  PurchaseSeedWithCredits: {
+    wire: 'PurchaseSeedWithCredits',
+    form: 'wrapped',
+    category: 'shop',
+    params: ['species', 'shop'],
+  },
+  PurchaseToolWithCredits: {
+    wire: 'PurchaseToolWithCredits',
+    form: 'wrapped',
+    category: 'shop',
+    params: ['toolId', 'shop'],
+  },
+  PurchaseEggWithCredits: {
+    wire: 'PurchaseEggWithCredits',
+    form: 'wrapped',
+    category: 'shop',
+    params: ['egg', 'shop'],
+  },
+  PurchaseDecorWithCredits: {
+    wire: 'PurchaseDecorWithCredits',
+    form: 'wrapped',
+    category: 'shop',
+    params: ['decorId', 'shop'],
+  },
+  PurchasePetCosmeticWithCredits: {
+    wire: 'PurchasePetCosmeticWithCredits',
+    form: 'wrapped',
+    category: 'shop',
+    params: ['cosmeticId'],
+  },
+  PurchaseAvatarCosmetic: {
+    wire: 'PurchaseAvatarCosmetic',
+    form: 'wrapped',
+    category: 'shop',
+    params: ['cosmeticFilename', 'expectedAmount?'],
+  },
+  PurchaseHalloweenBundleWithCredits: {
+    wire: 'PurchaseHalloweenBundleWithCredits',
+    form: 'wrapped',
+    category: 'shop',
+    params: [],
+  },
+  UpgradeStorageWithCredits: {
+    wire: 'UpgradeStorageWithCredits',
+    form: 'wrapped',
+    category: 'shop',
+    params: ['decorId'],
+  },
+  InstaGrowWithCredits: {
+    wire: 'InstaGrowWithCredits',
+    form: 'wrapped',
+    category: 'shop',
+    params: ['dirtTileIndex'],
+  },
+  RestockSeedsWithCredits: {
+    wire: 'RestockSeedsWithCredits',
+    form: 'wrapped',
+    category: 'shop',
+    params: [],
+  },
+  RestockEggsWithCredits: { wire: 'RestockEggsWithCredits', form: 'wrapped', category: 'shop', params: [] },
+  RestockToolsWithCredits: {
+    wire: 'RestockToolsWithCredits',
+    form: 'wrapped',
+    category: 'shop',
+    params: [],
+  },
+  RestockDecorsWithCredits: {
+    wire: 'RestockDecorsWithCredits',
+    form: 'wrapped',
+    category: 'shop',
+    params: [],
+  },
+
+  // ---------------------------------------------------------------- 1650 garden
+  SetGrowSlotLock: {
+    wire: 'SetGrowSlotLock',
+    form: 'wrapped',
+    category: 'garden',
+    params: ['slot', 'growSlotId', 'locked'],
+  },
+  CarvePumpkin: {
+    wire: 'CarvePumpkin',
+    form: 'wrapped',
+    category: 'garden',
+    params: ['slot', 'growSlotId', 'carving?'],
+  },
+
+  // ------------------------------------------------------------------ 1650 misc
+  AmberCapture: {
+    wire: 'AmberCapture',
+    form: 'wrapped',
+    category: 'pets',
+    params: ['petItemId', 'position'],
+  },
+  TakePhoto: { wire: 'TakePhoto', form: 'wrapped', category: 'session', params: [] },
+  PhotographTutorialHaunt: {
+    wire: 'PhotographTutorialHaunt',
+    form: 'wrapped',
+    category: 'session',
+    params: [],
+  },
+  PhotographGhost: {
+    wire: 'PhotographGhost',
+    form: 'wrapped',
+    category: 'session',
+    params: ['ghostIndex?', 'ghostInstanceId?'],
+  },
+  TramBoarding: {
+    wire: 'TramBoarding',
+    form: 'wrapped',
+    category: 'movement',
+    params: ['stationIndex?'],
+  },
+  TramArrival: {
+    wire: 'TramArrival',
+    form: 'wrapped',
+    category: 'movement',
+    params: ['stationIndex?'],
+  },
+  SpendApologyTicket: {
+    wire: 'SpendApologyTicket',
+    form: 'wrapped',
+    category: 'shop',
+    params: ['use', 'cosmeticFilename'],
+  },
   UpgradeSeedSilo: { wire: 'UpgradeSeedSilo', form: 'flat', category: 'inventory', params: [] },
   UpgradeDecorShed: { wire: 'UpgradeDecorShed', form: 'flat', category: 'inventory', params: [] },
   UpgradeToolShack: { wire: 'UpgradeToolShack', form: 'flat', category: 'inventory', params: [] },

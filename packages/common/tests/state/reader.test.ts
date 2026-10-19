@@ -86,6 +86,9 @@ const REAL_TILE_OBJECTS = {
         rotation: 90,
         flipped: false,
         preserved: true,
+        locked: true,
+        carving: 'AAAA',
+        carvingVerdict: 'approved',
         slotId: 7,
       },
       {
@@ -133,7 +136,15 @@ function sampleStore(): ObservableStore {
                 inventory: {
                   items: [
                     { itemType: 'Seed', species: 'Clover', quantity: 12 },
-                    { itemType: 'Produce', id: 'crop_1', species: 'Tomato', size: 75, mutations: ['Gold'] },
+                    {
+                      itemType: 'Produce',
+                      id: 'crop_1',
+                      species: 'Tomato',
+                      size: 75,
+                      mutations: ['Gold'],
+                      carving: 'BBBB',
+                      carvingVerdict: 'hidden',
+                    },
                     {
                       itemType: 'Plant',
                       id: 'plant_1',
@@ -185,7 +196,7 @@ function sampleStore(): ObservableStore {
                       items: [{ itemType: 'Tool', toolId: 'Shovel', quantity: 1 }],
                     },
                   ],
-                  favoritedItemIds: [],
+                  favoritedItemIds: ['WateringCan'],
                 },
                 garden: { tileObjects: REAL_TILE_OBJECTS, boardwalkTileObjects: {} },
                 petSlots: [
@@ -281,6 +292,10 @@ void test('a player carries the whole inventory, and every kind of item reads it
   assert.deepEqual(produce?.mutations, ['Gold']);
   // A kind with no quantity of its own is one item, which is the save's own default.
   assert.equal(produce?.quantity, 1);
+  // 1650's produce schema carries the crop's carving fields, so a harvested pumpkin keeps what was carved.
+  assert.ok(produce?.itemType === 'Produce', 'the produce states its kind');
+  assert.equal(produce.carving, 'BBBB');
+  assert.equal(produce.carvingVerdict, 'hidden');
 
   const [plant] = byKind('Plant');
   assert.ok(plant?.itemType === 'Plant', 'the potted plant states its kind');
@@ -315,6 +330,11 @@ void test('a player carries the whole inventory, and every kind of item reads it
   assert.equal(pet.sourceEggId, '');
   assert.deepEqual(pet.abilityCooldowns, {});
   assert.deepEqual(pet.equippedCosmetics, {});
+});
+
+void test('the inventory carries the ids the player has favourited', () => {
+  const { state } = readerWithClock();
+  assert.deepEqual(state.self?.inventory.favoritedItemIds, ['WateringCan']);
 });
 
 void test('the inventory lists every storage with the decoration it came from', () => {
@@ -411,6 +431,7 @@ void test('the garden is read from tileObjects, three levels deep', () => {
     [1, 2, 0],
     'a tile carries its own slots array, so a crop is never at the garden level',
   );
+  assert.deepEqual(garden?.edges, [], 'a garden with no edgeObjects has no edges, not undefined');
 
   // The literal that proves the reader walked the real path rather than a plausible one.
   assert.deepEqual(
@@ -540,6 +561,83 @@ void test('the ground a tile is on is the map, not what the tile holds', () => {
     [[6, 'crystal', 'Boardwalk']],
     'and a shard on the boardwalk is a boardwalk tile',
   );
+});
+
+void test('the garden reads its edges as a third map, with the parts the game states', () => {
+  const store = new ObservableStore({
+    initial: {
+      data: { players: [{ id: 'p_1' }] },
+      child: {
+        data: {
+          userSlots: [
+            {
+              userId: 'p_1',
+              data: {
+                garden: {
+                  tileObjects: {},
+                  boardwalkTileObjects: {},
+                  edgeObjects: {
+                    'v:4:7': {
+                      backdrop: { objectType: 'decor', decorId: 'FanousLantern', mirrored: false },
+                    },
+                    'h:10:3': {
+                      hanging: { objectType: 'decor', decorId: 'PaperLantern', mirrored: true },
+                      line: { objectType: 'decor', decorId: 'StringLights', mirrored: false },
+                    },
+                    'h:2:9': {
+                      line: { objectType: 'decor', decorId: 'ColoredStringLights', mirrored: false },
+                    },
+                    'm:1:1': {
+                      line: { objectType: 'decor', decorId: 'NotAnEdge', mirrored: false },
+                    },
+                    'h:1:1': {},
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+  });
+  const state = new StateReader(store);
+  state.selfPlayerId = 'p_1';
+  const garden = state.garden(0);
+  assert.notEqual(garden, null);
+
+  assert.deepEqual(
+    garden?.edges.map((edge) => edge.id),
+    ['h:1:1', 'h:2:9', 'h:10:3', 'v:4:7'],
+    'edges are ordered by orientation, then x, then y; a malformed key is not an address',
+  );
+
+  const stringLights = garden?.edges.find((edge) => edge.id === 'h:10:3');
+  assert.equal(stringLights?.orientation, 'h');
+  assert.equal(stringLights?.x, 10);
+  assert.equal(stringLights?.y, 3);
+  assert.deepEqual(
+    stringLights?.parts.map((part) => part.part),
+    ['line', 'hanging'],
+    'parts are in the game schema order, not the order the save happened to state them',
+  );
+  assert.equal(stringLights?.parts[0]?.decorId, 'StringLights');
+  assert.equal(stringLights?.parts[0]?.mirrored, false);
+  assert.equal(stringLights?.parts[1]?.mirrored, true);
+  assert.equal(stringLights?.parts[1]?.orientation, 'h', 'a part carries the edge address it sits on');
+  assert.equal(stringLights?.parts[1]?.x, 10);
+  assert.equal(stringLights?.parts[1]?.y, 3);
+  assert.equal(
+    stringLights?.parts[1]?.entityPath,
+    '/child/data/userSlots/0/data/garden/edgeObjects/h:10:3/hanging',
+  );
+  assert.deepEqual(
+    stringLights?.record.raw,
+    store.get('/child/data/userSlots/0/data/garden/edgeObjects/h:10:3'),
+    'the edge keeps its raw record',
+  );
+
+  const empty = garden?.edges.find((edge) => edge.id === 'h:1:1');
+  assert.deepEqual(empty?.parts, [], 'a stated edge with no parts is still an edge, with nothing on it');
 });
 
 /**
@@ -729,7 +827,18 @@ void test('a crop carries every field of the game grow-slot schema', () => {
   assert.equal(crop?.rotation, 90);
   assert.equal(crop?.flipped, false);
   assert.equal(crop?.preserved, true);
+  assert.equal(crop?.locked, true);
+  assert.equal(crop?.carving, 'AAAA');
+  assert.equal(crop?.carvingVerdict, 'approved');
   assert.equal(mutationName('Gold'), 'Gold');
+});
+
+void test('a crop that states no carving reads null, not an empty string', () => {
+  const { state } = readerWithClock();
+  const crop = state.self?.garden?.tiles[1]?.plots[1];
+  assert.equal(crop?.locked, false);
+  assert.equal(crop?.carving, null);
+  assert.equal(crop?.carvingVerdict, null);
 });
 
 void test('a tile species is the tile type, not a crop species', () => {

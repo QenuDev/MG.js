@@ -92,11 +92,13 @@ void test('the over-mutations are drawn above the crop at the z-index the game g
     const stack = mutationStack({ name, order: 0 }, OVER_MUTATIONS);
     assert.equal(stack.over, true, `${name} is one of the game's over-mutations`);
     assert.equal(stack.zIndex, 10);
+    assert.equal(stack.tallPlantZIndex, 10, 'a tall plant keeps an over-mutation above the body');
   }
   for (const name of ['Wet', 'Chilled', 'Frozen', 'Thunderstruck', 'Thundercharged']) {
     const stack = mutationStack({ name, order: 0 }, OVER_MUTATIONS);
     assert.equal(stack.over, false, `${name} keeps the container's own order`);
     assert.equal(stack.zIndex, 0);
+    assert.equal(stack.tallPlantZIndex, -1, 'a tall plant draws a non-over mutation behind the body');
   }
 });
 

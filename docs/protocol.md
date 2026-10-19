@@ -18,11 +18,18 @@ no visible reason."
 So the classification lives in exactly one place (`actions/registry.ts`, `ACTION_SPECS`), every action method reads it, and a test asserts the counts:
 
 ```
-71 wire strings  =  9 room  +  15 flat  +  47 wrapped
+108 wire strings  =  9 room  +  15 flat  +  84 wrapped
 ```
 
 Plus `fuseCrystal()`, a documented convenience over `PlaceCrystal` with `intent:{type:"merge"}`. The field
-guide states flatly that "there is no separate fuse command", giving **72 methods**.
+guide states flatly that "there is no separate fuse command", giving **109 methods**. The 1650 build added
+forty commands: the three edge-decor commands (`PlaceEdgeDecor`, `PickupEdgeDecor`,
+`RemoveGardenEdgeObject`), the item `MoveItem`/`LogItem` pair that replaced the six single-purpose storage
+commands, and the quest, NPC, capsule, credits and pumpkin-carving commands.
+
+An edge is the seam between two tiles, addressed by the game's own `{orientation, x, y}` rather than a tile
+type and index; `h:x:y` and `v:x:y` are the keys the save uses. They are registered as wrapped decor actions,
+because that is the scope and the category their schemas state.
 
 Because the migration is a moving target, `FormRegistry.setActionForm(name, form)` lets you flip a form at runtime when an action starts silently doing nothing, without waiting for a release.
 
@@ -85,5 +92,5 @@ Creation itself matches the documented `JsonPatch.apply`: "creating an array whe
 
 **Unparseable input never throws.** An unknown message type, a non-JSON frame, or a patch that cannot be applied are all reported as events and dropped. A wrapper that dies on one odd message is worse than one that logs it.
 
-**Actions take one params object, not positional arguments.** This is the one intentional deviation from the API reference's signatures (44 of 72 methods have optional parameters, several have adjacent optionals, and the documented rule for several is "omit it entirely; do not send `null`"). Field names inside the object match the wire fields, so code and a packet capture read the same.
+**Actions take one params object, not positional arguments.** This is the one intentional deviation from the API reference's signatures (many of the 109 methods have optional parameters, several have adjacent optionals, and the documented rule for several is "omit it entirely; do not send `null`"). Field names inside the object match the wire fields, so code and a packet capture read the same.
 
