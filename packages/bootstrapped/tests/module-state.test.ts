@@ -50,7 +50,8 @@ const srcRoot = resolve(here, '../src');
  * a refactor.
  */
 const MODULE_SCOPE_MUTABLE_STATE: Readonly<Record<string, number>> = {
-  'jotai/bridge.ts': 3,
+  // Four: the captured `set`/`get`, the supplied-store object backing them, and the inspected-atom counter.
+  'jotai/bridge.ts': 4,
   'page/override.ts': 1,
   'render/ctors.ts': 4,
   'render/pixi.ts': 4,

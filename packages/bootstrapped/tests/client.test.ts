@@ -29,7 +29,7 @@ import type { ClientEvents, Logger, MgClient } from '@mg.js/common';
 import { MG_VERSION, MgTransportError } from '@mg.js/common';
 import { BootstrappedClient } from '../src/client.ts';
 import { isBranded } from '../src/coexistence/brand.ts';
-import { ATOM_CACHE_KEY } from '../src/jotai/bridge.ts';
+import { ATOM_CACHE_KEY, resetJotaiCapture } from '../src/jotai/bridge.ts';
 import { BUNDLE_VERSION, onTeardown, peekNamespace } from '../src/page/namespace.ts';
 import { installRealmOverride } from '../src/page/override.ts';
 import type { PageRealm } from '../src/page/realm.ts';
@@ -345,6 +345,66 @@ void test('events reach a caller through client.events, and a restart does not a
   } finally {
     await client.stop();
     restore();
+  }
+});
+
+void test('state.self joins a player whose id only the jotai store knows', async () => {
+  // The failure this pins: `client.selfPlayerId` had a read-time fallback but `client.state.selfPlayerId` did
+  // not, so a session whose `Welcome` carried no id could print a valid id in the badge and still read
+  // `state.self === null` for its whole life. Release 1604 supplies `__jotaiStore` before render, so the
+  // store is the source that answers even when the wire scrape missed the welcome.
+  resetJotaiCapture();
+  const page: PageRealm = { WebSocket: FakeWebSocket };
+  const values = new Map<unknown, unknown>();
+  const playerIdAtom = { debugLabel: 'playerIdAtom' };
+  values.set(playerIdAtom, 'p_1');
+  page['__jotaiStore'] = {
+    get: (atom: unknown) => values.get(atom) ?? null,
+    set: (atom: unknown, value: unknown) => {
+      values.set(atom, value);
+    },
+  };
+  const atomKey = 'client/src/store/store.ts/playerIdAtom';
+  page[ATOM_CACHE_KEY] = {
+    cache: new Map<unknown, typeof playerIdAtom>([[atomKey, playerIdAtom]]),
+    get(_key: unknown, initial: typeof playerIdAtom): typeof playerIdAtom {
+      return initial;
+    },
+  };
+
+  const restore = installRealmOverride({ page });
+  const client = makeJotaiClient(page);
+
+  try {
+    client.store.applyPatches([
+      { op: 'add', path: '/data/players', value: [{ id: 'p_1', name: 'Ada' }] },
+      {
+        op: 'add',
+        path: '/child/data/userSlots',
+        value: [
+          {
+            userId: 'p_1',
+            data: {
+              garden: {
+                tileObjects: { '1': { objectType: 'plant', species: 'Tomato', slots: [] } },
+              },
+            },
+          },
+        ],
+      },
+    ]);
+
+    await client.start();
+    await client.waitForAttachment();
+
+    assert.equal(client.selfPlayerId, 'p_1', 'the store answers even though no Welcome carried the id');
+    assert.equal(client.state.selfPlayerId, 'p_1', 'the reader must agree with the accessor');
+    assert.equal(client.state.self?.id, 'p_1');
+    assert.equal(client.state.self?.garden?.tiles.length, 1);
+  } finally {
+    await client.stop();
+    restore();
+    resetJotaiCapture();
   }
 });
 

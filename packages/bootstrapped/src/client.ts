@@ -370,8 +370,16 @@ export class BootstrappedClient {
     return this.core.store;
   }
 
-  /** Named reads over the store: `state.self?.garden`, `state.room.players`, `state.room.chat`. */
+  /**
+   * Named reads over the store: `state.self?.garden`, `state.room.players`, `state.room.chat`.
+   *
+   * The identity is synchronised first. `StateReader.self` reads `StateReader.selfPlayerId`, which is a
+   * different field from {@link selfPlayerId}, and the two can only agree if every read of the reader's copy
+   * passes through {@link syncSelfPlayerId}. Reading `client.state.self` after `client.selfPlayerId` used to
+   * be able to see two different answers.
+   */
   get state(): ClientCore['state'] {
+    this.syncSelfPlayerId();
     return this.core.state;
   }
 
@@ -391,7 +399,37 @@ export class BootstrappedClient {
     // welcome that announced the session, because the socket seam learns it by scraping the wire, and the
     // game's own welcome may have fired before this client existed. Resolving once, at welcome time, would
     // miss it and leave the badge reading `ready · no id` forever. See `resolveSelfPlayerId`.
-    return this.core.selfPlayerId ?? this.resolveSelfPlayerId();
+    return this.syncSelfPlayerId();
+  }
+
+  /**
+   * Resolve the caller's id and write it through to the reader.
+   *
+   * The write is the point. `ClientCore.adoptSelfPlayerId` is the only assignment that updates both the
+   * accessor and `state.selfPlayerId`; a read-time fallback that stopped at the accessor is what let a live
+   * session print a valid id in the badge and still read `state.self === null` all session.
+   *
+   * A known core id is not re-resolved, and an unresolved one costs a seam read plus one atom lookup. That
+   * lookup is a `Map` hit for the exact label followed by a scan of the labels seen, so it is cheap enough to
+   * run on every read; caching a negative answer would delay the very arrival this exists to observe.
+   */
+  private syncSelfPlayerId(): string | null {
+    // A closed session has no identity. The retained socket seam and the game's `playerIdAtom` both keep
+    // answering after the transport is gone, so without this gate a read after a close would resurrect the
+    // player the last session belonged to (I6). `isReady` is deliberately not the gate: a live session that
+    // has not delivered its Welcome yet is exactly when this fallback is needed.
+    if (this.uninstalled || this.core.isClosed) return null;
+    const known = this.core.selfPlayerId;
+    if (known !== null && known !== '') {
+      if (this.core.state.selfPlayerId !== known) this.core.adoptSelfPlayerId(known);
+      return known;
+    }
+    const resolved = this.resolveSelfPlayerId();
+    if (resolved !== null && resolved !== '') {
+      this.core.adoptSelfPlayerId(resolved);
+      return resolved;
+    }
+    return null;
   }
 
   /** True once `Welcome` has arrived and commands may be sent. */
@@ -826,12 +864,27 @@ export class BootstrappedClient {
    * while we do not know who we are.
    */
   private resolveSelfPlayerId(): string | null {
-    const seam = this.sendSeam;
-    if (seam === null) return null;
+    // The raw-socket binding *is* the seam before an upgrade. `sendSeam` is only set when an upgrade retains
+    // the old binding, so reading it alone answered `null` for a session that stayed on the raw socket —
+    // including the session that had just scraped the id off its own Welcome.
+    const seam =
+      this.sendSeam ??
+      (this.attachment?.socket !== null && this.attachment?.socket !== undefined ? this.attachment : null);
+    if (seam !== null) {
+      try {
+        const scraped = seam.socket?.readSelfPlayerId() ?? null;
+        if (scraped !== null && scraped !== '') return scraped;
+      } catch {
+        // A binding that has been released cannot answer; there is another source to ask.
+      }
+    }
+    // Release 1604 puts `playerIdAtom` in `__jotaiStore` before render. The game writes our own id there and
+    // never puts it on the state tree, so this answers on a room-connection-only attachment, where no socket
+    // seam was ever installed.
     try {
-      return seam.socket?.readSelfPlayerId() ?? null;
+      const fromAtom = this.jotaiValue?.readByLabel('playerIdAtom');
+      return typeof fromAtom === 'string' && fromAtom !== '' ? fromAtom : null;
     } catch {
-      // A binding that has been released cannot answer; there is nothing else to ask.
       return null;
     }
   }
@@ -858,6 +911,9 @@ export class BootstrappedClient {
       {
         ...(this.page !== null ? { page: this.page } : {}),
         ...(this.options.urlFilter !== undefined ? { urlFilter: this.options.urlFilter } : {}),
+        // The upgraded binding must be able to answer the same identity question the initial one could. The
+        // resolver reads the retained seam, so it keeps answering after observation moves to the room object.
+        selfPlayerIdResolver: () => this.resolveSelfPlayerId(),
         timeoutMs,
         ...(this.options.roomUpgradeIntervalMs !== undefined
           ? { intervalMs: this.options.roomUpgradeIntervalMs }

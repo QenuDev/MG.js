@@ -312,6 +312,14 @@ export interface WatchForRoomConnectionOptions {
   /** Override the room-socket URL filter, for the fallback attempt each tick. */
   urlFilter?: string;
   /**
+   * The identity resolver handed to the binding the upgrade creates.
+   *
+   * Without it, a raw → room upgrade builds a binding that cannot answer `selfPlayerId` at all: the state on
+   * 1650 does not carry the id, and the socket seam is retained on the *old* binding, which the new binding
+   * does not consult. The initial attachment passes this field; the upgrade used to drop it.
+   */
+  selfPlayerIdResolver?: () => string | null;
+  /**
    * How long to keep looking, in ms. Default `90_000`.
    *
    * The default is not arbitrary. `MagicCircle_RoomConnection` is created *lazily* by the game, in the
@@ -379,6 +387,9 @@ export function watchForRoomConnection(
         const candidate = detectAttachment({
           ...(options.page !== undefined ? { page: options.page } : {}),
           ...(options.urlFilter !== undefined ? { urlFilter: options.urlFilter } : {}),
+          ...(options.selfPlayerIdResolver !== undefined
+            ? { selfPlayerIdResolver: options.selfPlayerIdResolver }
+            : {}),
         });
         if (candidate.kind === 'room-connection') return candidate;
         // Present but unusable (no send path, or no observation path). Release the fallback we just built

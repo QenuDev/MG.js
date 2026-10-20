@@ -35,6 +35,7 @@ import { pollUntil } from '@mg.js/common';
 import { watchForRoomConnection } from '../../src/attach/detect.ts';
 import { bindRoomConnection } from '../../src/attach/room-connection.ts';
 import { BootstrappedClient } from '../../src/client.ts';
+import { ATOM_CACHE_KEY, resetJotaiCapture } from '../../src/jotai/bridge.ts';
 import { installRealmOverride } from '../../src/page/override.ts';
 import type { PageRealm } from '../../src/page/realm.ts';
 
@@ -453,6 +454,134 @@ class ReFiringWelcomeRoomConnection extends NoWelcomeRoomConnection {
     for (const handler of [...this.welcomeHandlers]) handler(state, 0, executedCommandSequence);
   }
 }
+
+/**
+ * Build 1650's shape: `subscribeToWelcome` replays the last publication synchronously, before the transport
+ * that will consume it has attached its sink.
+ */
+class ReplayingWelcomeRoomConnection extends NoWelcomeRoomConnection {
+  private readonly welcomeHandlers = new Set<
+    (state: unknown, publishedAtServerMs?: number, executedCommandSequence?: number) => void
+  >();
+
+  constructor(private readonly replayedState: unknown) {
+    super(replayedState);
+  }
+
+  subscribeToWelcome(
+    cb: (state: unknown, publishedAtServerMs?: number, executedCommandSequence?: number) => void,
+  ): () => void {
+    this.welcomeHandlers.add(cb);
+    // The game's own line: `this.welcomeSubscribers.add(e), this.lastDistributedRoomPublication && e(state,...)`.
+    cb(this.replayedState, 0, 5);
+    return () => this.welcomeHandlers.delete(cb);
+  }
+}
+
+void test('a Welcome replayed at subscribe time still reaches the client', async () => {
+  // The eager subscription at bind time consumes the one Welcome 1650 will ever hand out, while the
+  // transport's sink is attached afterwards. If the binding does not replay the retained state, the core
+  // never receives a Welcome: the store stays empty, `isReady` stays false, and `state.self` stays null
+  // even though every patch is arriving.
+  const page = {} as Record<string, unknown>;
+  const restore = installRealmOverride({ page: page as unknown as PageRealm });
+  const client = makeClient(page);
+
+  try {
+    const state = {
+      data: { players: [{ id: 'p_1', name: 'Ada' }] },
+      child: {
+        data: {
+          userSlots: [
+            {
+              userId: 'p_1',
+              data: {
+                garden: {
+                  tileObjects: { '1': { objectType: 'plant', species: 'Tomato', slots: [] } },
+                },
+              },
+            },
+          ],
+        },
+      },
+    };
+    page['MagicCircle_RoomConnection'] = new ReplayingWelcomeRoomConnection(state);
+
+    const attachment = await client.waitForAttachment();
+    assert.equal(attachment.kind, 'room-connection');
+    assert.equal(client.isReady, true, 'the replayed Welcome must seed the command gate');
+    assert.equal(client.store.version > 0, true, 'the replayed Welcome must replace the store root');
+    assert.equal(client.state.room.players.length, 1);
+    assert.equal(client.state.garden(0)?.tiles.length, 1);
+  } finally {
+    await client.stop();
+    restore();
+  }
+});
+
+void test('a replayed Welcome with no id still yields state.self.garden from playerIdAtom', async () => {
+  // The exact live shape: 1650 replays the Welcome synchronously at subscribe time, its state carries no id,
+  // and the id lives only in `playerIdAtom`. The core store and the reader identity must both come from the
+  // replay, or the panel says "waiting for your garden" while the garden is already in the tree.
+  resetJotaiCapture();
+  const page = {} as Record<string, unknown>;
+  const values = new Map<unknown, unknown>();
+  const playerIdAtom = { debugLabel: 'playerIdAtom' };
+  values.set(playerIdAtom, 'p_1');
+  page['__jotaiStore'] = {
+    get: (atom: unknown) => values.get(atom) ?? null,
+    set: (atom: unknown, value: unknown) => {
+      values.set(atom, value);
+    },
+  };
+  page[ATOM_CACHE_KEY] = {
+    cache: new Map<unknown, typeof playerIdAtom>([['client/src/store/store.ts/playerIdAtom', playerIdAtom]]),
+    get(_key: unknown, initial: typeof playerIdAtom): typeof playerIdAtom {
+      return initial;
+    },
+  };
+  const restore = installRealmOverride({ page: page as unknown as PageRealm });
+  const client = new BootstrappedClient({
+    page: page as unknown as PageRealm,
+    storage: { forceBackend: 'memory' },
+    features: { render: false, catalog: false, jotai: true },
+    roomUpgradeIntervalMs: 1,
+    roomUpgradeTimeoutMs: 5000,
+  });
+
+  try {
+    const state = {
+      data: { players: [{ id: 'p_1', name: 'Ada' }] },
+      child: {
+        data: {
+          userSlots: [
+            {
+              userId: 'p_1',
+              data: {
+                garden: {
+                  tileObjects: { '1': { objectType: 'plant', species: 'Tomato', slots: [] } },
+                },
+              },
+            },
+          ],
+        },
+      },
+    };
+    page['MagicCircle_RoomConnection'] = new ReplayingWelcomeRoomConnection(state);
+
+    await client.start();
+    const attachment = await client.waitForAttachment();
+    assert.equal(attachment.kind, 'room-connection');
+    assert.equal(client.selfPlayerId, 'p_1', 'the id comes from the game store, not the Welcome state');
+    assert.equal(client.state.selfPlayerId, 'p_1');
+    assert.equal(client.state.self?.id, 'p_1');
+    assert.equal(client.state.self?.garden?.tiles.length, 1);
+  } finally {
+    await client.stop();
+    restore();
+    resetJotaiCapture();
+  }
+});
 
 void test('a missed Welcome does not leave the client un-ready', async () => {
   // The live symptom this reproduces: `ready: false` with `433 patches applied` and `0 failed`. Frames were

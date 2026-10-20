@@ -177,3 +177,56 @@ The protocol guide under `docs/sources/` is untouched. The vendored API referenc
 surface (its `GameActions` table now mirrors the library's 108 wire strings / 109 methods), and
 `docs/provenance.md` records both the new hash and the original vendored hash so the rewrite is auditable.
 
+---
+
+## 2026-10-20: 0.2.1 — the attach path that left `state.self` null
+
+The reported symptom was `mg-crop-match` saying `waiting for your garden` while the garden was already in the
+tree. Three independent causes were reproduced against the published 0.2.0 packages, and all three are fixed
+here.
+
+```
+npm run verify            exit 0
+  lint                     323 files, no diagnostics
+  tsc -b + tests tsconfig  exit 0
+  tests                    1,243 / 0 fail
+                           art 228 · bootstrapped 243 · common 567 · headless 205
+  art:sync --check         1650 current (offline; fixture reproduces the committed data)
+  docs:check               866 symbols, 46 modules
+```
+
+**1. The room Welcome was consumed before the transport could see it.** Build 1650's
+`subscribeToWelcome` replays the publication synchronously, inside `bindRoomConnection`'s eager subscription.
+`sawWelcome` became true while `welcomeHandlers` was empty, and the transport's later `sink().onWelcome` only
+added a handler. The patch-path stand-in was gated on `!sawWelcome`, so no Welcome ever reached `ClientCore`:
+the store stayed empty and `isReady` stayed false. The sink now replays the retained state to a late
+subscriber, and the stand-in carries the real Welcome's `publishedAtServerMs` and the publication's frontier.
+
+**2. The raw socket's replay carried `state: null`.** A Welcome frame that arrived in the gap between binding
+the socket and attaching the transport was replayed with an id and a frontier but no snapshot, and
+`ClientCore` answered it by replacing the root with an empty tree. `ScrapeResult` now retains the Welcome's
+`fullState` and `publishedAtServerMs`, so the replay seeds the same state the frame carried.
+
+**3. `selfPlayerId` never reached `StateReader`.** The reader's `self` reads its own `selfPlayerId` field, and
+only `ClientCore.handleWelcome` assigned it. `client.selfPlayerId` had a read-time fallback, so a live session
+could print a valid id in the badge and still read `state.self === null` all session. `ClientCore.adoptSelfPlayerId`
+now writes both fields, `BootstrappedClient.syncSelfPlayerId` calls it on every `selfPlayerId`/`state` read, and
+both paths are gated on `ClientCore.isClosed` so a retained seam cannot resurrect a dead session.
+
+Identity sources are now, in order: the core's Welcome, the raw-socket seam (including the initial raw-socket
+attachment, not only the post-upgrade one), and `__jotaiStore`'s `playerIdAtom`. The upgrade watch now passes
+the resolver to the binding it creates. `JotaiBridge` adopts the supplied store at install and on every retry
+tick, keeps the `atom.write` capture only as the pre-1604 fallback, restores any wrapped writers once the store
+appears, and never patches an atom `read`.
+
+**Slot join.** `slotIndexFor` now accepts an index-aligned `userSlots` entry that carries no id at all. It still
+searches every slot for a real match and never assumes a slot that names a different player.
+
+**Packaging.** `@mg.js/bootstrapped` and `@mg.js/headless` declared `"@mg.js/common": "^0.1.0"`, which excludes
+0.2.x; a normal install of 0.2.0 therefore resolved common 0.1.6. Both now require `^0.2.1`, and
+`MG_VERSION` (the value reports and the page namespace stamp) is 0.2.1 rather than the 0.1.0 literal it had
+carried since the first release.
+
+The vendored protocol guide and API reference are unchanged by this release: no wire message, action or game
+data changed, and `docs/api-surface.json` still matches its 866 symbols.
+

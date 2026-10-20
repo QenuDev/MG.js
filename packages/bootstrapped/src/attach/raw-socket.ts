@@ -101,6 +101,16 @@ export interface ScrapeResult {
   executedCommandSequence: number | null;
   /** True when the frame looked like a `Welcome`. */
   wasWelcome: boolean;
+  /**
+   * The `fullState` a `Welcome` carried, or `null`.
+   *
+   * Retained so the replay in `onWelcome` can seed the core's store. A `Welcome` frame that arrives in the gap
+   * between binding the socket and the transport attaching its sink is otherwise seen by nobody: the replay
+   * used to carry `state: null`, and `ClientCore` answered it by replacing the root with an empty tree.
+   */
+  fullState: unknown;
+  /** The `Welcome`'s server timestamp, when it carried one. */
+  publishedAtServerMs: number | null;
 }
 
 /**
@@ -142,7 +152,13 @@ export interface BindRawSocketOptions {
 
 /** Scrape the identity and frontier out of one inbound frame. Pure and exported for tests. */
 export function scrapeFrame(data: unknown): ScrapeResult {
-  const empty: ScrapeResult = { selfPlayerId: null, executedCommandSequence: null, wasWelcome: false };
+  const empty: ScrapeResult = {
+    selfPlayerId: null,
+    executedCommandSequence: null,
+    wasWelcome: false,
+    fullState: null,
+    publishedAtServerMs: null,
+  };
   if (typeof data !== 'string') return empty;
   // O(1) gate first: most frames are small patch batches.
   if (data.length < MIN_INTERESTING_FRAME_LENGTH) return empty;
@@ -172,10 +188,18 @@ export function scrapeFrame(data: unknown): ScrapeResult {
   // a fractional value in an untrusted frame from ever reaching a counter.
   const executedCommandSequence = asSequence(record['executedCommandSequence']);
 
+  const wasWelcome = selfPlayerId !== null;
+  const rawPublishedAt = record['publishedAtServerMs'];
   return {
     selfPlayerId,
     executedCommandSequence,
-    wasWelcome: selfPlayerId !== null,
+    wasWelcome,
+    // Only a Welcome carries the full snapshot; retaining it for every frame would hold a patch batch alive.
+    fullState: wasWelcome ? (record['fullState'] ?? null) : null,
+    publishedAtServerMs:
+      wasWelcome && typeof rawPublishedAt === 'number' && Number.isFinite(rawPublishedAt)
+        ? rawPublishedAt
+        : null,
   };
 }
 
@@ -266,9 +290,9 @@ export function bindRawSocket(options: BindRawSocketOptions = {}): RawSocketBind
         if (scraped.selfPlayerId !== null) {
           selfPlayerId = scraped.selfPlayerId;
           const event_: WelcomeEvent = {
-            state: null,
+            state: scraped.fullState,
             executedCommandSequence: scraped.executedCommandSequence,
-            publishedAtServerMs: null,
+            publishedAtServerMs: scraped.publishedAtServerMs,
             selfPlayerId: scraped.selfPlayerId,
           };
           lastWelcome = event_;

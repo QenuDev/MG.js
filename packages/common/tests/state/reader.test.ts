@@ -398,6 +398,37 @@ void test('a player is joined to their own slot data by the slot userId', () => 
   assert.equal(cy?.pets.length, 0);
 });
 
+void test("an index-aligned slot with no id is still that player's slot", () => {
+  // The room list and the slot array are aligned in the documented shape. A slot that carries no id at
+  // all cannot contradict the player at the same index, so refusing to join it turns a readable garden
+  // into a null one. A slot that *does* name someone else is still searched for, never assumed.
+  const store = new ObservableStore({
+    initial: {
+      data: { players: [{ id: 'p_1', name: 'Ada' }] },
+      child: {
+        data: {
+          userSlots: [
+            {
+              data: {
+                garden: {
+                  tileObjects: {
+                    '4': { objectType: 'plant', species: 'Tomato', slots: [] },
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+  });
+  const state = new StateReader(store);
+  state.selfPlayerId = 'p_1';
+
+  assert.equal(state.self?.id, 'p_1');
+  assert.equal(state.self?.garden?.tiles.length, 1, "the aligned slot is this player's slot");
+});
+
 void test('a failed slot join is distinguishable from an empty garden', () => {
   const store = new ObservableStore({
     initial: {

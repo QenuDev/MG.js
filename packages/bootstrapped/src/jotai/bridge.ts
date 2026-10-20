@@ -162,6 +162,51 @@ export interface JotaiBridgeHandle {
 /** Keys we have already inspected, so a re-registration does not re-wrap. */
 const wrappedWrites = new Map<JotaiAtom, { original: JotaiAtom['write']; capture: JotaiAtom['write'] }>();
 
+/**
+ * The page global that carries the game's store from release 1604 on.
+ *
+ * The game assigns `globalThis.__jotaiStore = { get, set, sub }` before it renders. That is a store, not an
+ * atom, so adopting it does not patch any atom's `read` or `write` — the hook the game's developers asked
+ * mods to stop using. The other spelling is accepted because the announcement wrote it with trailing
+ * underscores while the shipped bundle uses the bare name.
+ */
+export const SUPPLIED_STORE_KEY = '__jotaiStore';
+const SUPPLIED_STORE_KEY_ALT = '__jotaiStore__';
+
+/** The minimal shape of the supplied store. `sub` is not used: reads and writes are all this bridge needs. */
+interface SuppliedStore {
+  /** The object that supplied the functions, so a replacement can be recognised. */
+  owner: object;
+  get: (target: unknown) => unknown;
+  set: JotaiSet;
+}
+
+/**
+ * Read the store the page publishes, if it publishes one.
+ *
+ * Both spellings are tried, and a candidate missing either `get` or `set` is ignored rather than trusted:
+ * a half-populated global must not displace the `write`-capture fallback.
+ */
+function suppliedStore(page: PageRealm | null): SuppliedStore | null {
+  if (page === null) return null;
+  for (const key of [SUPPLIED_STORE_KEY, SUPPLIED_STORE_KEY_ALT]) {
+    const candidate: unknown = page[key];
+    if (candidate === null || typeof candidate !== 'object') continue;
+    const record = candidate as { get?: unknown; set?: unknown };
+    if (typeof record.get !== 'function' || typeof record.set !== 'function') continue;
+    const get = record.get as (target: unknown) => unknown;
+    const set = record.set as JotaiSet;
+    return {
+      owner: candidate,
+      // Called the way the game calls them: it destructures `{ get, set }` off the global, so neither is
+      // invoked with the wrapper object as `this`.
+      get: (target: unknown) => get(target),
+      set: (target: unknown, value: unknown) => set(target, value),
+    };
+  }
+  return null;
+}
+
 /** The captured store `set`. Module-scoped because there is one store per page, not one per bridge. */
 let capturedSet: JotaiSet | null = null;
 /**
@@ -170,6 +215,8 @@ let capturedSet: JotaiSet | null = null;
  * The store hands both to `atom.write`; keeping only `set` made every atom unreadable.
  */
 let capturedGet: ((target: unknown) => unknown) | null = null;
+/** The supplied-store object currently backing {@link capturedSet}, or `null` when it came from a write. */
+let adoptedStore: object | null = null;
 
 /** Total atoms inspected across all bridges on this page. Diagnostic. */
 let inspectedCount = 0;
@@ -211,6 +258,7 @@ export function readAtom(atom: JotaiAtom | null): unknown {
 export function resetJotaiCapture(): void {
   capturedSet = null;
   capturedGet = null;
+  adoptedStore = null;
   inspectedCount = 0;
   restoreWrappedWrites();
 }
@@ -334,6 +382,48 @@ export function install(options: JotaiBridgeOptions = {}): JotaiBridgeHandle {
   let syntheticGet: SyntheticAtomCache['get'] | null = null;
   let releaseCacheGet: (() => void) | null = null;
   let stopRetry: (() => void) | null = null;
+  /** The last supplied store this bridge announced, so a replacement is reported once. */
+  let notifiedStore: object | null = null;
+
+  /**
+   * Take the page's supplied store, when there is one.
+   *
+   * This is the whole 1604 path: the store exists before any atom is written, so writes and reads work
+   * without wrapping an atom at all. It is also re-checked on every retry tick, because the game may create
+   * the store after this bridge (the opposite order is the one the bundle documentation describes, but a
+   * late `document-start` injection makes the other order real).
+   */
+  const adoptSuppliedStore = (): boolean => {
+    const supplied = suppliedStore(page);
+    if (supplied === null) return false;
+    if (adoptedStore === supplied.owner && capturedSet !== null) {
+      // The same store, already adopted. Announcing it twice would run a caller's listener twice.
+      return true;
+    }
+    const alreadyAnnounced = notifiedStore === supplied.owner;
+    adoptedStore = supplied.owner;
+    capturedGet = supplied.get;
+    capturedSet = supplied.set;
+    // The supplied store makes every atom-write wrapper unnecessary. Atoms inspected before it appeared may
+    // already carry one, and release 1604's guidance is to stop hooking atom writes altogether, so put the
+    // originals back now rather than leaving a wrapper in the game's write path for the rest of the session.
+    restoreWrappedWrites();
+    if (!alreadyAnnounced) {
+      notifiedStore = supplied.owner;
+      if (options.onSetCaptured !== undefined) {
+        try {
+          options.onSetCaptured(capturedSet);
+        } catch {
+          // A listener's failure is its own.
+        }
+      }
+    }
+    return true;
+  };
+
+  // Before the cache is touched: a supplied store makes the write-capture fallback unnecessary, and the
+  // game's own store must win over a store recovered from one of its atoms.
+  adoptSuppliedStore();
 
   /**
    * Inspect one atom as it registers.
@@ -477,6 +567,7 @@ export function install(options: JotaiBridgeOptions = {}): JotaiBridgeHandle {
     stopRetry = watchUntil<unknown>({
       attempt: () => {
         if (!active) return capturedSet;
+        adoptSuppliedStore();
         const current: unknown = page === null ? undefined : page[ATOM_CACHE_KEY];
         if (current instanceof Map) {
           // Cheap gate: only walk the Map when it has grown since last time. A 500 ms walk of a Map that

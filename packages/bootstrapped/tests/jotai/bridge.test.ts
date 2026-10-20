@@ -19,7 +19,13 @@
 
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { ATOM_CACHE_KEY, install, type JotaiAtom } from '../../src/jotai/bridge.ts';
+import {
+  ATOM_CACHE_KEY,
+  install,
+  type JotaiAtom,
+  readAtom,
+  resetJotaiCapture,
+} from '../../src/jotai/bridge.ts';
 import { installRealmOverride } from '../../src/page/override.ts';
 import type { PageRealm } from '../../src/page/realm.ts';
 
@@ -107,6 +113,75 @@ void test('release() removes a synthetic cache the game never adopted', () => {
     false,
     'a cache nobody registered an atom in must not outlive the bridge',
   );
+});
+
+/**
+ * The supplied store, and why the bridge must prefer it.
+ *
+ * Release 1604 puts the game's jotai store at `globalThis.__jotaiStore` before the first render. Patching
+ * an atom's `write` still works, but it only finds the store after something in the game writes an atom,
+ * and the game's own developers have asked mods not to hook atom reads at all. The supplied store is the
+ * supported-in-practice hook, so it has to be adopted even when no write has happened yet.
+ */
+void test('install() adopts the page __jotaiStore without waiting for an atom write', () => {
+  resetJotaiCapture();
+  const { page, restore } = emptyPage();
+  const values = new Map<unknown, unknown>();
+  const store = {
+    get: (atom: unknown) => values.get(atom) ?? null,
+    set: (atom: unknown, value: unknown) => {
+      values.set(atom, value);
+    },
+  };
+  page['__jotaiStore'] = store;
+  const playerId = gameAtom('playerIdAtom');
+  values.set(playerId, 'p_supplied');
+
+  const handle = install({ page, retryForMs: 0 });
+  try {
+    assert.notEqual(handle.set, null, 'the supplied store must answer immediately');
+    assert.equal(readAtom(playerId), 'p_supplied');
+  } finally {
+    handle.release();
+    restore();
+    resetJotaiCapture();
+  }
+});
+
+void test('the retry adopts a __jotaiStore that appears after install', () => {
+  resetJotaiCapture();
+  const { page, restore } = emptyPage();
+  const values = new Map<unknown, unknown>();
+  const playerId = gameAtom('playerIdAtom');
+  values.set(playerId, 'p_late');
+  let tick: (() => void) | null = null;
+  const schedule = (callback: () => void): (() => void) => {
+    tick = callback;
+    return () => {
+      tick = null;
+    };
+  };
+
+  const handle = install({ page, retryForMs: 10_000, retryIntervalMs: 50, schedule });
+  try {
+    assert.equal(handle.set, null, 'nothing has been supplied yet');
+    page['__jotaiStore'] = {
+      get: (atom: unknown) => values.get(atom) ?? null,
+      set: (atom: unknown, value: unknown) => {
+        values.set(atom, value);
+      },
+    };
+    // The assignment happens inside the injected scheduler, which control-flow analysis cannot see.
+    const fire = tick as unknown as (() => void) | null;
+    assert.notEqual(fire, null, 'install() must schedule its first retry');
+    fire?.();
+    assert.notEqual(handle.set, null, 'the retry must adopt the late store');
+    assert.equal(readAtom(playerId), 'p_late');
+  } finally {
+    handle.release();
+    restore();
+    resetJotaiCapture();
+  }
 });
 
 void test('release() never deletes a cache the page put there itself', () => {

@@ -304,6 +304,8 @@ export class ClientCore extends Emitter<ClientEvents> implements CommandSender {
         // it standing is what let `client.welcome?.selfPlayerId` name a player who was no longer
         // connected while `client.selfPlayerId` said `null`.
         this.selfPlayerIdValue = null;
+        // The reader owns its own copy (see `adoptSelfPlayerId`), and a closed session has no identity.
+        this.state.selfPlayerId = null;
         this.welcomeValue = null;
         this.rejectAllPending(info.wasManual ? 'transport closed' : 'connection lost');
         this.emit('close', { info });
@@ -378,6 +380,7 @@ export class ClientCore extends Emitter<ClientEvents> implements CommandSender {
     // A stopped core has no session at all, so the identity pair is cleared together (I6). That is the
     // same rule the close handler applies, because `stop()` and a close are the same fact to a reader.
     this.selfPlayerIdValue = null;
+    this.state.selfPlayerId = null;
     this.welcomeValue = null;
   }
 
@@ -390,9 +393,40 @@ export class ClientCore extends Emitter<ClientEvents> implements CommandSender {
     return this.readyState;
   }
 
+  /**
+   * True once the transport has closed or the core has been stopped.
+   *
+   * Distinct from `!isReady`: a core that has not seen its `Welcome` yet is not ready but is still live, and
+   * that is exactly when an external identity source may still supply the id. A reader that conflated the two
+   * would refuse the id during the startup window it exists to cover.
+   */
+  get isClosed(): boolean {
+    return this.closed;
+  }
+
   /** The server-assigned player id, or `null` before the first `Welcome`. */
   get selfPlayerId(): string | null {
     return this.selfPlayerIdValue;
+  }
+
+  /**
+   * Record an identity learned from outside the `Welcome` message.
+   *
+   * The room path cannot put `selfPlayerId` on the state tree: the game's own handler reads it off the
+   * message and publishes only `cloneForDistribution(fullState)` to subscribers. A bootstrapped client can
+   * still recover it — from the socket scrape or, from release 1604 on, from `__jotaiStore`'s
+   * `playerIdAtom` — and this is the one method that writes it to both places a reader consults. Keeping
+   * the two assignments here, rather than at each caller, is what stops `client.selfPlayerId` from naming a
+   * player while `client.state.selfPlayerId` still says `null`.
+   *
+   * An empty or non-string id is ignored: `''` is the game's "no player yet" value and must not be adopted
+   * as an identity.
+   */
+  adoptSelfPlayerId(id: unknown): boolean {
+    if (typeof id !== 'string' || id === '') return false;
+    this.selfPlayerIdValue = id;
+    this.state.selfPlayerId = id;
+    return true;
   }
 
   /**
@@ -918,11 +952,8 @@ export class ClientCore extends Emitter<ClientEvents> implements CommandSender {
 
   private handleWelcome(message: WelcomeMessage): void {
     this.welcomeValue = message;
-    if (typeof message.selfPlayerId === 'string') {
-      this.selfPlayerIdValue = message.selfPlayerId;
-      // The reader resolves `state.self` from this, so keep it in step with the accessor.
-      this.state.selfPlayerId = message.selfPlayerId;
-    }
+    // Adopted through the one method, so the accessor and the reader cannot drift.
+    this.adoptSelfPlayerId(message.selfPlayerId);
     // The game anchors its own clock here, from the one message guaranteed to carry a server
     // timestamp. Crop timings are compared against that clock, never against `Date.now()`.
     this.state.anchorClock(message['publishedAtServerMs']);

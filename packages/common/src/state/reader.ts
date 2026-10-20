@@ -1211,11 +1211,37 @@ export class StateReader {
     if (playerId === '') return roomIndex < total ? roomIndex : null;
     const value = this.store.get(USER_SLOTS);
     if (!Array.isArray(value)) return null;
-    if (this.slotNames(value[roomIndex], playerId)) return roomIndex;
+    const aligned = value[roomIndex];
+    if (this.slotNames(aligned, playerId)) return roomIndex;
     for (let index = 0; index < value.length; index += 1) {
       if (this.slotNames(value[index], playerId)) return index;
     }
+    // The room list and the slot array are aligned in the shape the game sends. A slot at the player's own
+    // index that carries no id *cannot* contradict them, so it is this player's slot; refusing it turned a
+    // readable garden into `null` whenever the save had not filled in `userId` yet. A slot that names a
+    // different player is never assumed — that case still fails the search rather than reading someone
+    // else's save.
+    if (roomIndex < total && this.slotIsAnonymous(aligned)) return roomIndex;
     return null;
+  }
+
+  /**
+   * True when a slot carries no identity at all, so its array position is the only thing that names it.
+   *
+   * A numeric id counts as an identity: it is evidence, and a slot that has evidence we cannot compare must
+   * not be handed someone else's garden. Only an absent/empty id qualifies.
+   */
+  private slotIsAnonymous(slot: unknown): boolean {
+    if (slot === null || typeof slot !== 'object') return false;
+    const raw = slot as Record<string, unknown>;
+    const data = raw['data'];
+    if (data === null || typeof data !== 'object') return false;
+    const candidates: unknown[] = [
+      raw['userId'],
+      raw['playerId'],
+      (data as Record<string, unknown>)['playerId'],
+    ];
+    return candidates.every((candidate) => candidate === undefined || candidate === null || candidate === '');
   }
 
   /** True when a slot's own id fields name this player. */

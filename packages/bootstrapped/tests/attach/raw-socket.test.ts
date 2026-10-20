@@ -262,10 +262,26 @@ describe('bindRawSocket: a late subscriber still learns the session', () => {
       const socket = new Patched(ROOM_URL);
 
       // The session starts before anyone is listening, which is the ordering that used to lose the event.
-      assert.equal(socket.deliver('{"selfPlayerId":"p_late","executedCommandSequence":9}'), 1);
+      const fullState = { data: { players: [{ id: 'p_late' }] }, child: { data: {} } };
+      assert.equal(
+        socket.deliver(
+          JSON.stringify({
+            selfPlayerId: 'p_late',
+            executedCommandSequence: 9,
+            publishedAtServerMs: 1_700_000_000_000,
+            fullState,
+          }),
+        ),
+        1,
+      );
       assert.equal(binding.sink().readFrontier(), 9, 'the scrape really did see that frame');
 
-      const seen: Array<{ selfPlayerId: string | null; executedCommandSequence: number | null }> = [];
+      const seen: Array<{
+        selfPlayerId: string | null;
+        executedCommandSequence: number | null;
+        state: unknown;
+        publishedAtServerMs: number | null;
+      }> = [];
       binding.sink().onWelcome((event) => seen.push(event));
 
       // Synchronous, matching the room path's replay: a caller that writes `if (ready) ...` immediately after
@@ -274,6 +290,8 @@ describe('bindRawSocket: a late subscriber still learns the session', () => {
       assert.equal(seen.length, 1, 'a late subscriber must be replayed the welcome, synchronously');
       assert.equal(seen[0]?.selfPlayerId, 'p_late');
       assert.equal(seen[0]?.executedCommandSequence, 9);
+      assert.deepEqual(seen[0]?.state, fullState, 'the replay must carry the state the Welcome arrived with');
+      assert.equal(seen[0]?.publishedAtServerMs, 1_700_000_000_000);
     } finally {
       binding.release();
     }

@@ -168,6 +168,14 @@ export function bindRoomConnection(options: BindRoomConnectionOptions = {}): Roo
   let lastFrontier: number | null = null;
   /** The most recent selfPlayerId seen. */
   let lastSelfPlayerId: string | null = null;
+  /**
+   * The server timestamp from the most recent real `Welcome`.
+   *
+   * A stand-in built from the full state has no timestamp of its own, and handing the core `null` leaves its
+   * clock un-anchored: crop ripeness would then be judged against this machine's clock. Carrying the real
+   * value forward keeps a replayed session's clock as accurate as the welcome it replaces.
+   */
+  let lastPublishedAtServerMs: number | null = null;
   /** The most recent full state seen from *any* channel, not only `Welcome`. */
   let lastFullState: unknown = null;
   /**
@@ -219,10 +227,18 @@ export function bindRoomConnection(options: BindRoomConnectionOptions = {}): Roo
     if (state === null || state === undefined || typeof state !== 'object') return null;
     const selfPlayerId = lastSelfPlayerId ?? resolveSelfPlayerId(state, options.selfPlayerIdResolver);
     if (selfPlayerId !== null) lastSelfPlayerId = selfPlayerId;
+    // A build that replayed only the state (1650 calls `e(lastPublication.state)` with no sequence) still
+    // exposes the frontier on the publication object. Reading it here is what makes the replayed session
+    // `ready` rather than merely seeded: `ClientCore` refuses to open the command gate without a canonical
+    // sequence.
+    const publicationFrontier = asSequence(
+      readRoomConnection(page)?.lastDistributedRoomPublication?.executedCommandSequence,
+    );
+    if (publicationFrontier !== null) observeFrontier(publicationFrontier);
     return {
       state,
       executedCommandSequence: lastFrontier,
-      publishedAtServerMs: null,
+      publishedAtServerMs: lastPublishedAtServerMs,
       selfPlayerId,
     };
   };
@@ -367,6 +383,9 @@ export function bindRoomConnection(options: BindRoomConnectionOptions = {}): Roo
       (state: unknown, publishedAtServerMs?: number, executedCommandSequence?: number) => {
         sawWelcome = true;
         if (state !== null && state !== undefined) lastFullState = state;
+        if (typeof publishedAtServerMs === 'number' && Number.isFinite(publishedAtServerMs)) {
+          lastPublishedAtServerMs = publishedAtServerMs;
+        }
         const event: WelcomeEvent = {
           state,
           executedCommandSequence: asSequence(executedCommandSequence),
@@ -539,7 +558,28 @@ export function bindRoomConnection(options: BindRoomConnectionOptions = {}): Roo
         },
         onWelcome: (handler) => {
           welcomeHandlers.add(handler);
-          return () => welcomeHandlers.delete(handler);
+          // The eager subscription at bind time is what lets a late subscriber learn the id, but it also
+          // consumes the one `Welcome` a build may ever deliver: build 1650 calls the callback synchronously
+          // from `subscribeToWelcome`, before the transport has attached its sink. The state and frontier are
+          // retained above, so replay them to this handler exactly as `subscribeToWelcome` does. Without this,
+          // `sawWelcome` is true, the patch-path stand-in is suppressed, and the core never sees a Welcome at
+          // all: the store stays empty, `isReady` stays false, and `state.self` stays null.
+          //
+          // Marking the handler as already replayed is what keeps the patch path from restating the same
+          // session start on its next frame.
+          const standIn = buildStandInWelcome(lastFullState ?? binding.readState());
+          if (standIn !== null) {
+            standInReplayedTo.add(handler);
+            try {
+              handler(standIn);
+            } catch {
+              // A consumer's failure must not stop the transport from finishing its own wiring.
+            }
+          }
+          return () => {
+            welcomeHandlers.delete(handler);
+            standInReplayedTo.delete(handler);
+          };
         },
         addOutbound: (interceptor) => {
           outbound.add(interceptor);
