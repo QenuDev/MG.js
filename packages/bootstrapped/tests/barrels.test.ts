@@ -127,7 +127,6 @@ const FOLDER_BARRELS: Record<string, { values: readonly string[]; types: readonl
       'installJotaiBridge',
       'labelMatches',
       'resetJotaiCapture',
-      'restoreWrappedWrites',
       'writeAtom',
     ],
     types: [
@@ -384,7 +383,6 @@ const ROOT_SURFACE: readonly string[] = [
   'resolveOpenConstant',
   'resolvePageObject',
   'restoreSlot',
-  'restoreWrappedWrites',
   'scoreTableForKind',
   'scrapeFrame',
   'selectBackend',

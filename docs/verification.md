@@ -192,7 +192,7 @@ npm run verify            exit 0
   tests                    1,243 / 0 fail
                            art 228 · bootstrapped 243 · common 567 · headless 205
   art:sync --check         1650 current (offline; fixture reproduces the committed data)
-  docs:check               866 symbols, 46 modules
+  docs:check               865 symbols, 46 modules
 ```
 
 **1. The room Welcome was consumed before the transport could see it.** Build 1650's
@@ -216,8 +216,8 @@ both paths are gated on `ClientCore.isClosed` so a retained seam cannot resurrec
 Identity sources are now, in order: the core's Welcome, the raw-socket seam (including the initial raw-socket
 attachment, not only the post-upgrade one), and `__jotaiStore`'s `playerIdAtom`. The upgrade watch now passes
 the resolver to the binding it creates. `JotaiBridge` adopts the supplied store at install and on every retry
-tick, keeps the `atom.write` capture only as the pre-1604 fallback, restores any wrapped writers once the store
-appears, and never patches an atom `read`.
+tick and uses `jotaiAtomCache` only as the label-to-atom registry; it patches no atom `read` and no atom
+`write`.
 
 **Slot join.** `slotIndexFor` now accepts an index-aligned `userSlots` entry that carries no id at all. It still
 searches every slot for a real match and never assumes a slot that names a different player.
@@ -228,5 +228,6 @@ searches every slot for a real match and never assumes a slot that names a diffe
 carried since the first release.
 
 The vendored protocol guide and API reference are unchanged by this release: no wire message, action or game
-data changed, and `docs/api-surface.json` still matches its 866 symbols.
+data changed, and `docs/api-surface.json` matches its 865 symbols (the removed pre-1604 atom-write helper is
+the one symbol fewer).
 

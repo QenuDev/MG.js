@@ -381,7 +381,6 @@
         "installJotaiBridge",
         "labelMatches",
         "resetJotaiCapture",
-        "restoreWrappedWrites",
         "writeAtom"
       ],
       "Interface": [

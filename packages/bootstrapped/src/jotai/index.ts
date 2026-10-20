@@ -24,6 +24,5 @@ export {
   JotaiBridge,
   labelMatches,
   resetJotaiCapture,
-  restoreWrappedWrites,
   writeAtom,
 } from './bridge.js';
