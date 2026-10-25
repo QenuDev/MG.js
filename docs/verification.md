@@ -179,11 +179,11 @@ surface (its `GameActions` table now mirrors the library's 108 wire strings / 10
 
 ---
 
-## 2026-10-20: 0.2.1 — the attach path that left `state.self` null
+## 2026-10-20: 0.2.2 — the attach path, identity, and reconnects
 
 The reported symptom was `mg-crop-match` saying `waiting for your garden` while the garden was already in the
-tree. Three independent causes were reproduced against the published 0.2.0 packages, and all three are fixed
-here.
+tree. Three independent causes were reproduced against the published 0.2.0 packages; 0.2.1 shipped those
+fixes, and 0.2.2 adds the host-reconnect fix described below.
 
 ```
 npm run verify            exit 0
@@ -232,8 +232,8 @@ gap. `standalone` transports keep the old terminal close. `ClientCore` emits `re
 report.
 
 **Packaging.** `@mg.js/bootstrapped` and `@mg.js/headless` declared `"@mg.js/common": "^0.1.0"`, which excludes
-0.2.x; a normal install of 0.2.0 therefore resolved common 0.1.6. Both now require `^0.2.1`, and
-`MG_VERSION` (the value reports and the page namespace stamp) is 0.2.1 rather than the 0.1.0 literal it had
+0.2.x; a normal install of 0.2.0 therefore resolved common 0.1.6. Both now require `^0.2.2`, and
+`MG_VERSION` (the value reports and the page namespace stamp) is 0.2.2 rather than the 0.1.0 literal it had
 carried since the first release.
 
 The vendored protocol guide and API reference are unchanged by this release: no wire message, action or game

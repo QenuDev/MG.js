@@ -9,4 +9,4 @@
  * A value, not a type: `BUNDLE_VERSION` must stay assignable to `RealmNamespace.version`, and a report
  * must be able to print it.
  */
-export const MG_VERSION = '0.2.1';
+export const MG_VERSION = '0.2.2';
