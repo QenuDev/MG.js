@@ -99,6 +99,13 @@ export type ClientEvents = {
   unknownMessage: [{ type: string; raw: Record<string, unknown> }];
   close: [ClientCloseEvent];
   open: [];
+  /**
+   * An `attached` transport reopened after its host socket was replaced.
+   *
+   * Emitted before the corresponding `open`. A `standalone` transport never emits it: a socket the client
+   * owns does not come back by itself, so a close there stays final.
+   */
+  reopened: [];
   /** The client is ready to accept gameplay commands. */
   ready: [];
 };
@@ -116,15 +123,15 @@ export interface ClientCoreOptions {
   /**
    * An existing store to populate, instead of a fresh one.
    *
-   * WHY THIS EXISTS: a client that reconnects has to build a new `ClientCore`, because the only way to
-   * attach a different transport is to construct a new core, because `attachTransport()` is private and only
-   * `stop()` releases the old listeners. Without this option that means a **new store object per
-   * reconnect**, so a caller who cached `const store = client.store` before a reconnect holds a dead
-   * store: it stops receiving patches, with no error and no indication why.
+   * WHY THIS EXISTS: a **standalone** client that reconnects has to build a new `ClientCore`, because the
+   * only way to attach a different transport is to construct a new core, because `attachTransport()` is
+   * private and only `stop()` releases the old listeners. Without this option that means a **new store
+   * object per reconnect**, so a caller who cached `const store = client.store` before a reconnect holds a
+   * dead store: it stops receiving patches, with no error and no indication why.
    *
-   * Passing the previous core's store across a reconnect keeps that reference live and keeps every
-   * subscription attached. `Welcome` then arrives on the same store via `replaceRoot`, exactly as it
-   * does on a first connection.
+   * An attached core no longer needs this for a host reconnect: its transport reports the replacement socket
+   * as a fresh `open`, and the same core takes the next `Welcome`. This option still covers a standalone
+   * reconnect and a deliberate stop/start, and keeps the caller's subscriptions attached either way.
    *
    * Omit it and a fresh store is created, which is right for a first connection.
    */
@@ -168,6 +175,10 @@ export interface ClientCoreReport extends ClientReport {
   pending: number;
   state: ObservableStore['stats'];
   sequencer: { lastIssued: number; frontier: number | null };
+  /** Whether the last session ended and no later `open` has resumed it. */
+  closed: boolean;
+  /** How many times an attached transport reopened this core. `0` on a standalone core. */
+  reopens: number;
 }
 
 /**
@@ -246,13 +257,16 @@ export class ClientCore extends Emitter<ClientEvents> implements CommandSender {
   private started = false;
   private stopped = false;
   /**
-   * The session's transport has closed, so this core is one-way.
+   * Whether the current session has ended and has not been resumed.
    *
-   * The transport seam is constructor-only, so a close ends the only session this core can have: a late
-   * `Welcome` is a stray frame from a dead socket, not the start of a new session. Both platform clients
-   * agree, and each builds a new core for the next attempt rather than reviving this one.
+   * For a `standalone` transport this is one-way: the socket the client owns is gone, and a late `Welcome`
+   * on it is a stray frame. For an `attached` transport the host game replaces its socket instead of losing
+   * it, and the transport reports the replacement as a fresh `open`; that edge clears this latch and the
+   * next `Welcome` starts a new session on the same core. `stop()` is one-way for both.
    */
   private closed = false;
+  /** How many attached-transport reopens this core has seen. Diagnostic, and monotonic across sessions. */
+  private reopenCount = 0;
   /** The reason {@link stop} was called with, read back through {@link stopReason}. */
   private stoppedReason: string | null = null;
 
@@ -288,6 +302,18 @@ export class ClientCore extends Emitter<ClientEvents> implements CommandSender {
   private attachTransport(): void {
     this.detachers.push(
       this.transport.onOpen(() => {
+        // A transport that can reopen resumes a session; only `stop()` is one-way. The attached kind rides
+        // the host game's own reconnects: its socket is replaced rather than lost, which is exactly what this
+        // open event reports. The Welcome that follows starts the new session with a full state, and
+        // `handleWelcome` replaces the root the old one left behind.
+        if (this.closed && !this.stopped && this.transport.kind === 'attached') {
+          this.closed = false;
+          // Until the new Welcome arrives the session is live but not ready. Leaving the old `ready` true
+          // would let a command be stamped against a session the store no longer describes.
+          this.readyState = false;
+          this.reopenCount += 1;
+          this.emit('reopened');
+        }
         this.emit('open');
       }),
     );
@@ -482,6 +508,8 @@ export class ClientCore extends Emitter<ClientEvents> implements CommandSender {
         lastIssued: this.sequencer.lastIssued,
         frontier: this.sequencer.frontier,
       },
+      closed: this.closed,
+      reopens: this.reopenCount,
     };
   }
 
@@ -827,8 +855,9 @@ export class ClientCore extends Emitter<ClientEvents> implements CommandSender {
    * cap is refused before it is parsed or retained. A wrapper that dies on one odd message is worse than
    * one that logs it.
    *
-   * A frame that arrives after the session closed is dropped before it is parsed: the close is permanent
-   * for this core ({@link closed}), and a late `Welcome` must not re-open a session that has ended.
+   * A frame that arrives after the session closed is dropped before it is parsed ({@link closed}). An
+   * `attached` transport can clear that latch by reporting a fresh `open`, at which point the next frame is
+   * the new session's `Welcome`; a `standalone` transport cannot, so a late frame there is always a stray.
    */
   private handleRawFrame(raw: string): void {
     if (this.closed) {

@@ -132,9 +132,10 @@ type AttachedTransportEvents = {
 /**
  * The transport.
  *
- * `kind` is `'attached'` unconditionally, which is a claim the whole package rests on: the shared core must
- * never reconnect (`ClientCore` has no reconnect logic at all), never close the socket, and never answer the
- * keepalive. All three follow from this one field being correct.
+ * `kind` is `'attached'` unconditionally, which is a claim the whole package rests on: the transport never
+ * opens a second connection, never closes the host's socket, and never answers the keepalive. A host
+ * reconnect is observed as a fresh `open` edge, and the shared core resumes the session on that edge rather
+ * than dialling anything itself.
  *
  * `Emitter`'s default `onListenerError` is **not** overridden by design: it swallows, as this transport has
  * always done. A consumer's failure must not stop the other consumers, and must never reach
@@ -164,6 +165,10 @@ export class AttachedTransport extends Emitter<AttachedTransportEvents> implemen
     // rule 4.
     this.detachers.push(
       this.sink.onFrame((raw) => {
+        // A frame is proof the sink is usable, and it can arrive before the one-second readiness poll
+        // notices a replacement host socket. Sync first, so the core sees the `open` edge (and clears its
+        // closed latch) before the new session's `Welcome` is handed to it.
+        this.syncReadiness();
         this.emit('message', raw);
       }),
     );
@@ -173,7 +178,8 @@ export class AttachedTransport extends Emitter<AttachedTransportEvents> implemen
         this.lastWelcomeValue = event;
         // The room path is the only one that reaches here, and it delivers `Welcome` as a callback rather
         // than as a frame. Hand the core the same shape it would have received from the socket, or it never
-        // learns that the session started.
+        // learns that the session started. The readiness sync is the same race fix as the frame path.
+        this.syncReadiness();
         const raw = welcomeToFrame(event);
         if (raw === null) return;
         this.emit('message', raw);
@@ -359,6 +365,10 @@ export class AttachedTransport extends Emitter<AttachedTransportEvents> implemen
 
     this.detachers.push(
       this.sink.onFrame((raw) => {
+        // A frame is proof the sink is usable, and it can arrive before the one-second readiness poll
+        // notices a replacement host socket. Sync first, so the core sees the `open` edge (and clears its
+        // closed latch) before the new session's `Welcome` is handed to it.
+        this.syncReadiness();
         this.emit('message', raw);
       }),
     );
@@ -367,7 +377,8 @@ export class AttachedTransport extends Emitter<AttachedTransportEvents> implemen
         this.lastWelcomeValue = event;
         // The room path is the only one that reaches here, and it delivers `Welcome` as a callback rather
         // than as a frame. Hand the core the same shape it would have received from the socket, or it never
-        // learns that the session started.
+        // learns that the session started. The readiness sync is the same race fix as the frame path.
+        this.syncReadiness();
         const raw = welcomeToFrame(event);
         if (raw === null) return;
         this.emit('message', raw);

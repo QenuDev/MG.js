@@ -36,6 +36,7 @@ import { watchForRoomConnection } from '../../src/attach/detect.ts';
 import { bindRoomConnection } from '../../src/attach/room-connection.ts';
 import { BootstrappedClient } from '../../src/client.ts';
 import { ATOM_CACHE_KEY, resetJotaiCapture } from '../../src/jotai/bridge.ts';
+import { onNamespaceEvent } from '../../src/page/namespace.ts';
 import { installRealmOverride } from '../../src/page/override.ts';
 import type { PageRealm } from '../../src/page/realm.ts';
 
@@ -477,6 +478,65 @@ class ReplayingWelcomeRoomConnection extends NoWelcomeRoomConnection {
     return () => this.welcomeHandlers.delete(cb);
   }
 }
+
+void test('the attached raw socket survives the host replacing its socket', async () => {
+  // The reported failure: the host socket drops, the transport closes, and the core's permanent latch drops
+  // every frame from the replacement socket even though the transport reports it open. No new client is
+  // constructed here; the same core has to take the new Welcome.
+  const page = { WebSocket: FakeWebSocket } as Record<string, unknown>;
+  const restore = installRealmOverride({ page: page as unknown as PageRealm });
+  const client = makeClient(page);
+  let offNamespace: (() => void) | null = null;
+
+  try {
+    await client.start();
+    const attachment = await client.waitForAttachment();
+    assert.equal(attachment.kind, 'raw-socket');
+
+    const roomUrl = 'wss://magicgarden.gg/version/1650/api/rooms/r1/connect';
+    const first = new (page['WebSocket'] as typeof FakeWebSocket)(roomUrl);
+    const welcomeFor = (id: string, sequence: number): string =>
+      JSON.stringify({
+        type: 'Welcome',
+        selfPlayerId: id,
+        executedCommandSequence: sequence,
+        fullState: {
+          data: { players: [{ id }], hostPlayerId: id },
+          child: { data: { userSlots: [{ userId: id, data: { activityLogs: [] } }] } },
+        },
+      });
+    let opened = 0;
+    client.events.on('open', () => {
+      opened += 1;
+    });
+    await waitUntil(() => opened > 0, 'the first socket open edge');
+    first.deliver(welcomeFor('p_1', 3));
+    await waitUntil(() => client.isReady, 'the first Welcome');
+
+    const reopened: unknown[] = [];
+    offNamespace = onNamespaceEvent('reopened', (report) => reopened.push(report), page);
+
+    first.readyState = FakeWebSocket.CLOSED;
+    await waitUntil(() => client.report.closed, 'the host socket close');
+    assert.equal(client.isReady, false);
+    assert.equal(client.selfPlayerId, null, 'the dead session identity is cleared');
+
+    const second = new (page['WebSocket'] as typeof FakeWebSocket)(roomUrl);
+    // Delivered before the poll could observe the new socket: the frame itself has to produce the open
+    // edge, or the core would still be closed when the new session's Welcome arrives.
+    second.deliver(welcomeFor('p_2', 4));
+    await waitUntil(() => client.isReady && client.selfPlayerId === 'p_2', 'the second Welcome');
+    assert.equal(client.report.reopens, 1);
+    assert.equal(client.state.self?.id, 'p_2');
+    assert.equal(client.store.get('/data/players/0/id'), 'p_2');
+    assert.equal(reopened.length, 1, 'the namespace bus announces the reopen');
+    assert.equal((reopened[0] as { reopens: number }).reopens, 1);
+  } finally {
+    offNamespace?.();
+    await client.stop();
+    restore();
+  }
+});
 
 void test('a Welcome replayed at subscribe time still reaches the client', async () => {
   // The eager subscription at bind time consumes the one Welcome 1650 will ever hand out, while the

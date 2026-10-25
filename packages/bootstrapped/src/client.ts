@@ -354,6 +354,16 @@ export class BootstrappedClient {
         this.logger.trace('state change', { version: change.version, paths: change.changedPaths.length });
       }),
     );
+    this.detachers.push(
+      this.core.on('reopened', () => {
+        // Advisory to the page's other loads, not a protocol message. The report payload is what lets a
+        // second load tell this apart from a first attach.
+        emitNamespaceEvent('reopened', [this.core.report], this.page);
+        this.logger.info('mg.js session reopened after the host reconnected', {
+          reopens: this.core.report.reopens,
+        });
+      }),
+    );
   }
 
   // ------------------------------------------------------------------------------------
@@ -502,6 +512,10 @@ export class BootstrappedClient {
         socketsSeen: this.attachment?.report.socketsSeen ?? 0,
         renumberingInstalled: this.resolveAttachmentReport()?.renumberingInstalled === true,
         version: this.core.report.version,
+        // A closed client and an opened one both report `ready: false` during the gap; these two fields
+        // are what a bug report uses to tell "ended" from "resumed".
+        closed: this.core.report.closed,
+        reopens: this.core.report.reopens,
         // The same failure `lastError` reports, listed first, so the diagnostic surface and the accessor
         // cannot disagree about the most recent failure (I6).
         errors: this.errorSummaries(),

@@ -113,6 +113,8 @@ void test('buildReport carries the contract axes alongside the detail', () => {
       renumberingInstalled: true,
       version: '1169',
       errors: [],
+      closed: false,
+      reopens: 0,
     },
     detail,
   );
@@ -139,6 +141,8 @@ void test('buildReport reports a client that never attached without lying about 
       renumberingInstalled: false,
       version: '1169',
       errors: [],
+      closed: false,
+      reopens: 0,
     },
     buildDetail(input({ attachment: null })),
   );
@@ -162,6 +166,8 @@ void test('the report is JSON-safe so it can be published', () => {
       renumberingInstalled: false,
       version: '1169',
       errors: [summarizeError(toMgError(new Error('socket closed'), 'MG_SOCKET'))],
+      closed: true,
+      reopens: 2,
     },
     buildDetail(input()),
   );

@@ -27,8 +27,12 @@ import { MG_VERSION } from '../src/version.js';
 
 /** A transport that records outbound frames and lets a test inject inbound ones. */
 class FakeTransport implements Transport {
-  readonly kind: TransportKind = 'standalone';
+  readonly kind: TransportKind;
   state: TransportState = 'idle';
+
+  constructor(kind: TransportKind = 'standalone') {
+    this.kind = kind;
+  }
   readonly sent: string[] = [];
   /** When set, {@link send} throws it, which is the "the write failed" case a transport can always have. */
   failSend: Error | null = null;
@@ -50,6 +54,14 @@ class FakeTransport implements Transport {
     this.state = 'closed';
     for (const handler of this.closeHandlers) {
       handler({ code, reason, wasClean: true, wasManual: true });
+    }
+  }
+
+  /** A close the client did not ask for: the host socket died. */
+  drop(code = 1006, reason = "the host game's connection is no longer usable"): void {
+    this.state = 'closed';
+    for (const handler of this.closeHandlers) {
+      handler({ code, reason, wasClean: false, wasManual: false });
     }
   }
 
@@ -90,7 +102,7 @@ function welcome(executedCommandSequence = 10, selfPlayerId = 'p_1'): Record<str
     selfPlayerId,
     executedCommandSequence,
     fullState: {
-      data: { players: [{ id: 'p_1', coins: 100 }], chat: [], hostPlayerId: 'p_1' },
+      data: { players: [{ id: selfPlayerId, coins: 100 }], chat: [], hostPlayerId: selfPlayerId },
       child: { data: { userSlots: [{ data: { activityLogs: [] } }] } },
     },
   };
@@ -99,8 +111,9 @@ function welcome(executedCommandSequence = 10, selfPlayerId = 'p_1'): Record<str
 function makeClient(
   ackMode: AckMode = 'fifo',
   timeouts: Partial<LifecycleTimeouts> = {},
+  kind: TransportKind = 'standalone',
 ): { client: ClientCore; transport: FakeTransport } {
-  const transport = new FakeTransport();
+  const transport = new FakeTransport(kind);
   const client = new ClientCore({
     transport,
     ackMode,
@@ -344,6 +357,72 @@ describe('ClientCore: readiness', () => {
     transport.deliverJson(welcome());
     transport.state = 'closed';
     transport.close(4400, 'idle');
+    assert.equal(client.isReady, false);
+    assert.equal(client.selfPlayerId, null);
+  });
+
+  it('an attached transport reopens the core, and the next Welcome starts a new session', () => {
+    // The host game's socket is replaced, not lost. Its transport reports close and then open again; the
+    // core must treat that open as the start of a new session, or every frame from the new socket is
+    // dropped by the permanent latch.
+    const { client, transport } = makeClient('fifo', {}, 'attached');
+    const reopened: number[] = [];
+    client.on('reopened', () => reopened.push(client.report.reopens));
+    transport.deliverJson(welcome(10, 'p_1'));
+    transport.drop();
+
+    assert.equal(client.isClosed, true);
+    assert.equal(client.report.closed, true);
+    assert.equal(client.isReady, false);
+    assert.equal(client.selfPlayerId, null, 'the dead session identity is cleared at the close');
+
+    transport.open();
+    assert.equal(client.isClosed, false, 'an attached transport can resume on the same core');
+    assert.equal(client.report.closed, false);
+    assert.equal(client.report.reopens, 1);
+    assert.deepEqual(reopened, [1], 'the reopen edge is observable before the new Welcome');
+
+    transport.deliverJson(welcome(20, 'p_2'));
+    assert.equal(client.isReady, true);
+    assert.equal(client.selfPlayerId, 'p_2');
+    assert.equal(client.state.selfPlayerId, 'p_2');
+    assert.equal(client.state.self?.id, 'p_2');
+    assert.equal(client.store.get('/data/players/0/id'), 'p_2', 'the new Welcome replaced the store root');
+  });
+
+  it('an attached transport can recover from a second drop', () => {
+    const { client, transport } = makeClient('fifo', {}, 'attached');
+    for (const [sequence, id] of [[10, 'p_1'] as const, [20, 'p_2'] as const, [30, 'p_3'] as const]) {
+      transport.deliverJson(welcome(sequence, id));
+      transport.drop();
+      assert.equal(client.isClosed, true);
+      transport.open();
+      assert.equal(client.isClosed, false);
+      transport.deliverJson(welcome(sequence + 1, id));
+      assert.equal(client.selfPlayerId, id);
+    }
+    assert.equal(client.report.reopens, 3);
+  });
+
+  it('a late frame on an attached transport without an open is still dropped', () => {
+    const { client, transport } = makeClient('fifo', {}, 'attached');
+    transport.deliverJson(welcome(10, 'p_1'));
+    transport.drop();
+
+    transport.deliverJson(welcome(20, 'p_2'));
+    assert.equal(client.isReady, false);
+    assert.equal(client.selfPlayerId, null);
+    assert.equal(client.report.closed, true);
+  });
+
+  it('stop() stays one-way for an attached transport', async () => {
+    const { client, transport } = makeClient('fifo', {}, 'attached');
+    transport.deliverJson(welcome(10, 'p_1'));
+    await client.stop('done');
+    transport.open();
+    transport.deliverJson(welcome(20, 'p_2'));
+
+    assert.equal(client.isClosed, true);
     assert.equal(client.isReady, false);
     assert.equal(client.selfPlayerId, null);
   });

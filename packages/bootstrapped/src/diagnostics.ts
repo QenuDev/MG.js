@@ -50,6 +50,10 @@ export interface BootstrapReport {
  * was renamed; a caller that used to write `client.report().storage` writes `client.report.detail.storage`.
  */
 export interface BootstrappedReport extends ClientReport {
+  /** Whether the last session ended and no later `open` has resumed it. */
+  closed: boolean;
+  /** How many times the attached transport reopened the same core. */
+  reopens: number;
   /** The page-shaped snapshot, exactly as the old `report()` method built it. */
   detail: BootstrapReport;
 }
@@ -148,6 +152,8 @@ export interface ReportAxes {
   readonly renumberingInstalled: boolean;
   readonly version: string;
   readonly errors: readonly MgErrorSummary[];
+  readonly closed: boolean;
+  readonly reopens: number;
 }
 
 /**
@@ -168,6 +174,8 @@ export function buildReport(axes: ReportAxes, detail: BootstrapReport): Bootstra
     // disagree about the most recent failure (I6).
     errors: axes.errors,
     version: axes.version,
+    closed: axes.closed,
+    reopens: axes.reopens,
     detail,
   };
 }

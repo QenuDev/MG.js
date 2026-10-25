@@ -189,8 +189,8 @@ here.
 npm run verify            exit 0
   lint                     323 files, no diagnostics
   tsc -b + tests tsconfig  exit 0
-  tests                    1,243 / 0 fail
-                           art 228 · bootstrapped 243 · common 567 · headless 205
+  tests                    1,248 / 0 fail
+                           art 228 · bootstrapped 244 · common 571 · headless 205
   art:sync --check         1650 current (offline; fixture reproduces the committed data)
   docs:check               865 symbols, 46 modules
 ```
@@ -221,6 +221,15 @@ tick and uses `jotaiAtomCache` only as the label-to-atom registry; it patches no
 
 **Slot join.** `slotIndexFor` now accepts an index-aligned `userSlots` entry that carries no id at all. It still
 searches every slot for a real match and never assumes a slot that names a different player.
+
+**Reconnects.** A host socket that was replaced used to leave the core closed forever: the transport reported
+the replacement as a fresh `open`, but `ClientCore`'s close latch was permanent, so the new `Welcome` was
+dropped. The latch now clears on `open` for `transport.kind === 'attached'` only, never after `stop()`, and
+the next `Welcome` replaces the store root and identity on the same core. A frame that arrives before the
+one-second readiness poll produces the `open` edge itself, so a reconnect cannot lose its Welcome in that
+gap. `standalone` transports keep the old terminal close. `ClientCore` emits `reopened` before the new
+`open`, `client.report` gains `closed` and `reopens`, and the page namespace emits `reopened` with the core
+report.
 
 **Packaging.** `@mg.js/bootstrapped` and `@mg.js/headless` declared `"@mg.js/common": "^0.1.0"`, which excludes
 0.2.x; a normal install of 0.2.0 therefore resolved common 0.1.6. Both now require `^0.2.1`, and
