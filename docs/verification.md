@@ -240,3 +240,40 @@ The vendored protocol guide and API reference are unchanged by this release: no 
 data changed, and `docs/api-surface.json` matches its 865 symbols (the removed pre-1604 atom-write helper is
 the one symbol fewer).
 
+---
+
+## 2026-10-25: 0.2.3 — finding the Pixi constructors again after a renderer recreation
+
+0.2.2 shipped the attach, identity and reconnect fixes. This patch is one reported behaviour on top of it:
+`mg-crop-match`'s badges showed on a page load and then never came back after the master switch had been off
+long enough for the tab to lose its WebGL context. Re-enabling it logged `badges: constructors missing: Text,
+Container` for as long as the page stayed open; a refresh fixed it until the next context loss.
+
+The constructors were not missing. Pixi draws children in order, so the game appends its UI after its world:
+`GameContent` holds the night scene, the vignette, the world, and only then `uiContainer`, `stageUiRoot` and
+`cutsceneRoot`; the stage ends with `BootVisibleContent`. `deriveCtors` walked first child first with the
+documented 25 000-node budget, spent the whole budget inside the garden, and reported that the build had no
+`Text` at all. On a cold load the garden is empty, so the same walk found the version overlay before the world
+existed — which is why a refresh appeared to fix it. After a renderer recreation `capture` drops the cached
+constructors and the next re-derivation runs against a full garden, so it could never succeed again.
+
+Text is now looked up newest child first (the UI that is drawn on top is appended last), with the documented
+first-child-first order kept as the fallback for a build that puts its labels first. Sprite, graphics,
+`findNode` and `findByLabel` keep their documented order. The regression test builds a world larger than the
+search budget and a text node behind it, asserts the documented walk cannot see it, and asserts
+`tryGetCtors` finds it.
+
+```
+npm run verify            exit 0
+  lint                     323 files, no diagnostics
+  tsc -b + tests tsconfig  exit 0
+  tests                    1,250 / 0 fail
+                           art 228 · bootstrapped 246 · common 571 · headless 205
+  art:sync --check         1650 current (offline; fixture reproduces the committed data)
+  docs:check               865 symbols, 46 modules
+```
+
+The four packages and `MG_VERSION` moved to 0.2.3 together; `bootstrapped` and `headless` now require
+`@mg.js/common@^0.2.3` so an install cannot resolve the 0.2.2 core underneath a 0.2.3 bundle. No wire message,
+action or game data changed, which is why the vendored guide and API reference are untouched.
+

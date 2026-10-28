@@ -1,6 +1,6 @@
 {
   "name": "@mg.js/headless",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "type": "module",
   "description": "Standalone Magic Garden client: owns its own WebSocket, authenticates, handshakes, stays alive, reconnects, and exposes the full @mg.js/common action and state surface.",
   "main": "./dist/index.js",
@@ -33,7 +33,7 @@
     "test": "node --import tsx --test \"tests/**/*.test.ts\""
   },
   "dependencies": {
-    "@mg.js/common": "^0.2.2"
+    "@mg.js/common": "^0.2.3"
   },
   "optionalDependencies": {
     "ws": "^8.19.0"
