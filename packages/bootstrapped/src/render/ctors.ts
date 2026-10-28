@@ -478,6 +478,39 @@ export function findNode(
   predicate: (node: unknown) => boolean,
   limit = DEFAULT_FIND_LIMIT,
 ): PixiDisplayObject | null {
+  return walkNode(root, predicate, limit, false);
+}
+
+/**
+ * The same walk, visiting the last child first.
+ *
+ * That order is not arbitrary. Pixi draws children in order, so a later child is drawn on top of an
+ * earlier one; UI and overlays are therefore added *after* the world they sit over. The game in this
+ * repo is a concrete case: `GameContent` holds the night scene, the vignette, the world and then the
+ * UI, and the stage itself ends with `BootVisibleContent`. A first-child-first walk spends its whole
+ * budget inside the garden — tens of thousands of nodes — and never reaches a single UI text node, so
+ * a mod that re-derives its constructors after a WebGL context loss (when its layers and the text
+ * nodes it had measured were thrown away) concludes that this build has no `Text` at all. Reversing
+ * the child order reaches the overlay text in a few hundred visits instead.
+ *
+ * Kept narrow on purpose: this is a search-order helper, not a second public search API. Callers that
+ * want a deterministic first-child-first answer keep using {@link findNode}.
+ */
+function findNodeLastFirst(
+  root: unknown,
+  predicate: (node: unknown) => boolean,
+  limit = DEFAULT_FIND_LIMIT,
+): PixiDisplayObject | null {
+  return walkNode(root, predicate, limit, true);
+}
+
+/** The one iterative walker behind both orders. */
+function walkNode(
+  root: unknown,
+  predicate: (node: unknown) => boolean,
+  limit: number,
+  lastFirst: boolean,
+): PixiDisplayObject | null {
   if (!isObject(root)) return null;
   if (!Number.isFinite(limit) || limit <= 0) return null;
 
@@ -509,10 +542,17 @@ export function findNode(
       children = undefined;
     }
     if (!Array.isArray(children)) continue;
-    // Push in reverse so the traversal order matches a natural pre-order (first child first).
-    for (let index = children.length - 1; index >= 0; index -= 1) {
-      const child: unknown = children[index];
-      if (!visited.has(child)) stack.push(child);
+    // A stack pops in reverse push order. Push first-child-first to visit the last child first, and
+    // the other way round for a natural pre-order.
+    if (lastFirst) {
+      for (const child of children) {
+        if (!visited.has(child)) stack.push(child);
+      }
+    } else {
+      for (let index = children.length - 1; index >= 0; index -= 1) {
+        const child: unknown = children[index];
+        if (!visited.has(child)) stack.push(child);
+      }
     }
   }
 
@@ -650,7 +690,11 @@ export function deriveCtors(stage: unknown): RecoveredCtors | null {
   if (containerCtor === null) return null;
 
   const spriteNode = findNode(root, isSpriteLike);
-  const textNode = findNode(root, isTextLike);
+  // Text is the one constructor that is routinely *not* in the world subtree. UI is drawn over the
+  // world, so it is appended after it, and a first-child-first walk can spend its entire budget inside
+  // the garden before reaching the first label. Try the newest child first, then fall back to the
+  // documented order so a build that puts text before its world is unaffected.
+  const textNode = findNodeLastFirst(root, isTextLike) ?? findNode(root, isTextLike);
   if (spriteNode === null || textNode === null) return null;
 
   const spriteCtor = asConstructor<PixiDisplayObject>(constructorOf(spriteNode));

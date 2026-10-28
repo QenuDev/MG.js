@@ -292,6 +292,43 @@ void test('tryGetCtors returns a full ctor set on a populated stage', () => {
   assert.equal(hasCoreCtorSet(ctors as NonNullable<typeof ctors>), true);
 });
 
+void test('deriveCtors reaches UI text behind a world larger than the search budget', () => {
+  // The live game appends its UI after its world (GameContent holds the night scene, the vignette, the
+  // world, then the UI containers; the stage ends with BootVisibleContent). A first-child-first walk
+  // spends the whole 25 000-node budget in the garden and reports "no Text" even though the UI holds
+  // plenty of labels. That is exactly the state a mod lands in after a WebGL context loss: its layers are
+  // gone, the cache was cleared, and re-deriving has to succeed against an already-full garden.
+  resetCtorCache();
+  const world: PixiDisplayObject[] = [new FakeSprite()];
+  // Enough filler to exhaust the documented budget long before the UI child is reached.
+  for (let index = 0; index < DEFAULT_FIND_LIMIT; index += 1) {
+    world.push({} as PixiDisplayObject);
+  }
+  const stage = makeStage([makeStage(world), makeStage([new FakeText()])]);
+  setStageRoot(stage);
+
+  // Prove the order is the problem: the documented forward walk cannot see the text.
+  assert.equal(
+    findNode(stage, (node) => isTextLike(node)),
+    null,
+  );
+
+  const ctors = tryGetCtors();
+  assert.notEqual(ctors, null);
+  assert.equal(ctors?.Text, FakeText, 'the UI text must be reachable whatever the world size');
+  assert.equal(ctors?.Container, FakeContainer);
+  assert.equal(ctors?.Sprite, FakeSprite);
+  assert.equal(hasCoreCtorSet(ctors as NonNullable<typeof ctors>), true);
+});
+
+void test('deriveCtors still finds text that is placed before the world', () => {
+  // The reverse walk must be an additional route, not a replacement: a build that puts its labels first
+  // has to keep working exactly as it did.
+  resetCtorCache();
+  const stage = makeStage([makeStage([new FakeText()]), makeStage([new FakeSprite()])]);
+  assert.equal(deriveCtors(stage)?.Text, FakeText);
+});
+
 void test('deriveCtors picks the genuine Text when a Rive decoy is present', () => {
   resetCtorCache();
   // The decoys come FIRST in the display list, so a search that accepted the first `.text`-bearing node would
